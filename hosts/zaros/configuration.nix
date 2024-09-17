@@ -7,22 +7,22 @@
 {
   imports =
     [ # Include the results of the hardware scan.
+      inputs.home-manager.nixosModules.default
       ./hardware-configuration.nix
-     inputs.home-manager.nixosModules.default
-
+      ./../../modules/nvidia.nix
+      ./../../modules/gnome.nix
+      ./../../modules/hyprland.nix
+      ./../../modules/i18n.nix
     ];
-  # main-user.enable = true;
-  # main-user.userName = "felipetm";
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Bootloader.
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/sda";
-  boot.loader.grub.useOSProber = true;
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "zaros"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  nix.settings.experimental-features = ["nix-command" "flakes"];
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -32,23 +32,6 @@
   networking.networkmanager.enable = true;
 
   # Set your time zone.
-  time.timeZone = "America/Sao_Paulo";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "pt_BR.UTF-8";
-    LC_IDENTIFICATION = "pt_BR.UTF-8";
-    LC_MEASUREMENT = "pt_BR.UTF-8";
-    LC_MONETARY = "pt_BR.UTF-8";
-    LC_NAME = "pt_BR.UTF-8";
-    LC_NUMERIC = "pt_BR.UTF-8";
-    LC_PAPER = "pt_BR.UTF-8";
-    LC_TELEPHONE = "pt_BR.UTF-8";
-    LC_TIME = "pt_BR.UTF-8";
-  };
-
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
@@ -85,19 +68,21 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.felipem = {
+
+  users.users.felipemalacarne = {
     isNormalUser = true;
-    description = "Felipe Malacarne";
+    description = "felipemalacarne";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
     #  thunderbird
+	    vim
     ];
   };
 
   home-manager = {
     extraSpecialArgs = { inherit inputs; };
     users = {
-      "felipem" = import ./home.nix;
+      "felipemalacarne" = import ./home.nix;
     };
   };
 
@@ -112,8 +97,15 @@
     lf
     wget
     git
-    alacritty
+    tmux
+    xclip
+    lazygit
+    htop
+    btop
+    vscode
   ];
+
+  programs.ssh.startAgent = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
