@@ -3,8 +3,8 @@
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
-  home.username = "felipem";
-  home.homeDirectory = "/home/felipem";
+  home.username = "felipemalacarne";
+  home.homeDirectory = "/home/felipemalacarne";
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -71,11 +71,6 @@
   #
   home.sessionVariables = {
     # EDITOR = "emacs";
-  };
-
-  programs.vscode = {
-    enable = true;
-    package = pkgs.vscode.fhs;
   };
 
   # Let Home Manager install and manage itself.
