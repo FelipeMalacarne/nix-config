@@ -19,6 +19,10 @@
   # environment.
   home.packages = [
     # pkgs.vscode
+    pkgs.ripgrep
+    pkgs.fd
+    pkgs.lazygit
+    pkgs.libgcc
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     # pkgs.hello
