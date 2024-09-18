@@ -13,6 +13,7 @@
       ./../../modules/gnome.nix
       ./../../modules/hyprland.nix
       ./../../modules/i18n.nix
+      ./../../modules/nixos/fonts.nix
     ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
