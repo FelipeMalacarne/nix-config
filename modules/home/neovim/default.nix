@@ -25,7 +25,6 @@ let
     p.rust
     p.toml
     p.typescript
-    p.react
     p.yaml
   ]));
 
@@ -41,6 +40,7 @@ in
 	    lua-language-server
 	    rust-analyzer-unwrapped
 	    black
+        gcc
 	  ];
 
 	  programs.neovim = {
@@ -54,6 +54,18 @@ in
 	      treesitterWithGrammars
 	    ];
 	  };
+
+
+	  home.file."./.config/nvim/" = {
+	    source = ./nvim;
+	    recursive = true;
+	  };
+
+	  home.file."./.local/share/nvim/nix/nvim-treesitter/" = {
+    		recursive = true;
+    		source = treesitterWithGrammars;
+  	};
+
 
 
 }

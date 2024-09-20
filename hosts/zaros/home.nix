@@ -23,6 +23,7 @@
     pkgs.fd
     pkgs.lazygit
     pkgs.libgcc
+    pkgs.fish
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     # pkgs.hello
@@ -73,8 +74,12 @@
   #  /etc/profiles/per-user/felipem/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "emacs";
+     EDITOR = "nvim";
   };
+  
+  imports = [
+   ../../modules/home/neovim 
+  ];
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
