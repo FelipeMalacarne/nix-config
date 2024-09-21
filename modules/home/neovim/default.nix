@@ -41,6 +41,10 @@ in
 	    rust-analyzer-unwrapped
 	    black
         gcc
+        gopls
+        ruff
+        nixd
+        lua-language-server
 	  ];
 
 	  programs.neovim = {
