@@ -18,7 +18,7 @@
       ./../../modules/nixos/services.nix
       ./../../modules/nixos/sound.nix
 
-      ./../../modules/home/hyprland
+      ./../../modules/hyprland
     ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];

@@ -6,7 +6,7 @@
   ...
 }: {
   imports = [
-    ../../themes/Catppuccin # Catppuccin GTK and QT themes
+    ../themes/Catppuccin # Catppuccin GTK and QT themes
     ./programs/waybar
     ./programs/wlogout
     ./programs/rofi
