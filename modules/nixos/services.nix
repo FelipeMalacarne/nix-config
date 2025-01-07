@@ -15,7 +15,7 @@
     sddm = {
       enable = true;
       wayland.enable = true;
-      theme = "tokyo-night";
+      theme = "astronaut";
       settings.Theme.CursorTheme = "Bibata-Modern-Classic";
     };
   };

@@ -67,8 +67,8 @@ in
     vscode
 
     libsForQt5.qt5.qtgraphicaleffects # For sddm to function properly
-    # sddm-themes.astronaut
-    sddm-themes.tokyo-night
+    sddm-themes.astronaut
+    # sddm-themes.tokyo-night
 
     devbox # faster nix-shells
     shellify # faster nix-shells
