@@ -32,7 +32,7 @@
     ({...}: {
       home.packages = with pkgs; [
         inputs.hyprland-qtutils.packages."${pkgs.system}".default # NOTE Temp until fixed upstream
-        # blueman
+        blueman
         hyprpaper
         cliphist
         grimblast
@@ -103,8 +103,9 @@
             "NIXPKGS_ALLOW_UNFREE,1"
           ];
           exec-once = [
-            #"[workspace 1 silent] firefox"
-            #"[workspace 2 silent] alacritty"
+            "[workspace 1 silent] $term"
+            "[workspace 1 silent] $term"
+            "[workspace 2 silent] firefox"
             #"[workspace 5 silent] spotify"
             #"[workspace special silent] firefox --new-instance -P private"
             #"[workspace special silent] alacritty"
@@ -116,7 +117,7 @@
             "swaync"
             "pamixer --set-volume 50"
             # "dunst"
-            # "blueman-applet"
+            "blueman-applet"
             "nm-applet --indicator"
             "wl-clipboard-history -t"
             "${getExe' pkgs.wl-clipboard "wl-paste"} --type text --watch cliphist store" # clipboard store text data
@@ -235,21 +236,6 @@
           windowrulev2 = [
             #"noanim, class:^(Rofi)$
             "tile,title:(.*)(Godot)(.*)$"
-            "workspace 1, class:^(kitty)$"
-            "workspace 1, class:^(Alacritty)$"
-            "workspace 2, class:^(VSCodium)$"
-            "workspace 2, class:^(codium-url-handler)$"
-            "workspace 2, class:^(Code)$"
-            "workspace 2, class:^(code-url-handler)$"
-            "workspace 3, class:^(krita)$"
-            "workspace 3, title:(.*)(Godot)(.*)$"
-            "workspace 3, title:(GNU Image Manipulation Program)(.*)$"
-            "workspace 3, class:^(factorio)$"
-            "workspace 3, class:^(steam)$"
-            "workspace 5, class:^(firefox)$"
-            "workspace 6, class:^(Spotify)$"
-            "workspace 6, title:(.*)(Spotify)(.*)$"
-            "workspace 8, class:^(kitty-rebuildScript)$"
 
             "opacity 0.80 0.80,class:^(alacritty)$"
             "opacity 1.00 1.00,class:^(firefox)$"

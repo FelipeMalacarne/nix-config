@@ -12,16 +12,17 @@ in
     [ 
       inputs.home-manager.nixosModules.default
       ./hardware-configuration.nix
-      ./../../modules/nixos/nvidia.nix
+      ../../modules/nixos/nvidia.nix
       # ./../../modules/nixos/gnome.nix
-      ./../../modules/nixos/i18n.nix
-      ./../../modules/nixos/fonts.nix
-      ./../../modules/nixos/bootloader.nix
-      ./../../modules/nixos/networking.nix
-      ./../../modules/nixos/services.nix
-      ./../../modules/nixos/sound.nix
+      ../../modules/nixos/i18n.nix
+      ../../modules/nixos/fonts.nix
+      ../../modules/nixos/bootloader.nix
+      ../../modules/nixos/networking.nix
+      ../../modules/nixos/services.nix
+      ../../modules/nixos/sound.nix
+      ../../modules/nixos/bluetooth.nix
 
-      ./../../modules/hyprland
+      ../../modules/hyprland
     ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
