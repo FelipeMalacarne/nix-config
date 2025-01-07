@@ -1,6 +1,7 @@
-{ inputs, ... }:
+{ inputs, kbdLayout, ... }:
 {
   time.timeZone = "America/Sao_Paulo";
+  console.keyMap = kbdLayout;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
