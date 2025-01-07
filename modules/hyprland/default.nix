@@ -128,7 +128,7 @@
           ];
           input = {
             kb_layout = "us";
-            kb_variant = "default";
+            kb_variant = "";
             repeat_delay = 300; # or 212
             repeat_rate = 30;
 

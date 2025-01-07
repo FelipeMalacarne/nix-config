@@ -3,14 +3,17 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 { config, pkgs, inputs, ... }:
-
+let
+  sddm-themes = pkgs.callPackage ../../modules/themes/sddm/themes.nix {};
+  scripts = pkgs.callPackage ../modules/scripts {};
+in
 {
   imports =
     [ 
       inputs.home-manager.nixosModules.default
       ./hardware-configuration.nix
       ./../../modules/nixos/nvidia.nix
-      ./../../modules/nixos/gnome.nix
+      # ./../../modules/nixos/gnome.nix
       ./../../modules/nixos/i18n.nix
       ./../../modules/nixos/fonts.nix
       ./../../modules/nixos/bootloader.nix
@@ -45,6 +48,7 @@
 
   # Install firefox.
   programs.firefox.enable = true;
+  programs.steam.enable = true;
 
   nixpkgs.config.allowUnfree = true;
 
@@ -61,6 +65,13 @@
     htop
     btop
     vscode
+
+    libsForQt5.qt5.qtgraphicaleffects # For sddm to function properly
+    # sddm-themes.astronaut
+    sddm-themes.tokyo-night
+
+    devbox # faster nix-shells
+    shellify # faster nix-shells
   ];
 
   environment.sessionVariables = {

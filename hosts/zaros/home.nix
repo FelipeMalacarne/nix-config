@@ -26,6 +26,7 @@
     pkgs.lazygit
     pkgs.libgcc
     pkgs.fish
+    pkgs.neofetch
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     # pkgs.hello
