@@ -1,0 +1,8 @@
+# ignores everything
+*
+
+# except for the following files:
+
+!.gitignore
+!mocha.css
+!config.json

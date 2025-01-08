@@ -37,6 +37,8 @@ in
 	home.packages = with pkgs; [
 	    ripgrep
 	    fd
+        lazygit
+        libgcc
 	    lua-language-server
 	    rust-analyzer-unwrapped
 	    black
