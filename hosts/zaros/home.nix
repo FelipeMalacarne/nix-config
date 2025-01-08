@@ -1,5 +1,10 @@
 { config, pkgs, ... }:
-
+let
+  aliases = {
+    ll = "ls -lh";
+    nixrebuild = "sudo nixos-rebuild switch --flake $HOME/nix-config#zaros";
+  };
+in
 {
   home.username = "felipemalacarne";
   home.homeDirectory = "/home/felipemalacarne";
@@ -50,12 +55,21 @@
   home.sessionVariables = {
      EDITOR = "nvim";
   };
-  
+
   imports = [
    ../../modules/home/neovim 
   ];
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
-  programs.zsh.enable = true;
+
+  programs.zsh = {
+    enable = true;
+    shellAliases = aliases;
+  };
+
+  programs.bash = {
+    enable = true;
+    shellAliases = aliases;
+  };
 }
