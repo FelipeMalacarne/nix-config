@@ -1,65 +1,45 @@
 {
-  description = "Nixos config flake";
+  description = "template for hydenix";
 
   inputs = {
+    # User's nixpkgs - for user packages
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
-    home-manager = {
-      url = "github:nix-community/home-manager";
+
+    # Hydenix and its nixpkgs - kept separate to avoid conflicts
+    hydenix = {
+      # Available inputs:
+      # Main: github:richen604/hydenix
+      # Dev: github:richen604/hydenix/dev
+      # Commit: github:richen604/hydenix/<commit-hash>
+      # Version: github:richen604/hydenix/v1.0.0
+      url = "github:richen604/hydenix";
+    };
+
+    # Nix-index-database - for comma and command-not-found
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    hyprland-qtutils.url = "github:hyprwm/hyprland-qtutils"; # NOTE Temp until fixed upstream
   };
 
-  outputs = { 
-    self,
-    nixpkgs,
-    nixpkgs-stable,
-    ... 
-  } @ inputs:
-  let
-    # User configuration
-    username = "felipemalacarne"; 
-    terminal = "kitty"; # alacritty or kitty
-    wallpaper = "cyberpunk.png"; # see modules/themes/wallpapers
+  outputs =
+    { ... }@inputs:
+    let
+      HOSTNAME = "zaros";
 
-    # System configuration
-    hostname = "zaros"; # CHOOSE A HOSTNAME HERE (default is fine)
-    locale = "pt_BR";
-    timezone = "America/Sao_Paulo"; # REPLACE THIS WITH YOUR TIMEZONE
-    kbdLayout = "us"; # REPLACE THIS WITH YOUR KEYBOARD LAYOUT
-
-    system = "x86_64-linux"; # most users will be on 64 bit pcs (unless yours is ancient)
-    lib = nixpkgs.lib;
-    pkgs-stable = _final: _prev: {
-      stable = import nixpkgs-stable {
-        inherit system;
-        config.allowUnfree = true;
-        config.nvidia.acceptLicense = true;
+      hydenixConfig = inputs.hydenix.inputs.hydenix-nixpkgs.lib.nixosSystem {
+        inherit (inputs.hydenix.lib) system;
+        specialArgs = {
+          inherit inputs;
+        };
+        modules = [
+          ./configuration.nix
+        ];
       };
+
+    in
+    {
+      nixosConfigurations.nixos = hydenixConfig;
+      nixosConfigurations.${HOSTNAME} = hydenixConfig;
     };
-    arguments = {
-      inherit
-        pkgs-stable
-        username
-        terminal
-        wallpaper
-        system
-        locale
-        timezone
-        hostname
-        kbdLayout
-        ;
-    };
-  in {
-    nixosConfigurations.zaros = nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = (arguments // {inherit inputs;}) // inputs;
-      modules = [
-        ./hosts/zaros/configuration.nix
-        inputs.home-manager.nixosModules.default
-      ];
-    };
-  };
 }
