@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   imports = [
@@ -6,6 +6,8 @@
     ./fonts.nix
     # ./example.nix - add your modules here
   ];
+
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}"];
 
   programs = {
     direnv.enable = true;
@@ -32,8 +34,9 @@
   };
 
 
-  environment.systemPackages = [
+  environment.systemPackages = with pkgs; [
     pkgs.bolt-launcher
+    inputs.zen-browser.packages."${system}".default
     # pkgs.vscode
     # pkgs.userPkgs.vscode - your personal nixpkgs version
   ];

@@ -20,6 +20,8 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    zen-browser.url = "github:MarceColl/zen-browser-flake";
   };
 
   outputs =
