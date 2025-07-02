@@ -1,4 +1,4 @@
-{ pkgs, ...}:
+{ pkgs, ... }:
 let
 
   treesitterWithGrammars = (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
@@ -32,43 +32,43 @@ let
     name = "treesitter-parsers";
     paths = treesitterWithGrammars.dependencies;
   };
-in
-{
-	home.packages = with pkgs; [
-	    ripgrep
-	    fd
-        lazygit
-        libgcc
-	    lua-language-server
-	    rust-analyzer-unwrapped
-	    black
-        gcc
-        gopls
-        ruff
-        nixd
-        lua-language-server
-	  ];
+in {
+  home.packages = with pkgs; [
+    ripgrep
+    fd
+    lazygit
+    libgcc
+    lua-language-server
+    rust-analyzer-unwrapped
+    black
+    gcc
+    gopls
+    ruff
+    nixd
+    lua-language-server
+    tailwindcss-language-server
+    vscode-langservers-extracted
+    vtsls
+    nixfmt
+  ];
 
-	  programs.neovim = {
-	    enable = true;
-	    package = pkgs.neovim-unwrapped;
-	    vimAlias = true;
-	    coc.enable = false;
-	    withNodeJs = true;
+  programs.neovim = {
+    enable = true;
+    package = pkgs.neovim-unwrapped;
+    vimAlias = true;
+    coc.enable = false;
+    withNodeJs = true;
 
-	    plugins = [
-	      treesitterWithGrammars
-	    ];
-	  };
+    plugins = [ treesitterWithGrammars ];
+  };
 
+  home.file."./.config/nvim/" = {
+    source = ./nvim;
+    recursive = true;
+  };
 
-	  home.file."./.config/nvim/" = {
-	    source = ./nvim;
-	    recursive = true;
-	  };
-
-	  home.file."./.local/share/nvim/nix/nvim-treesitter/" = {
-    	  recursive = true;
-    	  source = treesitterWithGrammars;
-  	  };
+  home.file."./.local/share/nvim/nix/nvim-treesitter/" = {
+    recursive = true;
+    source = treesitterWithGrammars;
+  };
 }

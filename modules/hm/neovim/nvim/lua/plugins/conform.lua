@@ -19,7 +19,9 @@ return {
         blade = { "blade-formatter", "rustywind" },
         python = { "black" },
         go = { "gofmt" },
-        -- javascript = { "prettierd" },
+        javascript = { "prettierd" },
+        typescript = { "prettierd" },
+        nix = {"nixfmt"}
       },
       -- LazyVim will merge the options you set here with builtin formatters.
       -- You can also define any custom formatters here.

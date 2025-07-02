@@ -24,28 +24,22 @@
     zen-browser.url = "github:MarceColl/zen-browser-flake";
 
     firefox-addons = {
-        url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
-        inputs.nixpkgs.follows = "nixpkgs";
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs =
-    { ... }@inputs:
+  outputs = { ... }@inputs:
     let
       HOSTNAME = "zaros";
 
       hydenixConfig = inputs.hydenix.inputs.hydenix-nixpkgs.lib.nixosSystem {
         inherit (inputs.hydenix.lib) system;
-        specialArgs = {
-          inherit inputs;
-        };
-        modules = [
-          ./configuration.nix
-        ];
+        specialArgs = { inherit inputs; };
+        modules = [ ./configuration.nix ];
       };
 
-    in
-    {
+    in {
       nixosConfigurations.nixos = hydenixConfig;
       nixosConfigurations.${HOSTNAME} = hydenixConfig;
     };

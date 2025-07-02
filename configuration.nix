@@ -1,7 +1,4 @@
-{
-  inputs,
-  ...
-}:
+{ inputs, ... }:
 let
   # Package declaration
   # ---------------------
@@ -12,14 +9,11 @@ let
     overlays = [
       inputs.hydenix.lib.overlays
       (final: prev: {
-        userPkgs = import inputs.nixpkgs {
-          config.allowUnfree = true;
-        };
+        userPkgs = import inputs.nixpkgs { config.allowUnfree = true; };
       })
     ];
   };
-in
-{
+in {
 
   # Set pkgs for hydenix globally, any file that imports pkgs will use this
   nixpkgs.pkgs = pkgs;
@@ -32,9 +26,8 @@ in
 
     # === GPU-specific configurations ===
 
-    /*
-      For drivers, we are leveraging nixos-hardware
-      Most common drivers are below, but you can see more options here: https://github.com/NixOS/nixos-hardware
+    /* For drivers, we are leveraging nixos-hardware
+       Most common drivers are below, but you can see more options here: https://github.com/NixOS/nixos-hardware
     */
 
     #! EDIT THIS SECTION
@@ -60,21 +53,17 @@ in
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = ".bkp";
-    extraSpecialArgs = {
-      inherit inputs;
-    };
+    extraSpecialArgs = { inherit inputs; };
 
     #! EDIT THIS USER (must match users defined below)
-    users."felipemalacarne" =
-      { ... }:
-      {
-        imports = [
-          inputs.hydenix.lib.homeModules
-          # Nix-index-database - for comma and command-not-found
-          inputs.nix-index-database.hmModules.nix-index
-          ./modules/hm
-        ];
-      };
+    users."felipemalacarne" = { ... }: {
+      imports = [
+        inputs.hydenix.lib.homeModules
+        # Nix-index-database - for comma and command-not-found
+        inputs.nix-index-database.hmModules.nix-index
+        ./modules/hm
+      ];
+    };
   };
 
   # IMPORTANT: Customize the following values to match your preferences
@@ -86,34 +75,34 @@ in
     timezone = "America/Sao_Paulo"; # Change to your timezone
     locale = "pt_BR.UTF-8"; # Change to your preferred locale
 
-    /*
-      Optionally edit the below values, or leave to use hydenix defaults
-      visit ./modules/hm/default.nix for more options
+    /* Optionally edit the below values, or leave to use hydenix defaults
+       visit ./modules/hm/default.nix for more options
 
-      audio.enable = true; # enable audio module
-      boot = {
-        enable = true; # enable boot module
-        useSystemdBoot = true; # disable for GRUB
-        grubTheme = "Retroboot"; # or "Pochita"
-        grubExtraConfig = ""; # additional GRUB configuration
-        kernelPackages = pkgs.linuxPackages_zen; # default zen kernel
-      };
-      gaming.enable = true; # enable gaming module
-      hardware.enable = true; # enable hardware module
-      network.enable = true; # enable network module
-      nix.enable = true; # enable nix module
-      sddm = {
-        enable = true; # enable sddm module
-        theme = "Candy"; # or "Corners"
-      };
-      system.enable = true; # enable system module
+       audio.enable = true; # enable audio module
+       boot = {
+         enable = true; # enable boot module
+         useSystemdBoot = true; # disable for GRUB
+         grubTheme = "Retroboot"; # or "Pochita"
+         grubExtraConfig = ""; # additional GRUB configuration
+         kernelPackages = pkgs.linuxPackages_zen; # default zen kernel
+       };
+       gaming.enable = true; # enable gaming module
+       hardware.enable = true; # enable hardware module
+       network.enable = true; # enable network module
+       nix.enable = true; # enable nix module
+       sddm = {
+         enable = true; # enable sddm module
+         theme = "Candy"; # or "Corners"
+       };
+       system.enable = true; # enable system module
     */
   };
 
   #! EDIT THESE VALUES (must match users defined above)
   users.users.felipemalacarne = {
     isNormalUser = true; # Regular user account
-    initialPassword = "hydenix"; # Default password (CHANGE THIS after first login with passwd)
+    initialPassword =
+      "hydenix"; # Default password (CHANGE THIS after first login with passwd)
     extraGroups = [
       "wheel" # For sudo access
       "networkmanager" # For network management

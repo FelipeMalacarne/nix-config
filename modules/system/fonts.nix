@@ -1,6 +1,1 @@
-{ pkgs, ... }:
-{
-	fonts.packages = with pkgs; [
-		nerd-fonts.fira-mono
-	];
-}
+{ pkgs, ... }: { fonts.packages = with pkgs; [ nerd-fonts.fira-mono ]; }

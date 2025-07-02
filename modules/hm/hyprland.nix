@@ -1,9 +1,8 @@
-{ pkgs, lib, ... }:
-{
+{ pkgs, lib, ... }: {
   home.file = {
-      ".config/hypr/keybindings.conf" = lib.mkForce {
-        source = ./keybindings.conf;
-        force = true;
-      };
+    ".config/hypr/keybindings.conf" = lib.mkForce {
+      source = ./keybindings.conf;
+      force = true;
+    };
   };
 }
