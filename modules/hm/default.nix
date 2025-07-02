@@ -5,6 +5,7 @@
     ./hyprland.nix
     ./neovim
     ./youtube-music
+    ./firefox.nix
   ];
 
   home.packages = with pkgs; [
@@ -24,6 +25,7 @@
       };
       # disable to use my own pkg
       editors.neovim = false;
+      firefox.enable = false;
 
     /*
       ! Below are defaults
