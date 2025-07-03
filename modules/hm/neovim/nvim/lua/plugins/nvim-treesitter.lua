@@ -1,12 +1,14 @@
 return {
   "nvim-treesitter/nvim-treesitter",
-  opts = function(_, opts)
-    vim.list_extend(opts.ensure_installed, {
-      "go",
-      "gomod",
-      "gowork",
-      "gosum",
-      "templ",
-    })
-  end,
+  opts = {
+    -- On NixOS, this should be empty, as Nix manages the parsers.
+    ensure_installed = {},
+
+    -- Or you can have auto_install = false
+    auto_install = false,
+
+    highlight = {
+      enable = true,
+    },
+  },
 }

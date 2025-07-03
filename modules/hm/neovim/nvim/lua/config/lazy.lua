@@ -8,7 +8,7 @@ require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-        { "williamboman/mason-lspconfig.nvim", enabled = false },
+    { "williamboman/mason-lspconfig.nvim", enabled = false },
     { "williamboman/mason.nvim", enabled = false },
     -- import any extras modules here
     -- { import = "lazyvim.plugins.extras.lang.typescript" },
@@ -26,7 +26,10 @@ require("lazy").setup({
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
   -- install = { colorscheme = { "catppuccin", "tokyonight", "habamax" } },
-  checker = { enabled = true }, -- automatically check for plugin updates
+checker = {
+    enabled = false,
+    notify = false, -- THIS WILL DISABLE THE POPUP
+  },
   performance = {
     rtp = {
       -- disable some rtp plugins
