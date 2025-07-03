@@ -16,7 +16,7 @@
       };
     };
     # disable to use my own pkg
-    editors.neovim = false;
+    editors.enable = false;
     firefox.enable = false;
 
     /* ! Below are defaults
