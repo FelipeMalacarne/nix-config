@@ -1,5 +1,5 @@
 # hosts/zaros/default.nix
-{ inputs, pkgs, ... }:
+{ ... }:
 {
   imports = [
     ./hardware.nix
