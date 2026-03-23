@@ -3,5 +3,10 @@
 # and replace this file with the generated hardware-configuration.nix
 { ... }:
 {
-  # Placeholder — keeps the import slot valid for VM builds
+  # Placeholder filesystem — satisfies the NixOS assertion during VM builds.
+  # Replace with the output of `nixos-generate-config` at bare metal install time (Phase 3).
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
 }

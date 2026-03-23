@@ -5,8 +5,9 @@
   programs.hyprland.enable = true;
   programs.hyprland.withUWSM = true;
 
-  # Display manager — SDDM with autologin
+  # Display manager — SDDM with Wayland + autologin
   services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true; # required for Wayland/Hyprland sessions
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "felipe";
 
