@@ -38,7 +38,7 @@ Goal: consistent tooling, theming, and workflow on every machine from a single r
 
 ## Neovim Config
 
-- Lives in a **separate GitHub repo**: `github.com/FelipeMalacarne/nvim-config` (or similar)
+- Lives in a **separate GitHub repo**: `github.com/FelipeMalacarne/nvim`
 - Referenced as a flake input in `nix-config`, **not merged** into this repo
 - Reason: used independently on Arch now; should stay portable outside NixOS
 - In Home Manager: `home.file.".config/nvim".source = inputs.nvim-config;`
@@ -209,7 +209,7 @@ nix-config/
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nvim-config.url = "github:FelipeMalacarne/nvim-config";
+    nvim-config.url = "github:FelipeMalacarne/nvim";
   };
 
   outputs = { nixpkgs, nix-darwin, home-manager, ... } @ inputs: {

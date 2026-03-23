@@ -21,12 +21,24 @@ Out of scope: nvidia GPU module, saradomin server modules, darwin modules (stubs
 
 ## flake.nix
 
-**Inputs:**
-- `nixpkgs` → `github:nixos/nixpkgs/nixos-unstable`
-- `home-manager` → follows nixpkgs
-- `noctalia` → `github:noctalia-dev/noctalia-shell`, follows nixpkgs + noctalia-qs
-- `noctalia-qs` → `github:noctalia-dev/noctalia-qs`, follows nixpkgs
-- `nvim-config` → `github:FelipeMalacarne/nvim`
+**Inputs — exact wiring:**
+```nix
+nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+home-manager.url = "github:nix-community/home-manager";
+home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+noctalia-qs.url = "github:noctalia-dev/noctalia-qs";
+noctalia-qs.inputs.nixpkgs.follows = "nixpkgs";
+
+noctalia.url = "github:noctalia-dev/noctalia-shell";
+noctalia.inputs.nixpkgs.follows = "nixpkgs";
+noctalia.inputs.noctalia-qs.follows = "noctalia-qs";
+
+nvim-config.url = "github:FelipeMalacarne/nvim";
+```
+
+`noctalia-qs` must be a top-level input so its `follows` overrides are applied correctly and only one nixpkgs version ends up in the closure.
 
 **Outputs:** `nixosConfigurations.zaros` only. Darwin and saradomin added later.
 
@@ -37,12 +49,20 @@ Out of scope: nvidia GPU module, saradomin server modules, darwin modules (stubs
 ## hosts/zaros/
 
 ### `default.nix`
-- Imports: `../../modules/nixos/core.nix`, `boot.nix`, `network.nix`, `desktop.nix`
+- Imports: `./hardware.nix`, `../../modules/nixos/core.nix`, `../../modules/nixos/boot.nix`, `../../modules/nixos/network.nix`, `../../modules/nixos/desktop.nix`
 - Defines user `felipe` with `isNormalUser = true`, standard groups (`wheel`, `networkmanager`, `video`, `audio`)
+- Sets HM identity and global package options:
+  ```nix
+  home-manager.useGlobalPkgs = true;     # share nixpkgs with system — better cache hits
+  home-manager.useUserPackages = true;   # install user packages into system profile
+  home-manager.users.felipe.home.username = "felipe";
+  home-manager.users.felipe.home.homeDirectory = "/home/felipe";
+  ```
 - Wires home-manager: `home-manager.users.felipe` imports `../../modules/home/common` + `../../modules/home/desktop/hyprland` + `../../modules/home/desktop/ghostty.nix` + `../../modules/home/desktop/noctalia.nix`
 - Includes `vmVariant` block for LLVMPipe QEMU:
   ```nix
   virtualisation.vmVariant = {
+    virtualisation.diskSize = 8192; # MiB — default 512 MiB is too small for Hyprland + Noctalia
     virtualisation.qemu.options = [
       "-vga none"
       "-device virtio-gpu-pci"
@@ -78,9 +98,15 @@ Out of scope: nvidia GPU module, saradomin server modules, darwin modules (stubs
 
 ### `desktop.nix`
 - Hyprland: `programs.hyprland.enable = true`, `programs.hyprland.withUWSM = true`
-- SDDM: `services.displayManager.sddm.enable = true`, autologin for `felipe`
-- XDG portals: `xdg.portal.enable = true`, `xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-hyprland ]`
+- SDDM + autologin — use NixOS display manager abstraction:
+  ```nix
+  services.displayManager.sddm.enable = true;
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "felipe";
+  ```
+- XDG portals: `xdg.portal.enable = true`. Note: `programs.hyprland.enable` automatically adds `xdg-desktop-portal-hyprland` — do not add it again via `xdg.portal.extraPortals` to avoid duplication.
 - Noctalia system deps: `hardware.bluetooth.enable = true`, `services.power-profiles-daemon.enable = true`, `services.upower.enable = true`
+  - `networking.networkmanager.enable` is also a Noctalia dep per upstream docs but is intentionally placed in `network.nix`, not here.
 - Font packages: noto-fonts, nerd-fonts (for shell/editor)
 
 ### `gpu/nvidia.nix`
@@ -100,7 +126,7 @@ Imports all common modules:
 - `./nvim.nix`
 - `./cli.nix`
 
-Sets `home.stateVersion`.
+Sets `home.stateVersion`. Does NOT set `home.username` or `home.homeDirectory` — those are set per-host in `hosts/zaros/default.nix`.
 
 ### `common/git.nix`
 - `programs.git.enable = true`
@@ -116,12 +142,13 @@ Sets `home.stateVersion`.
 
 ### `common/nvim.nix`
 - `home.file.".config/nvim".source = inputs.nvim-config;`
+- **Constraint:** The store path is read-only and immutable. The nvim config must write caches/state to `~/.local/share/nvim` or `~/.cache/nvim` (standard lazy.nvim behavior), never into `~/.config/nvim` itself. This is the default for lazy.nvim — verify the upstream config does not override these paths.
 
 ### `common/cli.nix`
 - `programs.yazi.enable = true`
 - `programs.btop.enable = true`
 - `programs.fzf.enable = true`
-- `programs.ripgrep.enable = true` (via `home.packages`)
+- `home.packages = [ pkgs.ripgrep ]` — ripgrep has no HM module, add directly to packages
 - `programs.eza.enable = true`
 - `programs.zoxide.enable = true`
 
@@ -129,6 +156,7 @@ Sets `home.stateVersion`.
 - `wayland.windowManager.hyprland.enable = true`
 - `wayland.windowManager.hyprland.settings` with minimal monitor, exec-once, general config
 - Imports `./binds.nix`, `./rules.nix`, `./animations.nix`
+- **UWSM note:** With `programs.hyprland.withUWSM = true` set at the NixOS level, apps launched from Hyprland should be wrapped: `exec-once = uwsm app -- ghostty`. Verify against the [Hyprland UWSM docs](https://wiki.hyprland.org/Useful-Utilities/Systemd-start/) at implementation time.
 
 ### `desktop/hyprland/binds.nix`
 Minimal keybinds: super+return → ghostty, super+Q → close, super+M → exit, super+space → launcher.
@@ -145,6 +173,7 @@ Minimal animations — default Hyprland animations, easily replaced by Noctalia 
 
 ### `desktop/noctalia.nix`
 - `imports = [ inputs.noctalia.homeModules.default ]`
+  - **Note:** Verify the actual attribute name against the upstream flake before implementing (`nix flake show github:noctalia-dev/noctalia-shell`). It may be `homeModules.noctalia` or `homeManagerModules.default` rather than `homeModules.default`.
 - `programs.noctalia-shell.enable = true`
 - Full Catppuccin Mocha Material 3 color token mapping:
   - Surface colors: `base (#1e1e2e)`, `surface (#313244)`, `surface-variant (#45475a)`
@@ -179,6 +208,7 @@ nix-config/
 │   │   ├── boot.nix
 │   │   ├── network.nix
 │   │   ├── desktop.nix
+│   │   ├── audio.nix       # stub — Phase 3
 │   │   ├── gpu/
 │   │   │   └── nvidia.nix  # stub
 │   │   └── server/
@@ -193,6 +223,7 @@ nix-config/
 │       │   ├── default.nix
 │       │   ├── git.nix
 │       │   ├── zsh.nix
+│       │   ├── nvim.nix
 │       │   └── cli.nix
 │       ├── desktop/
 │       │   ├── hyprland/
@@ -228,6 +259,7 @@ Expected result: VM boots → SDDM autologins as `felipe` → Hyprland starts �
 | Item | Phase |
 |---|---|
 | nvidia.nix (RTX 4070 Super) | Phase 3 — bare metal zaros |
+| audio.nix (pipewire + wireplumber) | Phase 3 — bare metal zaros |
 | macbook / nix-darwin | Phase 1 — later |
 | saradomin / k3s | Phase 6 |
 | Noctalia user-templates (GTK, etc.) | After Phase 4 baseline |
