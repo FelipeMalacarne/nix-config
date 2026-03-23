@@ -3,11 +3,12 @@
 {
   programs.git = {
     enable = true;
-    userName = "FelipeMalacarne";
-    userEmail = "felipemalacarne012@gmail.com";
-    extraConfig = {
+    settings = {
+      user.name = "FelipeMalacarne";
+      user.email = "felipemalacarne012@gmail.com";
       init.defaultBranch = "main";
       pull.rebase = true;
+      gpg.format = null; # silence signing.format deprecation warning
     };
   };
 }

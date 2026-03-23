@@ -4,7 +4,10 @@
   # ripgrep has no Home Manager module — add directly to packages
   home.packages = [ pkgs.ripgrep ];
 
-  programs.yazi.enable = true;
+  programs.yazi = {
+    enable = true;
+    shellWrapperName = "y";
+  };
   programs.btop.enable = true;
   programs.fzf = {
     enable = true;
