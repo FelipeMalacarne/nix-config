@@ -1,5 +1,5 @@
 # modules/nixos/core.nix
-{ inputs, pkgs, ... }:
+{ inputs, ... }:
 {
   # Locale and timezone
   i18n.defaultLocale = "pt_BR.UTF-8";
