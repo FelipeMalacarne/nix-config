@@ -1,3 +1,4 @@
+# flake.nix
 {
   description = "Felipe's system configuration";
 
