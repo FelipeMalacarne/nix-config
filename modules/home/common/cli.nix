@@ -6,7 +6,10 @@
 
   programs.yazi.enable = true;
   programs.btop.enable = true;
-  programs.fzf.enable = true;
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
   programs.eza = {
     enable = true;
     enableZshIntegration = true;
