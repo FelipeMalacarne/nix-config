@@ -41,7 +41,7 @@
     virtualisation.qemu.options = [
       "-vga none"
       "-device virtio-gpu-pci" # enables LLVMPipe OpenGL — required for Hyprland
-      "-display sdl,gl=off"    # SDL display captures keyboard properly under Wayland host
+      "-display gtk,grab-on-hover=on,gl=off" # grab keyboard on hover
       "-m 4G"
       "-smp 2"
     ];
