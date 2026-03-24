@@ -12,6 +12,7 @@
   # User account
   users.users.felipe = {
     isNormalUser = true;
+    initialPassword = "nixos"; # temporary — change after bare metal install
     extraGroups = [
       "wheel"
       "networkmanager"
