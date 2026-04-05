@@ -6,6 +6,8 @@
     ../../modules/nixos/core.nix
     ../../modules/nixos/boot.nix
     ../../modules/nixos/network.nix
+    ../../modules/nixos/audio.nix
+    ../../modules/nixos/gpu/nvidia.nix
     ../../modules/nixos/desktop.nix
   ];
 
