@@ -23,6 +23,8 @@
       inputs.noctalia-qs.follows = "noctalia-qs";
     };
 
+    nvim-config.url = "github:FelipeMalacarne/nvim";
+
   };
 
   outputs =
