@@ -1,3 +1,11 @@
 # modules/nixos/audio.nix
-# TODO Phase 3 — pipewire + wireplumber (fill before bare metal install on zaros)
-{ }
+# Pipewire with ALSA + PulseAudio compatibility
+{ ... }:
+{
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+}
