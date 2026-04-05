@@ -1,5 +1,5 @@
 # hosts/zaros/default.nix
-{ ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./hardware.nix
@@ -9,9 +9,13 @@
     ../../modules/nixos/desktop.nix
   ];
 
+  networking.hostName = "zaros";
+
   # User account
+  programs.zsh.enable = true; # adds zsh to /etc/shells — required for shell = pkgs.zsh
   users.users.felipe = {
     isNormalUser = true;
+    shell = pkgs.zsh; # needed for proper session initialization
     initialPassword = "nixos"; # temporary — change after bare metal install
     extraGroups = [
       "wheel"
