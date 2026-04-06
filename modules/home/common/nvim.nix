@@ -1,9 +1,11 @@
 # modules/home/common/nvim.nix
 #
-# The nvim flake input resolves to a read-only Nix store path.
-# Lazy.nvim writes plugins/state to ~/.local/share/nvim and ~/.cache/nvim — unchanged.
+# Installs the wrapped nvim package from the nvim-config flake.
+# It bundles neovim + all LSPs/formatters/tools and manages its own config dir.
 # To update: push to the nvim repo, run `nix flake update nvim-config`, then rebuild.
-{ inputs, ... }:
+{ inputs, pkgs, ... }:
 {
-  home.file.".config/nvim".source = inputs.nvim-config;
+  home.packages = [
+    inputs.nvim-config.packages.${pkgs.system}.default
+  ];
 }

@@ -25,11 +25,30 @@
 
     nvim-config.url = "github:FelipeMalacarne/nvim";
 
+    darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
-    { nixpkgs, home-manager, ... }@inputs:
+    { nixpkgs, home-manager, darwin, ... }@inputs:
     {
+      darwinConfigurations = {
+        macbook = darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/macbook
+            home-manager.darwinModules.home-manager
+            {
+              home-manager.extraSpecialArgs = { inherit inputs; };
+            }
+          ];
+        };
+      };
+
       nixosConfigurations = {
         zaros = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
