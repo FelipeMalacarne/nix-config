@@ -1,12 +1,16 @@
 # modules/home/desktop/noctalia.nix
 #
-# Catppuccin Mocha palette mapped to Material 3 color tokens.
-# Palette reference: https://github.com/catppuccin/catppuccin#-palette
+# Maps the active colorScheme (base16) to Material 3 color tokens for Noctalia.
+# base16 → Catppuccin Mocha reference:
+#   base00=base  base02=surface0  base03=surface1  base04=surface2
+#   base05=text  base06=rosewater base08=red        base0B=green
+#   base0D=blue  base0E=mauve
 #
-# IMPORTANT: Verify the homeModules attribute name before applying:
-#   nix flake show github:noctalia-dev/noctalia-shell
-# Update the import below if it differs from homeModules.default
-{ inputs, ... }:
+# To switch themes: set `colorScheme` in the host file.
+{ inputs, config, ... }:
+let
+  p = config.colorScheme.palette;
+in
 {
   imports = [ inputs.noctalia.homeModules.default ];
 
@@ -14,51 +18,51 @@
     enable = true;
 
     colors = {
-      # === Surface / Background colors ===
-      # base: main background
-      # surface: slightly elevated surfaces (cards, containers)
-      # surface-variant: alternative surface
-      base = "#1e1e2e"; # Catppuccin Mocha base
-      surface = "#313244"; # Catppuccin Mocha surface0
-      "surface-variant" = "#45475a"; # Catppuccin Mocha surface1
+      # === Surface / Background ===
+      base               = "#${p.base00}";
+      surface            = "#${p.base02}";
+      "surface-variant"  = "#${p.base03}";
 
-      # === Accent colors (Material 3 roles) ===
-      primary = "#cba6f7"; # mauve — main brand color
-      "on-primary" = "#1e1e2e"; # text on primary
-      "primary-container" = "#45475a"; # surface1 — container for primary
-      "on-primary-container" = "#cba6f7"; # primary text in container
+      # === Primary (mauve) ===
+      primary                  = "#${p.base0E}";
+      "on-primary"             = "#${p.base00}";
+      "primary-container"      = "#${p.base03}";
+      "on-primary-container"   = "#${p.base0E}";
 
-      secondary = "#89b4fa"; # blue
-      "on-secondary" = "#1e1e2e";
-      "secondary-container" = "#313244";
-      "on-secondary-container" = "#89b4fa";
+      # === Secondary (blue) ===
+      secondary                  = "#${p.base0D}";
+      "on-secondary"             = "#${p.base00}";
+      "secondary-container"      = "#${p.base02}";
+      "on-secondary-container"   = "#${p.base0D}";
 
-      tertiary = "#a6e3a1"; # green
-      "on-tertiary" = "#1e1e2e";
-      "tertiary-container" = "#313244";
-      "on-tertiary-container" = "#a6e3a1";
+      # === Tertiary (green) ===
+      tertiary                  = "#${p.base0B}";
+      "on-tertiary"             = "#${p.base00}";
+      "tertiary-container"      = "#${p.base02}";
+      "on-tertiary-container"   = "#${p.base0B}";
 
-      error = "#f38ba8"; # red
-      "on-error" = "#1e1e2e";
-      "error-container" = "#45475a";
-      "on-error-container" = "#f38ba8";
+      # === Error (red) ===
+      error                  = "#${p.base08}";
+      "on-error"             = "#${p.base00}";
+      "error-container"      = "#${p.base03}";
+      "on-error-container"   = "#${p.base08}";
 
-      # === Text / On-surface colors ===
-      "on-surface" = "#cdd6f4"; # Catppuccin Mocha text
-      "on-surface-variant" = "#bac2de"; # subtext1
+      # === Text ===
+      "on-surface"         = "#${p.base05}";
+      "on-surface-variant" = "#${p.base04}";
 
-      # === Outline / Border colors ===
-      outline = "#6c7086"; # overlay0
-      "outline-variant" = "#45475a"; # surface1
+      # === Outline ===
+      outline         = "#${p.base04}";
+      "outline-variant" = "#${p.base03}";
 
       # === Background ===
-      background = "#1e1e2e";
-      "on-background" = "#cdd6f4";
+      background      = "#${p.base00}";
+      "on-background" = "#${p.base05}";
 
-      # === Inverse colors (for snackbars, tooltips) ===
-      "inverse-surface" = "#cdd6f4";
-      "inverse-on-surface" = "#1e1e2e";
-      "inverse-primary" = "#6c3483"; # darker mauve
+      # === Inverse (snackbars, tooltips) ===
+      "inverse-surface"    = "#${p.base05}";
+      "inverse-on-surface" = "#${p.base00}";
+      "inverse-primary"    = "#6c3483"; # darker mauve — not in base16
     };
   };
 }

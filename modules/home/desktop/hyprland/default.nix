@@ -3,7 +3,10 @@
 # UWSM note: programs.hyprland.withUWSM = true is set at the NixOS level.
 # Apps launched from Hyprland should use `uwsm app -- <appname>` in exec-once
 # and keybinds. See: https://wiki.hyprland.org/Useful-Utilities/Systemd-start/
-{ ... }:
+{ config, ... }:
+let
+  p = config.colorScheme.palette;
+in
 {
   imports = [
     ./binds.nix
@@ -17,15 +20,15 @@
       monitor = ",preferred,auto,1"; # auto-detect monitor
 
       exec-once = [
-        "uwsm app -- ghostty" # spawn a terminal on start
+        "uwsm app -- alacritty" # spawn a terminal on start
       ];
 
       general = {
         gaps_in = 5;
         gaps_out = 10;
         border_size = 2;
-        "col.active_border" = "rgba(cba6f7ff)"; # Catppuccin Mocha mauve
-        "col.inactive_border" = "rgba(6c7086ff)"; # Catppuccin Mocha overlay0
+        "col.active_border"   = "rgba(${p.base0E}ff)"; # mauve
+        "col.inactive_border" = "rgba(${p.base04}ff)"; # surface2
         layout = "dwindle";
       };
 

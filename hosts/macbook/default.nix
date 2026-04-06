@@ -33,6 +33,7 @@
     imports = [
       ../../modules/home/common/default.nix
       ../../modules/home/darwin/ssh.nix
+      ../../modules/home/desktop/alacritty.nix
     ];
     home.username = "felipeautentique";
     home.homeDirectory = "/Users/felipeautentique";

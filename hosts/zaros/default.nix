@@ -34,7 +34,7 @@
     imports = [
       ../../modules/home/common
       ../../modules/home/desktop/hyprland
-      ../../modules/home/desktop/ghostty.nix
+      ../../modules/home/desktop/alacritty.nix
       ../../modules/home/desktop/noctalia.nix
     ];
     home.username = "felipe";

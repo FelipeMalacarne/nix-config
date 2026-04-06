@@ -1,5 +1,8 @@
 # modules/home/desktop/ghostty.nix
-{ ... }:
+{ config, ... }:
+let
+  p = config.colorScheme.palette;
+in
 {
   programs.ghostty = {
     enable = true;
@@ -9,12 +12,11 @@
       window-decoration = false; # Hyprland handles decorations
       background-opacity = 0.95;
 
-      # Catppuccin Mocha — basic colors to match Noctalia theme
-      background = "1e1e2e";
-      foreground = "cdd6f4";
-      cursor-color = "f5e0dc";
-      selection-background = "313244";
-      selection-foreground = "cdd6f4";
+      background          = p.base00;
+      foreground          = p.base05;
+      cursor-color        = p.base06; # rosewater
+      selection-background = p.base02;
+      selection-foreground = p.base05;
     };
   };
 }
