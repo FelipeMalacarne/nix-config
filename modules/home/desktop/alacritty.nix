@@ -13,7 +13,7 @@ in
 
       window = {
         decorations = "None";
-        opacity = 0.875;
+        opacity = 0.9256;
       };
 
       font = {
@@ -57,11 +57,15 @@ in
       };
 
       keyboard.bindings = [
-        {
-          key = "Return";
-          mods = "Shift";
-          chars = "\\u001B\\r";
-        }
+        { key = "Return"; mods = "Shift";   chars = "\\u001B\\r"; }
+
+        # macOS word jumping (Option+Arrow)
+        { key = "Left";  mods = "Alt";     chars = "\\u001Bb"; } # backward-word
+        { key = "Right"; mods = "Alt";     chars = "\\u001Bf"; } # forward-word
+
+        # macOS line start/end (Cmd+Arrow)
+        { key = "Left";  mods = "Command"; chars = "\\u0001"; }  # Ctrl+A / beginning-of-line
+        { key = "Right"; mods = "Command"; chars = "\\u0005"; }  # Ctrl+E / end-of-line
       ];
     };
   };

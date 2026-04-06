@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -13,10 +13,7 @@
 
   nix.settings.experimental-features = "nix-command flakes";
 
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [
-      "claude-code"
-    ];
+  nixpkgs.config.allowUnfree = true;
 
   nixpkgs.hostPlatform = "aarch64-darwin";
   system.stateVersion = 4;
