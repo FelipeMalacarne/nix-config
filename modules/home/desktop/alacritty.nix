@@ -13,7 +13,7 @@ in
 
       window = {
         decorations = "None";
-        opacity = 0.9256;
+        opacity = 0.95;
       };
 
       font = {
