@@ -41,8 +41,18 @@
       ../../modules/home/darwin/ssh.nix
       ../../modules/home/desktop/alacritty.nix
       ../../modules/home/darwin/sketchybar
+      ../../modules/home/desktop/firefox.nix
     ];
     home.username = "felipeautentique";
     home.homeDirectory = "/Users/felipeautentique";
+  };
+
+  homebrew = {
+    enable = true;
+    onActivation.upgrade = true;
+
+    casks = [
+      # "firefox"
+    ];
   };
 }

@@ -32,10 +32,11 @@
 
     nix-colors.url = "github:Misterio77/nix-colors";
 
+    nur.url = "github:nix-community/NUR";
   };
 
   outputs =
-    { nixpkgs, home-manager, darwin, ... }@inputs:
+    { nixpkgs, home-manager, darwin, nur, ... }@inputs:
     {
       darwinConfigurations = {
         macbook = darwin.lib.darwinSystem {
@@ -46,6 +47,8 @@
             home-manager.darwinModules.home-manager
             {
               home-manager.extraSpecialArgs = { inherit inputs; };
+              # 2. APPLY THE OVERLAY FOR MACOS
+              nixpkgs.overlays = [ nur.overlays.default ];
             }
           ];
         };
@@ -60,6 +63,8 @@
             home-manager.nixosModules.home-manager
             {
               home-manager.extraSpecialArgs = { inherit inputs; };
+              # APPLY THE OVERLAY FOR ZAROS (Optional but recommended)
+              nixpkgs.overlays = [ nur.overlays.default ];
             }
           ];
         };
@@ -72,6 +77,8 @@
             home-manager.nixosModules.home-manager
             {
               home-manager.extraSpecialArgs = { inherit inputs; };
+              # APPLY THE OVERLAY FOR SARADOMIN (Optional but recommended)
+              nixpkgs.overlays = [ nur.overlays.default ];
             }
           ];
         };

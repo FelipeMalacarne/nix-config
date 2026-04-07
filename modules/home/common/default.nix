@@ -11,6 +11,7 @@
 
   # Default theme — override per-host by setting colorScheme in the host file
   colorScheme = lib.mkDefault inputs.nix-colors.colorSchemes.catppuccin-mocha;
+  # colorScheme = lib.mkDefault inputs.nix-colors.colorSchemes.gruvbox-dark-hard;
 
   # stateVersion must match or be lower than the system stateVersion
   # See: https://nix-community.github.io/home-manager/options.xhtml#opt-home.stateVersion
