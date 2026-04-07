@@ -31,11 +31,17 @@
       mouse_action2 = "resize";
       mouse_drop_action = "swap";
       external_bar = "all:48";
-      # yabai -m rule --add app="^(System Settings|System Information|Activity Monitor|FaceTime|Screen Sharing|Calculator|Stickies|TinkerTool|Progressive Downloader|Transmission|Airflow)$" manage=off
-      #
-      # yabai -m signal --add event=window_created action="sketchybar -m --trigger window_change &> /dev/null"
-      # yabai -m signal --add event=window_destroyed action="sketchybar -m --trigger window_change &> /dev/null"
-      # yabai -m signal --add event=window_focused action="sketchybar --trigger window_focus"
     };
+
+    extraConfig = ''
+      yabai -m rule --add app="^(System Settings|System Information|Activity Monitor|FaceTime|Screen Sharing|Calculator|Stickies|TinkerTool|Progressive Downloader|Transmission|Airflow)$" manage=off
+
+      # Automatically focus the window under the mouse when a window is closed
+      yabai -m signal --add event=window_destroyed action="yabai -m window --focus mouse 2>/dev/null || yabai -m window --focus recent 2>/dev/null"
+
+      # Do the same if you completely quit or hide an application
+      yabai -m signal --add event=application_closed action="yabai -m window --focus mouse 2>/dev/null || yabai -m window --focus recent 2>/dev/null"
+      yabai -m signal --add event=application_hidden action="yabai -m window --focus mouse 2>/dev/null || yabai -m window --focus recent 2>/dev/null"
+    '';
   };
 }

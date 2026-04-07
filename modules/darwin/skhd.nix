@@ -2,7 +2,9 @@
 {
   services.skhd.enable = true;
   services.skhd.skhdConfig = ''
-    alt - w : yabai -m window --close
+    # alt - w : yabai -m window --close
+    alt - w : skhd -k "cmd - w"
+    alt + shift - w : skhd -k "cmd - q"
 
     # focus window
     alt - h : yabai -m window --focus west
@@ -101,6 +103,8 @@
 
     # open a new iTerm window
     alt - return : open -na Alacritty
+    alt + shift - b : open -na Firefox
+
     # Reload yabai and skhd config instantly
     ctrl + alt + cmd - r : launchctl stop org.nixos.yabai && launchctl start org.nixos.yabai & launchctl stop org.nixos.skhd && launchctl start org.nixos.skhd
   '';
