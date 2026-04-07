@@ -1,3 +1,103 @@
-# modules/darwin/skhd.nix
-# TODO Phase 1 — macbook only
-{ }
+{ ... }:
+{
+  services.skhd.enable = true;
+  services.skhd.skhdConfig = ''
+    # focus window
+    alt - h : yabai -m window --focus west
+    alt - j : yabai -m window --focus south
+    alt - k : yabai -m window --focus north
+    alt - l : yabai -m window --focus east
+
+    # swap managed window
+    alt + shift - h : yabai -m window --swap west
+    alt + shift - j : yabai -m window --swap south
+    alt + shift - k : yabai -m window --swap north
+    alt + shift - l : yabai -m window --swap east
+
+    # move managed window and split
+    cmd + shift - h : yabai -m window --warp west
+    cmd + shift - j : yabai -m window --warp south
+    cmd + shift - k : yabai -m window --warp north
+    cmd + shift - l : yabai -m window --warp east
+
+    # rotate layout clockwise
+    alt + shift - r : yabai -m space --rotate 270
+
+    # flip layout
+    alt + shift - x : yabai -m space --mirror x-axis
+    alt + shift - y : yabai -m space --mirror y-axis
+
+    # increase window size
+    alt + shift - a : yabai -m window --resize left:-48:0
+    alt + shift - d : yabai -m window --resize right:48:0
+    alt + shift - w : yabai -m window --resize top:0:-48
+    alt + shift - s : yabai -m window --resize bottom:0:48
+
+    # decrease window size
+    cmd + shift - a : yabai -m window --resize left:48:0
+    cmd + shift - d : yabai -m window --resize right:-48:0
+    cmd + shift - w : yabai -m window --resize top:0:48
+    cmd + shift - s : yabai -m window --resize bottom:0:-48
+
+    # toggle window zoom
+    alt - d : yabai -m window --toggle zoom-parent
+    alt - f : yabai -m window --toggle zoom-fullscreen
+
+    # balance size of windows
+    shift + alt - 0 : yabai -m space --balance
+
+    # -----------------------------------------------------------------------------
+
+    # float / unfloat window and center on screen
+    alt - t : yabai -m window --toggle float --grid 8:8:1:1:6:6
+
+    # toggle sticky(+float), topmost, picture-in-picture
+    # alt - p : yabai -m window --toggle sticky --toggle topmost --toggle pip
+
+    # move floating window
+    ctrl + shift - a : yabai -m window --move rel:-12:0
+    ctrl + shift - d : yabai -m window --move rel:12:0
+    ctrl + shift - w : yabai -m window --move rel:0:-12
+    ctrl + shift - s : yabai -m window --move rel:0:12
+
+    # make floating window fill screen
+    ctrl + alt - up     : yabai -m window --grid 1:1:0:0:1:1
+    ctrl + alt - down     : yabai -m window --grid 8:8:1:1:6:6
+    ctrl + alt - left   : yabai -m window --grid 1:2:0:0:1:1
+    ctrl + alt - right   : yabai -m window --grid 1:2:1:0:1:1
+
+    # toggle window split type
+    alt - e : yabai -m window --toggle split
+
+    # send window to desktop and follow focus
+    ctrl + shift - z : yabai -m window --space next; yabai -m space --focus prev
+    ctrl + shift - x : yabai -m window --space next; yabai -m space --focus next
+    ctrl + shift - 1 : yabai -m window --space 1
+    ctrl + shift - 2 : yabai -m window --space 2
+    ctrl + shift - 3 : yabai -m window --space 3
+    ctrl + shift - 4 : yabai -m window --space 4
+    ctrl + shift - 5 : yabai -m window --space 5
+    ctrl + shift - 6 : yabai -m window --space 6
+    ctrl + shift - 7 : yabai -m window --space 7
+    ctrl + shift - 8 : yabai -m window --space 8
+    ctrl + shift - 9 : yabai -m window --space 9
+    ctrl + shift - 0 : yabai -m window --space 10
+
+    # focus monitor
+    ctrl + alt - z  : yabai -m display --focus prev
+    ctrl + alt - x  : yabai -m display --focus next
+    ctrl + alt - 1  : yabai -m display --focus 1
+    ctrl + alt - 2  : yabai -m display --focus 2
+    ctrl + alt - 3  : yabai -m display --focus 3
+
+    # send window to monitor and follow focus
+    # ctrl + cmd - c  : yabai -m window --display next; yabai -m display --focus next
+    # ctrl + cmd - 1  : yabai -m window --display 1; yabai -m display --focus 1
+
+    # set insertion point in focused container
+    # ctrl + alt - h : yabai -m window --insert west
+
+    # open a new iTerm window
+    alt - return : open -na Alacritty
+  '';
+}
