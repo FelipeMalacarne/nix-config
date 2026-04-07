@@ -6,7 +6,7 @@
     config = {
       layout = "bsp";
       window_placement = "second_child";
-      mouse_follows_focus = "off";
+      mouse_follows_focus = "on";
       focus_follows_mouse = "off";
       window_origin_display = "default";
       window_zoom_persist = "off";
@@ -31,14 +31,11 @@
       mouse_action2 = "resize";
       mouse_drop_action = "swap";
       external_bar = "all:48";
-
       # yabai -m rule --add app="^(System Settings|System Information|Activity Monitor|FaceTime|Screen Sharing|Calculator|Stickies|TinkerTool|Progressive Downloader|Transmission|Airflow)$" manage=off
       #
       # yabai -m signal --add event=window_created action="sketchybar -m --trigger window_change &> /dev/null"
       # yabai -m signal --add event=window_destroyed action="sketchybar -m --trigger window_change &> /dev/null"
       # yabai -m signal --add event=window_focused action="sketchybar --trigger window_focus"
-
-      #
     };
   };
 }
