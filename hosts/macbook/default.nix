@@ -37,10 +37,10 @@
   home-manager.backupFileExtension = "backup";
   home-manager.users.felipeautentique = {
     imports = [
-      ../../modules/home/common/default.nix
+      ../../modules/home/common
       ../../modules/home/darwin/ssh.nix
-      ../../modules/home/desktop/alacritty.nix
       ../../modules/home/darwin/sketchybar
+      ../../modules/home/desktop/alacritty.nix
       ../../modules/home/desktop/firefox.nix
     ];
     home.username = "felipeautentique";

@@ -7,6 +7,7 @@
     ./zsh.nix
     ./nvim.nix
     ./cli.nix
+    ./btop.nix
   ];
 
   # Default theme — override per-host by setting colorScheme in the host file
