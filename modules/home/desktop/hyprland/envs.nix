@@ -9,6 +9,7 @@
       "XCURSOR_THEME,Bibata-Modern-Classic"
       "XCURSOR_SIZE,22"
       "TERMINAL,alacritty"
+      "QT_QPA_PLATFORMTHEME,kde"
     ];
   };
 }

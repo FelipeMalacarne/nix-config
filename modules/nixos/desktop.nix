@@ -32,4 +32,8 @@
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
   ];
+
+  environment.systemPackages = with pkgs; [
+    kdePackages.qtsvg
+  ];
 }

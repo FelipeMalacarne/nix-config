@@ -40,6 +40,7 @@
       ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
       ../../modules/home/desktop/steam.nix
+      ../../modules/home/desktop/dolphin.nix
     ];
     home.username = "felipe";
     home.homeDirectory = "/home/felipe";
