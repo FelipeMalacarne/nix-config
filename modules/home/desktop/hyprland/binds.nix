@@ -3,32 +3,39 @@
 {
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
+    "$ipc" = "qs -c noctalia-shell ipc call";
+    "$terminal" = "uwsm app -- alacritty";
 
     bind = [
-      "$mod, Return, exec, uwsm app -- alacritty" # UWSM wraps apps when withUWSM = true
-      "$mod, Q, killactive"
-      "$mod, M, exit"
+      "$mod, Return, exec, $terminal"
+      "$mod, W, killactive"
       "$mod, F, fullscreen"
       "$mod, V, togglefloating"
+      "$mod, Space, exec, $ipc launcher toggle"
+      "$mod, C, exec, $ipc controlCenter toggle"
+      "$mod, comma, exec, $ipc settings toggle"
 
-      # App launcher — requires a launcher installed (e.g. rofi, fuzzel, or Noctalia's built-in)
-      # Noctalia may provide its own launcher — check its docs and update this bind accordingly
-      "$mod, Space, exec, uwsm app -- fuzzel"
-
-      # Focus movement
+      # Focus
       "$mod, H, movefocus, l"
       "$mod, L, movefocus, r"
       "$mod, K, movefocus, u"
       "$mod, J, movefocus, d"
 
-      # Workspace switching
+      # Move windows
+      "$mod SHIFT, H, movewindow, l"
+      "$mod SHIFT, L, movewindow, r"
+      "$mod SHIFT, K, movewindow, u"
+      "$mod SHIFT, J, movewindow, d"
+
+      # Workspaces
       "$mod, 1, workspace, 1"
       "$mod, 2, workspace, 2"
       "$mod, 3, workspace, 3"
       "$mod, 4, workspace, 4"
       "$mod, 5, workspace, 5"
+      "$mod, 6, workspace, 6"
+      "$mod, 7, workspace, 7"
 
-      # Move window to workspace
       "$mod SHIFT, 1, movetoworkspace, 1"
       "$mod SHIFT, 2, movetoworkspace, 2"
       "$mod SHIFT, 3, movetoworkspace, 3"
@@ -40,5 +47,15 @@
       "$mod, mouse:272, movewindow"
       "$mod, mouse:273, resizewindow"
     ];
+
+    bindel = [
+      ", XF86AudioRaiseVolume, exec, $ipc volume increase"
+      ", XF86AudioLowerVolume, exec, $ipc volume decrease"
+    ];
+
+    bindl = [
+      ", XF86AudioMute, exec, $ipc volume muteOutput"
+    ];
+
   };
 }
