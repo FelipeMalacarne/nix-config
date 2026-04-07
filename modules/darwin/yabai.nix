@@ -21,7 +21,7 @@
       split_ratio = 0.50;
       split_type = "auto";
       auto_balance = "off";
-      top_padding = 10;
+      top_padding = 48;
       bottom_padding = 10;
       left_padding = 10;
       right_padding = 10;
