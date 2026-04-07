@@ -14,6 +14,7 @@ in
     ./animations.nix
     ./envs.nix
     ./monitors.nix
+    ./input.nix
   ];
 
   wayland.windowManager.hyprland = {
@@ -33,21 +34,40 @@ in
         layout = "dwindle";
       };
 
+      decoration = {
+        rounding = 20;
+        rounding_power = 2;
+
+        shadow = {
+          enabled = true;
+          range = 4;
+          render_power = 3;
+          color = "rgba(1a1a1aee)";
+        };
+
+        blur = {
+          enabled = true;
+          size = 3;
+          passes = 2;
+          vibrancy = 0.1696;
+        };
+      };
+
+      layerrule = {
+        name = "noctalia";
+        "match:namespace" = "noctalia-background-.*";
+        blur = true;
+        ignore_alpha = 0.5;
+      };
+
+      misc =  {
+        force_default_wallpaper = 0;
+        disable_hyprland_logo = true;
+      };
+
       dwindle = {
         pseudotile = true;
         preserve_split = true;
-      };
-
-      input = {
-        kb_layout = "us";
-        kb_variant = "intl";
-        follow_mouse = 1;
-        touchpad.natural_scroll = false;
-      };
-
-      misc = {
-        force_default_wallpaper = 0;
-        disable_hyprland_logo = true;
       };
     };
   };
