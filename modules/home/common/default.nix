@@ -8,6 +8,7 @@
     ./nvim.nix
     ./cli.nix
     ./btop.nix
+    ./dev-tools.nix
   ];
 
   # Default theme — override per-host by setting colorScheme in the host file

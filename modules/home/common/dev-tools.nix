@@ -1,0 +1,20 @@
+{ pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    # --- Core Languages ---
+    go
+    nodejs
+    corepack
+    python3
+    python3Packages.pip
+
+    # --- Essential CLI Utilities ---
+    ripgrep
+    fd
+    fzf
+    jq
+    bat
+    lazygit
+  ];
+}
