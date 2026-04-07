@@ -5,6 +5,7 @@
     ../../modules/darwin/yabai.nix
     ../../modules/darwin/skhd.nix
     ../../modules/darwin/sketchybar.nix
+    ../../modules/darwin/borders.nix
   ];
 
   environment.systemPackages = with pkgs; [
