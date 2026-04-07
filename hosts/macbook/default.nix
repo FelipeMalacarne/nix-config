@@ -4,6 +4,7 @@
   imports = [
     ../../modules/darwin/yabai.nix
     ../../modules/darwin/skhd.nix
+    ../../modules/darwin/sketchybar.nix
   ];
 
   environment.systemPackages = with pkgs; [
@@ -24,6 +25,11 @@
   };
 
   system.primaryUser = "felipeautentique";
+  system.defaults = {
+    NSGlobalDomain = {
+      _HIHideMenuBar = true;
+    };
+  };
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
@@ -33,6 +39,7 @@
       ../../modules/home/common/default.nix
       ../../modules/home/darwin/ssh.nix
       ../../modules/home/desktop/alacritty.nix
+      ../../modules/home/darwin/sketchybar
     ];
     home.username = "felipeautentique";
     home.homeDirectory = "/Users/felipeautentique";
