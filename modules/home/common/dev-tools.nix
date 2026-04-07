@@ -5,7 +5,6 @@
     # --- Core Languages ---
     go
     nodejs
-    corepack
     python3
     python3Packages.pip
 
