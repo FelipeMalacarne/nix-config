@@ -34,6 +34,7 @@
       ../../modules/home/desktop/hyprland
       ../../modules/home/desktop/ghostty.nix
       ../../modules/home/desktop/noctalia.nix
+      ../../modules/home/desktop/wallpaper.nix
     ];
     home.username = "felipe";
     home.homeDirectory = "/home/felipe";

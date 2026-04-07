@@ -27,14 +27,17 @@
     ];
   };
 
-  home-manager.useGlobalPkgs = true; 
-  home-manager.useUserPackages = true;
+  # Home Manager wiring
+  home-manager.useGlobalPkgs = true; # share nixpkgs with system — better cache hits
+  home-manager.useUserPackages = true; # install user packages into system profile
+  home-manager.backupFileExtension = "bak"; # back up conflicting files instead of failing
   home-manager.users.felipe = {
     imports = [
       ../../modules/home/common
       ../../modules/home/desktop/hyprland
       ../../modules/home/desktop/alacritty.nix
       ../../modules/home/desktop/noctalia.nix
+      ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
       ../../modules/home/desktop/steam.nix
     ];
