@@ -5,7 +5,7 @@
     "$mod" = "SUPER";
 
     bind = [
-      "$mod, Return, exec, uwsm app -- ghostty" # UWSM wraps apps when withUWSM = true
+      "$mod, Return, exec, uwsm app -- alacritty" # UWSM wraps apps when withUWSM = true
       "$mod, Q, killactive"
       "$mod, M, exit"
       "$mod, F, fullscreen"

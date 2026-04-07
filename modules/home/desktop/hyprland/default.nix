@@ -12,15 +12,16 @@ in
     ./binds.nix
     ./rules.nix
     ./animations.nix
+    ./envs.nix
+    ./monitors.nix
   ];
 
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
-      monitor = ",preferred,auto,1"; # auto-detect monitor
 
       exec-once = [
-        "uwsm app -- alacritty" # spawn a terminal on start
+        "uwsm app -- alacritty"
       ];
 
       general = {
@@ -38,13 +39,14 @@ in
       };
 
       input = {
-        kb_layout = "br"; # Brazilian ABNT2 keyboard
+        kb_layout = "us";
+        kb_variant = "intl";
         follow_mouse = 1;
         touchpad.natural_scroll = false;
       };
 
       misc = {
-        force_default_wallpaper = 0; # disable Hyprland anime wallpaper
+        force_default_wallpaper = 0;
         disable_hyprland_logo = true;
       };
     };
