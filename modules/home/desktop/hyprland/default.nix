@@ -15,21 +15,18 @@ in
     ./envs.nix
     ./monitors.nix
     ./input.nix
+    ./autostart.nix
   ];
 
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
 
-      exec-once = [
-        "uwsm app -- alacritty"
-      ];
-
       general = {
         gaps_in = 5;
         gaps_out = 10;
         border_size = 2;
-        "col.active_border"   = "rgba(${p.base0E}ff)"; # mauve
+        "col.active_border" = "rgba(${p.base0E}ff)"; # mauve
         "col.inactive_border" = "rgba(${p.base04}ff)"; # surface2
         layout = "dwindle";
       };
@@ -60,7 +57,7 @@ in
         ignore_alpha = 0.5;
       };
 
-      misc =  {
+      misc = {
         force_default_wallpaper = 0;
         disable_hyprland_logo = true;
       };
