@@ -3,14 +3,14 @@
 {
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
-    "$ipc" = "qs -c noctalia-shell ipc call";
+    "$ipc" = "noctalia-shell ipc call";
     "$terminal" = "uwsm app -- alacritty";
 
     bind = [
       "$mod, Return, exec, $terminal"
       "$mod, W, killactive"
       "$mod, F, fullscreen"
-      "$mod, V, togglefloating"
+      "$mod, T, togglefloating"
       "$mod, Space, exec, $ipc launcher toggle"
       "$mod, C, exec, $ipc controlCenter toggle"
       "$mod, comma, exec, $ipc settings toggle"

@@ -18,7 +18,7 @@ in
 
       font = {
         normal = { family = "FiraCode Nerd Font Mono"; style = "Regular"; };
-        size = 13.0;
+        size = 10.0;
       };
 
       colors = {
