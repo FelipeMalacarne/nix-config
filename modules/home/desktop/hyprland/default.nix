@@ -3,20 +3,35 @@
 # UWSM note: programs.hyprland.withUWSM = true is set at the NixOS level.
 # Apps launched from Hyprland should use `uwsm app -- <appname>` in exec-once
 # and keybinds. See: https://wiki.hyprland.org/Useful-Utilities/Systemd-start/
-{ config, ... }:
+{ config, pkgs, ... }:
 let
   p = config.colorScheme.palette;
 in
 {
   imports = [
+    ./autostart.nix
     ./binds.nix
     ./rules.nix
     ./animations.nix
     ./envs.nix
     ./monitors.nix
     ./input.nix
-    ./autostart.nix
   ];
+
+  home.pointerCursor = {
+    package = pkgs.bibata-cursors;
+    name = "Bibata-Modern-Classic";
+    size = 16;
+    gtk.enable = true;
+    x11.enable = true;
+  };
+
+  # UWSM launches Hyprland via systemd, so cursor env vars must be in the
+  # systemd user session — the hyprland env = [...] block only reaches children.
+  systemd.user.sessionVariables = {
+    XCURSOR_THEME = "Bibata-Modern-Classic";
+    XCURSOR_SIZE = "22";
+  };
 
   wayland.windowManager.hyprland = {
     enable = true;

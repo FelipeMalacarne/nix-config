@@ -9,6 +9,7 @@
     ../../modules/nixos/audio.nix
     ../../modules/nixos/gpu/nvidia.nix
     ../../modules/nixos/desktop.nix
+    ../../modules/nixos/steam.nix
   ];
 
   networking.hostName = "zaros";
@@ -35,9 +36,21 @@
       ../../modules/home/desktop/alacritty.nix
       ../../modules/home/desktop/noctalia.nix
       ../../modules/home/desktop/firefox.nix
+      ../../modules/home/desktop/steam.nix
     ];
     home.username = "felipe";
     home.homeDirectory = "/home/felipe";
+  };
+
+  programs.firefox.enable = true;
+
+  fileSystems."/mnt/games" = {
+    device = "/dev/disk/by-uuid/8701a071-fed6-475b-a14c-40ef8e46e76a";
+    fsType = "ext4";
+    options = [
+      "defaults"
+      "nofail"
+    ];
   };
 
   system.stateVersion = "24.11";

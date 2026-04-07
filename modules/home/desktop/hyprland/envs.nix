@@ -6,7 +6,8 @@
       "LIBVA_DRIVER_NAME,nvidia"
       "__GLX_VENDOR_LIBRARY_NAME,nvidia"
       "GDK_SCALE,1"
-      "XCURSOR_SIZE,24"
+      "XCURSOR_THEME,Bibata-Modern-Classic"
+      "XCURSOR_SIZE,22"
       "TERMINAL,alacritty"
     ];
   };
