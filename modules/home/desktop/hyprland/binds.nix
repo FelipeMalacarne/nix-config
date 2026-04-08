@@ -1,10 +1,13 @@
 # modules/home/desktop/hyprland/binds.nix
 { config, ... }:
+let
+  term = config.desktop.terminal.exec;
+in
 {
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
     "$ipc" = "noctalia-shell ipc call";
-    "$terminal" = config.desktop.terminal.exec;
+    "$terminal" = term;
 
     bind = [
       "$mod, Return, exec, $terminal"
@@ -41,6 +44,11 @@
       "$mod SHIFT, 3, movetoworkspace, 3"
       "$mod SHIFT, 4, movetoworkspace, 4"
       "$mod SHIFT, 5, movetoworkspace, 5"
+
+      # TUI apps
+      "$mod SHIFT, F, exec, ${term} -e yazi"
+      "$mod SHIFT, T, exec, ${term} -e btop"
+      "$mod SHIFT, I, exec, ${term} -e bash -c 'fastfetch; read -rp \"Press enter to close...\"'"
     ];
 
     bindm = [

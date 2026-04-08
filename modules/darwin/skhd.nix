@@ -109,6 +109,11 @@ in
     alt - return : ${termCmd}
     alt + shift - b : open -na Firefox
 
+    # TUI apps
+    alt + shift - f : ${termCmd} --args -e yazi
+    alt + shift - t : ${termCmd} --args -e btop
+    alt + shift - i : ${termCmd} --args -e fastfetch
+
     # Reload yabai and skhd config instantly
     ctrl + alt + cmd - r : launchctl stop org.nixos.yabai && launchctl start org.nixos.yabai & launchctl stop org.nixos.skhd && launchctl start org.nixos.skhd
   '';
