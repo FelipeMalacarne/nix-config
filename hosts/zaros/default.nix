@@ -10,6 +10,7 @@
     ../../modules/nixos/gpu/nvidia.nix
     ../../modules/nixos/desktop.nix
     ../../modules/nixos/steam.nix
+    ../../modules/nixos/tailscale.nix
   ];
 
   networking.hostName = "zaros";
@@ -41,6 +42,7 @@
       ../../modules/home/desktop/firefox.nix
       ../../modules/home/desktop/steam.nix
       ../../modules/home/desktop/dolphin.nix
+      ../../modules/home/desktop/ghostty.nix
     ];
 
     home = {

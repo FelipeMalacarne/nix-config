@@ -7,9 +7,24 @@ in
 {
   home.packages = with pkgs; [
     kdePackages.dolphin
+    swayimg
+    kdePackages.kde-cli-tools
     kdePackages.qtsvg
     kdePackages.breeze-icons
   ];
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "image/jpeg"    = "swayimg.desktop";
+      "image/png"     = "swayimg.desktop";
+      "image/gif"     = "swayimg.desktop";
+      "image/webp"    = "swayimg.desktop";
+      "image/bmp"     = "swayimg.desktop";
+      "image/tiff"    = "swayimg.desktop";
+      "image/svg+xml" = "swayimg.desktop";
+    };
+  };
 
   qt = {
     enable = true;
