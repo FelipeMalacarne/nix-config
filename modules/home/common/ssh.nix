@@ -1,5 +1,5 @@
 # modules/home/common/ssh.nix
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 {
   programs.ssh = {
     enable = true;
@@ -15,6 +15,14 @@
         hostname = "ssh.github.com";
         port = 443;
         user = "git";
+      };
+
+      "github-autentique" = {
+        hostname = "ssh.github.com";
+        port = 443;
+        user = "git";
+        identityFile = "${config.home.homeDirectory}/repos/nix-config/keys/bitbaut.pub";
+        extraOptions.IdentitiesOnly = "yes";
       };
 
       "bitbucket.org" = {
