@@ -37,7 +37,8 @@ in
           font-family      = "FiraCode Nerd Font Mono";
           font-size        = 10;
           background-opacity = 0.95;
-          window-decoration  = false;
+          window-decoration        = false;
+          confirm-close-surface    = false;
 
           background           = p.base00;
           foreground           = p.base05;
