@@ -55,14 +55,5 @@
 
   programs.firefox.enable = true;
 
-  fileSystems."/mnt/games" = {
-    device = "/dev/disk/by-uuid/8701a071-fed6-475b-a14c-40ef8e46e76a";
-    fsType = "ext4";
-    options = [
-      "defaults"
-      "nofail"
-    ];
-  };
-
   system.stateVersion = "24.11";
 }
