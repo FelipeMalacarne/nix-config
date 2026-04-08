@@ -75,12 +75,19 @@ in
         };
       };
 
-      layerrule = {
-        name = "noctalia";
-        "match:namespace" = "noctalia-background-.*";
-        blur = true;
-        ignore_alpha = 0.5;
-      };
+      layerrule = [
+        {
+          name = "noctalia";
+          "match:namespace" = "noctalia-background-.*";
+          blur = true;
+          ignore_alpha = 0.5;
+        }
+        {
+          name = "noctalia-shell-region";
+          "match:namespace" = "noctalia-shell:regionSelector";
+          no_anim = true;
+        }
+      ];
 
       misc = {
         force_default_wallpaper = 0;

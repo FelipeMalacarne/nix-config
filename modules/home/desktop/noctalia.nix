@@ -6,12 +6,28 @@
 #   base05=text  base08=red       base0B=green     base0D=blue  base0E=mauve
 #
 # To switch themes: set `colorScheme` in the host file.
-{ inputs, config, ... }:
+{
+  inputs,
+  pkgs,
+  config,
+  ...
+}:
 let
   p = config.colorScheme.palette;
 in
 {
   imports = [ inputs.noctalia.homeModules.default ];
+
+  home.packages = with pkgs; [
+    # screnshot plugin
+    grim
+    imagemagick
+    swappy
+    tesseract
+    xdg-utils
+    jq
+    wf-recorder
+  ];
 
   programs.noctalia-shell = {
     enable = true;
@@ -42,4 +58,5 @@ in
       };
     };
   };
+
 }
