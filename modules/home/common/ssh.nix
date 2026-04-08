@@ -1,15 +1,19 @@
-# modules/home/darwin/ssh.nix
-{ ... }:
+# modules/home/common/ssh.nix
+{ pkgs, lib, ... }:
 {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
     matchBlocks = {
       "*" = {
-        extraOptions = {
-          UseKeychain = "yes";
-          AddKeysToAgent = "yes";
-        };
+        extraOptions =
+          { AddKeysToAgent = "yes"; }
+          // lib.optionalAttrs pkgs.stdenv.isDarwin { UseKeychain = "yes"; };
+      };
+      "github.com" = {
+        hostname = "ssh.github.com";
+        port = 443;
+        user = "git";
       };
       "bitbucket.org" = {
         hostname = "altssh.bitbucket.org";
@@ -45,5 +49,10 @@
         identityFile = "~/.ssh/bitbaut";
       };
     };
+  };
+
+  # Point SSH_AUTH_SOCK at the Bitwarden desktop SSH agent socket
+  home.sessionVariables = {
+    SSH_AUTH_SOCK = "$HOME/.bitwarden-ssh-agent.sock";
   };
 }

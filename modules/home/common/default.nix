@@ -14,6 +14,7 @@
     ./cli.nix
     ./btop.nix
     ./dev-tools.nix
+    ./ssh.nix
   ];
 
   # Default theme — override per-host by setting colorScheme in the host file

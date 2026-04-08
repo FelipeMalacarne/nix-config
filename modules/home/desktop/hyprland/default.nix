@@ -3,7 +3,7 @@
 # UWSM note: programs.hyprland.withUWSM = true is set at the NixOS level.
 # Apps launched from Hyprland should use `uwsm app -- <appname>` in exec-once
 # and keybinds. See: https://wiki.hyprland.org/Useful-Utilities/Systemd-start/
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   p = config.colorScheme.palette;
 in
@@ -18,6 +18,15 @@ in
     ./input.nix
   ];
 
+  gtk = {
+    enable = true;
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = true;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme = true;
+  };
+
+  # Tells portals and apps that query color-scheme (e.g. Firefox, Electron) to use dark
+  dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+
   home.pointerCursor = {
     package = pkgs.bibata-cursors;
     name = "Bibata-Modern-Classic";
@@ -31,6 +40,7 @@ in
   systemd.user.sessionVariables = {
     XCURSOR_THEME = "Bibata-Modern-Classic";
     XCURSOR_SIZE = "22";
+    SSH_AUTH_SOCK = "$HOME/.bitwarden-ssh-agent.sock";
   };
 
   wayland.windowManager.hyprland = {

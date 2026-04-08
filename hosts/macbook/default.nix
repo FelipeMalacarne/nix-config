@@ -38,7 +38,6 @@
   home-manager.users.felipeautentique = {
     imports = [
       ../../modules/home/common
-      ../../modules/home/darwin/ssh.nix
       ../../modules/home/darwin/sketchybar
       ../../modules/home/desktop/alacritty.nix
       ../../modules/home/desktop/firefox.nix

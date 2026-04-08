@@ -54,9 +54,9 @@ in
     enable = true;
     package = if isMac then null else pkgs.firefox;
 
-    profiles.felipeautentique = {
+    profiles.${config.home.username} = {
       isDefault = true;
-      name = "felipeautentique";
+      name = config.home.username;
 
       extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
         pywalfox

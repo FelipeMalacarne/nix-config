@@ -48,6 +48,7 @@
       homeDirectory = "/home/felipe";
       packages = with pkgs; [
         fastfetch
+        bitwarden-desktop
       ];
     };
   };
