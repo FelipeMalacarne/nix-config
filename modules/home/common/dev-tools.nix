@@ -7,6 +7,8 @@
     nodejs
     python3
     python3Packages.pip
+    php85
+    php85Packages.composer
 
     # --- Essential CLI Utilities ---
     ripgrep
