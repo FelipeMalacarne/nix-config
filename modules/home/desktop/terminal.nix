@@ -24,9 +24,14 @@ in
 
   config = lib.mkMerge [
 
-    # Shared: both terminals use FiraCode
+    # Shared: font, session TERMINAL var, and yazi desktop entry
     {
       home.packages = [ pkgs.nerd-fonts.fira-code ];
+
+      # Export TERMINAL to the full systemd user session, not just Hyprland's env.
+      # Launchers (e.g. noctalia) use this to open TUI apps like yazi.
+      home.sessionVariables.TERMINAL = term;
+
     }
 
     # ── Ghostty ────────────────────────────────────────────────────────────

@@ -42,6 +42,7 @@
       ../../modules/home/desktop/firefox.nix
       ../../modules/home/desktop/steam.nix
       ../../modules/home/desktop/dolphin.nix
+      ../../modules/home/desktop/yazi.nix
     ];
 
     desktop.terminal.name   = "ghostty";

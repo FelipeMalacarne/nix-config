@@ -2,18 +2,18 @@
 {
   wayland.windowManager.hyprland.settings = {
     monitor = [
-      "DP-1, 2560x1440@240, auto, 1"
-      "HDMI-A-1, 2560x1440@75, -1080x-300, 1, transform, 1"
+      "desc:Samsung Electric Company Odyssey G61SD HNBYB00003, 2560x1440@240, auto, 1"
+      "desc:Samsung Electric Company LS27A600U HNMW900149, 2560x1440@75, auto-left, 1, transform, 1"
     ];
 
     workspace = [
-      "1, monitor:DP-1"
-      "2, monitor:DP-1"
-      "3, monitor:DP-1"
-      "4, monitor:DP-1"
-      "5, monitor:DP-1"
-      "6, monitor:HDMI-A-1"
-      "7, monitor:HDMI-A-1"
+      "1, monitor:desc:Samsung Electric Company Odyssey G61SD HNBYB00003"
+      "2, monitor:desc:Samsung Electric Company Odyssey G61SD HNBYB00003"
+      "3, monitor:desc:Samsung Electric Company Odyssey G61SD HNBYB00003"
+      "4, monitor:desc:Samsung Electric Company Odyssey G61SD HNBYB00003"
+      "5, monitor:desc:Samsung Electric Company Odyssey G61SD HNBYB00003"
+      "6, monitor:desc:Samsung Electric Company LS27A600U HNMW900149"
+      "7, monitor:desc:Samsung Electric Company LS27A600U HNMW900149"
     ];
   };
 }

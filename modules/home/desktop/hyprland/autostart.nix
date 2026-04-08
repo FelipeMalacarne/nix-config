@@ -1,8 +1,8 @@
-{ ... }:
+{ config, ... }:
 {
   wayland.windowManager.hyprland.settings = {
     exec-once = [
-      "uwsm app -- alacritty"
+      config.desktop.terminal.exec
       "uwsm app -- noctalia-shell"
     ];
   };
