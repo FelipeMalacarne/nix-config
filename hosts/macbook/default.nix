@@ -39,19 +39,21 @@
     imports = [
       ../../modules/home/common
       ../../modules/home/darwin/sketchybar
-      ../../modules/home/desktop/alacritty.nix
+      ../../modules/home/desktop/terminal.nix
       ../../modules/home/desktop/firefox.nix
     ];
+    desktop.terminal.name = "ghostty";
+    desktop.colorScheme = "catppuccin-mocha";
     home.username = "felipeautentique";
     home.homeDirectory = "/Users/felipeautentique";
   };
 
-  homebrew = {
-    enable = true;
-    onActivation.upgrade = true;
-
-    casks = [
-      # "firefox"
-    ];
-  };
+  # homebrew = {
+  #   enable = true;
+  #   onActivation.upgrade = true;
+  #
+  #   casks = [
+  #     # "firefox"
+  #   ];
+  # };
 }

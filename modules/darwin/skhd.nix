@@ -1,4 +1,8 @@
-{ ... }:
+{ config, ... }:
+let
+  user    = config.system.primaryUser;
+  termCmd = config.home-manager.users.${user}.desktop.terminal.openCmd;
+in
 {
   services.skhd.enable = true;
   services.skhd.skhdConfig = ''
@@ -102,7 +106,7 @@
     # ctrl + alt - h : yabai -m window --insert west
 
     # open a new iTerm window
-    alt - return : open -na Alacritty
+    alt - return : ${termCmd}
     alt + shift - b : open -na Firefox
 
     # Reload yabai and skhd config instantly

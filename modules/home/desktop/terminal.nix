@@ -20,6 +20,14 @@ in
       readOnly = true;
       default  = "uwsm app -- ${config.desktop.terminal.name}";
     };
+    openCmd = lib.mkOption {
+      type     = lib.types.str;
+      readOnly = true;
+      default  = {
+        ghostty   = "open -na Ghostty";
+        alacritty = "open -na Alacritty";
+      }.${term};
+    };
   };
 
   config = lib.mkMerge [
@@ -35,15 +43,14 @@ in
     }
 
     # ── Ghostty ────────────────────────────────────────────────────────────
-    (lib.mkIf (term == "ghostty") {
-      programs.ghostty = {
-        enable = true;
-        settings = {
-          font-family      = "FiraCode Nerd Font Mono";
-          font-size        = 10;
-          background-opacity = 0.95;
-          window-decoration        = false;
-          confirm-close-surface    = false;
+    (lib.mkIf (term == "ghostty") (
+      let
+        ghosttySettings = {
+          font-family           = "FiraCode Nerd Font Mono";
+          font-size             = 16;
+          background-opacity    = 0.95;
+          window-decoration     = false;
+          confirm-close-surface = false;
 
           background           = p.base00;
           foreground           = p.base05;
@@ -77,8 +84,22 @@ in
             "alt+right=text:\\x05"
           ];
         };
-      };
-    })
+      in
+      {
+        # On Linux: install package + write config via home-manager module
+        programs.ghostty = lib.mkIf pkgs.stdenv.isLinux {
+          enable   = true;
+          settings = ghosttySettings;
+        };
+
+        # On macOS: ghostty is installed externally (Homebrew); just write the config
+        xdg.configFile."ghostty/config" = lib.mkIf pkgs.stdenv.isDarwin {
+          text = lib.generators.toKeyValue {
+            listsAsDuplicateKeys = true;
+          } ghosttySettings;
+        };
+      }
+    ))
 
     # ── Alacritty ──────────────────────────────────────────────────────────
     (lib.mkIf (term == "alacritty") {
@@ -97,7 +118,7 @@ in
               family = "FiraCode Nerd Font Mono";
               style  = "Regular";
             };
-            size = 10.0;
+            size = 16.0;
           };
 
           colors = {
