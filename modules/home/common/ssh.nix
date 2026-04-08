@@ -10,33 +10,25 @@
           { AddKeysToAgent = "yes"; }
           // lib.optionalAttrs pkgs.stdenv.isDarwin { UseKeychain = "yes"; };
       };
+
       "github.com" = {
         hostname = "ssh.github.com";
         port = 443;
         user = "git";
       };
+
       "bitbucket.org" = {
         hostname = "altssh.bitbucket.org";
         port = 443;
       };
-      "github-felipe-autentique" = {
-        hostname = "ssh.github.com";
-        port = 443;
-        user = "git";
-        identityFile = "~/.ssh/bitbaut";
-      };
-      "github-felipe-malacarne" = {
-        hostname = "ssh.github.com";
-        port = 443;
-        user = "git";
-        identityFile = "~/.ssh/id_ed25519";
-      };
+
       "zamorak" = {
         hostname = "137.131.204.251";
         port = 22;
         user = "ubuntu";
         identityFile = "~/.ssh/zamorak";
       };
+
       "attq-dev" = {
         hostname = "35.199.97.13";
         user = "felipe";
