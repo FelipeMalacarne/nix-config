@@ -1,5 +1,10 @@
 # modules/home/common/default.nix
-{ inputs, lib, ... }:
+{
+  pkgs,
+  inputs,
+  lib,
+  ...
+}:
 {
   imports = [
     inputs.nix-colors.homeManagerModules.default
@@ -14,6 +19,10 @@
   # Default theme — override per-host by setting colorScheme in the host file
   colorScheme = lib.mkDefault inputs.nix-colors.colorSchemes.catppuccin-mocha;
   # colorScheme = lib.mkDefault inputs.nix-colors.colorSchemes.gruvbox-dark-hard;
+
+  home.packages = with pkgs; [
+    fastfetch
+  ];
 
   # stateVersion must match or be lower than the system stateVersion
   # See: https://nix-community.github.io/home-manager/options.xhtml#opt-home.stateVersion

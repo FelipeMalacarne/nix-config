@@ -14,11 +14,11 @@
 
   networking.hostName = "zaros";
 
-  programs.zsh.enable = true; 
+  programs.zsh.enable = true;
   users.users.felipe = {
     isNormalUser = true;
-    shell = pkgs.zsh; 
-    initialPassword = "nixos"; 
+    shell = pkgs.zsh;
+    initialPassword = "nixos";
     extraGroups = [
       "wheel"
       "networkmanager"
@@ -42,8 +42,14 @@
       ../../modules/home/desktop/steam.nix
       ../../modules/home/desktop/dolphin.nix
     ];
-    home.username = "felipe";
-    home.homeDirectory = "/home/felipe";
+
+    home = {
+      username = "felipe";
+      homeDirectory = "/home/felipe";
+      packages = with pkgs; [
+        fastfetch
+      ];
+    };
   };
 
   programs.firefox.enable = true;
