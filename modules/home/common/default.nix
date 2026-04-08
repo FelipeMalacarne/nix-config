@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   lib,
+  config,
   ...
 }:
 {
@@ -17,15 +18,21 @@
     ./ssh.nix
   ];
 
-  # Default theme — override per-host by setting colorScheme in the host file
-  colorScheme = lib.mkDefault inputs.nix-colors.colorSchemes.catppuccin-mocha;
-  # colorScheme = lib.mkDefault inputs.nix-colors.colorSchemes.gruvbox-dark-hard;
+  options.desktop.colorScheme = lib.mkOption {
+    type        = lib.types.str;
+    default     = "catppuccin-mocha";
+    description = "nix-colors scheme name to use system-wide.";
+  };
 
-  home.packages = with pkgs; [
-    fastfetch
-  ];
+  config = {
+    colorScheme = inputs.nix-colors.colorSchemes.${config.desktop.colorScheme};
 
-  # stateVersion must match or be lower than the system stateVersion
-  # See: https://nix-community.github.io/home-manager/options.xhtml#opt-home.stateVersion
-  home.stateVersion = "24.11";
+    home.packages = with pkgs; [
+      fastfetch
+    ];
+
+    # stateVersion must match or be lower than the system stateVersion
+    # See: https://nix-community.github.io/home-manager/options.xhtml#opt-home.stateVersion
+    home.stateVersion = "24.11";
+  };
 }

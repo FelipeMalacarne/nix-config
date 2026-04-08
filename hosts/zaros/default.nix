@@ -44,7 +44,8 @@
       ../../modules/home/desktop/dolphin.nix
     ];
 
-    desktop.terminal.name = "ghostty";
+    desktop.terminal.name   = "ghostty";
+    desktop.colorScheme     = "catppuccin-mocha";
 
     home = {
       username = "felipe";
