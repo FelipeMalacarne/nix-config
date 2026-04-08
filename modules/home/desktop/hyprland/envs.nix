@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 {
   wayland.windowManager.hyprland.settings = {
     env = [
@@ -8,7 +8,7 @@
       "GDK_SCALE,1"
       "XCURSOR_THEME,Bibata-Modern-Classic"
       "XCURSOR_SIZE,22"
-      "TERMINAL,alacritty"
+      "TERMINAL,${config.desktop.terminal.name}"
       "QT_QPA_PLATFORMTHEME,kde"
     ];
   };

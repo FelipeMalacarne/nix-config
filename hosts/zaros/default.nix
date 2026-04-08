@@ -29,21 +29,22 @@
   };
 
   # Home Manager wiring
-  home-manager.useGlobalPkgs = true; # share nixpkgs with system — better cache hits
-  home-manager.useUserPackages = true; # install user packages into system profile
-  home-manager.backupFileExtension = "bak"; # back up conflicting files instead of failing
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.backupFileExtension = "bak"; 
   home-manager.users.felipe = {
     imports = [
       ../../modules/home/common
       ../../modules/home/desktop/hyprland
-      ../../modules/home/desktop/alacritty.nix
+      ../../modules/home/desktop/terminal.nix
       ../../modules/home/desktop/noctalia.nix
       ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
       ../../modules/home/desktop/steam.nix
       ../../modules/home/desktop/dolphin.nix
-      ../../modules/home/desktop/ghostty.nix
     ];
+
+    desktop.terminal.name = "ghostty";
 
     home = {
       username = "felipe";

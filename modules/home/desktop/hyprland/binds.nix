@@ -1,10 +1,10 @@
 # modules/home/desktop/hyprland/binds.nix
-{ ... }:
+{ config, ... }:
 {
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
     "$ipc" = "noctalia-shell ipc call";
-    "$terminal" = "uwsm app -- alacritty";
+    "$terminal" = config.desktop.terminal.exec;
 
     bind = [
       "$mod, Return, exec, $terminal"
