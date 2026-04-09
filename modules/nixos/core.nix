@@ -5,6 +5,11 @@
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/Sao_Paulo";
 
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "intl";
+  };
+
   # Nix settings
   nix.settings = {
     experimental-features = [
