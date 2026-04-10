@@ -40,12 +40,11 @@
       ../../modules/home/desktop/noctalia.nix
       ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
-      ../../modules/home/desktop/steam.nix
       ../../modules/home/desktop/dolphin.nix
       ../../modules/home/desktop/yazi.nix
     ];
 
-    desktop.terminal.name   = "ghostty";
+    desktop.terminal.name   = "alacritty";
     desktop.colorScheme     = "catppuccin-mocha";
 
     home = {
@@ -54,6 +53,7 @@
       packages = with pkgs; [
         fastfetch
         bitwarden-desktop
+        opencode
       ];
     };
   };

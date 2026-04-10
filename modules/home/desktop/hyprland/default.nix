@@ -8,6 +8,12 @@ let
   p = config.colorScheme.palette;
 in
 {
+  home.file.".XCompose".text = ''
+    include "%L"
+    <dead_acute> <c> : "ç" ccedilla
+    <dead_acute> <C> : "Ç" Ccedilla
+  '';
+
   imports = [
     ./autostart.nix
     ./binds.nix
@@ -41,6 +47,7 @@ in
     XCURSOR_THEME = "Bibata-Modern-Classic";
     XCURSOR_SIZE = "22";
     SSH_AUTH_SOCK = "$HOME/.bitwarden-ssh-agent.sock";
+    XCOMPOSEFILE = "$HOME/.XCompose";
   };
 
   wayland.windowManager.hyprland = {
