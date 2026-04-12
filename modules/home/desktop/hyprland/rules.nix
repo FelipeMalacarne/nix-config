@@ -1,10 +1,13 @@
 # modules/home/desktop/hyprland/rules.nix
-# Minimal stub — add window rules as needed
 { ... }:
 {
   wayland.windowManager.hyprland.settings = {
-    windowrulev2 = [
-      # example: "float, class:^(pavucontrol)$"
+    windowrule = [
+      {
+        name = "bitwarden-workspace";
+        workspace = "5 silent";
+        "match:class" = "^(Bitwarden)$";
+      }
     ];
   };
 }

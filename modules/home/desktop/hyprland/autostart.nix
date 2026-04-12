@@ -4,6 +4,7 @@
     exec-once = [
       config.desktop.terminal.exec
       "uwsm app -- noctalia-shell"
+      "uwsm app -- bitwarden"
     ];
   };
 }

@@ -9,6 +9,7 @@
     ../../modules/nixos/audio.nix
     ../../modules/nixos/gpu/nvidia.nix
     ../../modules/nixos/desktop.nix
+    ../../modules/nixos/kdeconnect.nix
     ../../modules/nixos/steam.nix
     ../../modules/nixos/tailscale.nix
   ];

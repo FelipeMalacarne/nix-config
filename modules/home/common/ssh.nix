@@ -15,6 +15,7 @@
         hostname = "ssh.github.com";
         port = 443;
         user = "git";
+        identityAgent = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
         identityFile = "${config.home.homeDirectory}/repos/nix-config/keys/zaros.pub";
         extraOptions.IdentitiesOnly = "yes";
       };
@@ -23,6 +24,7 @@
         hostname = "ssh.github.com";
         port = 443;
         user = "git";
+        identityAgent = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
         identityFile = "${config.home.homeDirectory}/repos/nix-config/keys/bitbaut.pub";
         extraOptions.IdentitiesOnly = "yes";
       };
