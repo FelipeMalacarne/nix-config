@@ -39,6 +39,7 @@
       ../../modules/home/desktop/hyprland
       ../../modules/home/desktop/terminal.nix
       ../../modules/home/desktop/noctalia.nix
+      ../../modules/home/desktop/idle.nix
       ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
       ../../modules/home/desktop/dolphin.nix
