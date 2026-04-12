@@ -45,10 +45,11 @@ in
       "$mod SHIFT, 4, movetoworkspace, 4"
       "$mod SHIFT, 5, movetoworkspace, 5"
 
-      # TUI apps
+      # apps
       "$mod SHIFT, F, exec, ${term} -e yazi"
       "$mod SHIFT, T, exec, ${term} -e btop"
       "$mod SHIFT, I, exec, ${term} -e bash -c 'fastfetch; read -rp \"Press enter to close...\"'"
+      "$mod SHIFT, B, exec, uwsm app -- firefox"
     ];
 
     bindm = [

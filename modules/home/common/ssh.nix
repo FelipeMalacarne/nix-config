@@ -15,6 +15,8 @@
         hostname = "ssh.github.com";
         port = 443;
         user = "git";
+        identityFile = "${config.home.homeDirectory}/repos/nix-config/keys/zaros.pub";
+        extraOptions.IdentitiesOnly = "yes";
       };
 
       "github-autentique" = {
