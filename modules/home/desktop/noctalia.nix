@@ -236,14 +236,14 @@ in
             }
             {
               "defaultSettings" = {
-                "compactMode" = false;
+                "compactMode" = true;
                 "defaultPeerAction" = "copy-ip";
                 "hideDisconnected" = false;
                 "hideMullvadExitNodes" = true;
                 "pingCount" = 5;
                 "refreshInterval" = 5000;
-                "showIpAddress" = true;
-                "showPeerCount" = true;
+                "showIpAddress" = false;
+                "showPeerCount" = false;
                 "sshUsername" = "";
                 "taildropDownloadDir" = "~/Downloads";
                 "taildropEnabled" = true;
@@ -524,7 +524,7 @@ in
         "firstDayOfWeek" = -1;
         "hideWeatherCityName" = false;
         "hideWeatherTimezone" = false;
-        "name" = "";
+        "name" = "Erechim";
         "showCalendarEvents" = true;
         "showCalendarWeather" = true;
         "showWeekNumberInCalendar" = false;
@@ -696,7 +696,7 @@ in
       };
       "wallpaper" = {
         "automationEnabled" = false;
-        "directory" = "/home/felipe/Pictures/Wallpapers";
+        "directory" = "/home/felipe/Pictures/wallpapers";
         "enableMultiMonitorDirectories" = false;
         "enabled" = true;
         "favorites" = [ ];
@@ -743,5 +743,4 @@ in
       };
     };
   };
-
 }
