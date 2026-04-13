@@ -236,6 +236,12 @@ in
             }
             {
               "defaultSettings" = {
+                "refreshInterval" = 5000;
+              };
+              "id" = "plugin:mini-docker";
+            }
+            {
+              "defaultSettings" = {
                 "compactMode" = true;
                 "defaultPeerAction" = "copy-ip";
                 "hideDisconnected" = false;
