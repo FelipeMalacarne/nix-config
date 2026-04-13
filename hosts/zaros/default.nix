@@ -16,11 +16,23 @@
 
   networking.hostName = "zaros";
 
+  services.openssh = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      PermitRootLogin = "no";
+    };
+  };
+
   programs.zsh.enable = true;
   users.users.felipe = {
     isNormalUser = true;
     shell = pkgs.zsh;
     initialPassword = "nixos";
+    openssh.authorizedKeys.keyFiles = [
+      ../../keys/zaros.pub
+      ../../keys/bitbaut.pub
+    ];
     extraGroups = [
       "wheel"
       "networkmanager"
