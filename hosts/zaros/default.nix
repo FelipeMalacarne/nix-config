@@ -16,6 +16,10 @@
 
   networking.hostName = "zaros";
 
+  security.pki.certificateFiles = [
+    ../../certs/saradomin-internal-ca.crt
+  ];
+
   services.openssh = {
     enable = true;
     openFirewall = true;

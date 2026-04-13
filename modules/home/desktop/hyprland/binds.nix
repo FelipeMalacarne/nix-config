@@ -14,6 +14,7 @@ in
       "$mod, W, killactive"
       "$mod, F, fullscreen"
       "$mod, T, togglefloating"
+      "$mod, E, layoutmsg, togglesplit"
       "$mod, Space, exec, $ipc launcher toggle"
       "$mod, C, exec, $ipc controlCenter toggle"
       "$mod, comma, exec, $ipc settings toggle"
