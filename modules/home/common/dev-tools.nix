@@ -9,6 +9,7 @@
     python3Packages.pip
     php85
     php85Packages.composer
+    (laravel.override { php = php85; })
 
     # --- Essential CLI Utilities ---
     ripgrep
