@@ -75,6 +75,11 @@
         fastfetch
         bitwarden-desktop
         opencode
+        libreoffice-fresh
+        hunspell
+        hunspellDicts.pt_BR
+        hunspellDicts.en_US
+        zathura
       ];
     };
   };

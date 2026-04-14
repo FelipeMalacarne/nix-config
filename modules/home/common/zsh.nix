@@ -6,6 +6,9 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     enableCompletion = true;
+    shellAliases = {
+      sail = "[ -f sail ] && sh sail || sh vendor/bin/sail";
+    };
   };
 
   programs.starship = {
