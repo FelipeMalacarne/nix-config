@@ -18,6 +18,8 @@ in
       "$mod, Space, exec, $ipc launcher toggle"
       "$mod, C, exec, $ipc controlCenter toggle"
       "$mod, comma, exec, $ipc settings toggle"
+      "$mod SHIFT, Escape, exec, $ipc sessionMenu toggle"
+      "$mod Control, L, exec, $ipc lockScreen lock"
 
       # Focus
       "$mod, H, movefocus, l"

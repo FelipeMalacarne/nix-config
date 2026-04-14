@@ -47,7 +47,7 @@ in
       let
         ghosttySettings = {
           font-family           = "FiraCode Nerd Font Mono";
-          font-size             = 16;
+          font-size             = 12;
           background-opacity    = 0.95;
           window-decoration     = false;
           confirm-close-surface = false;
@@ -118,7 +118,7 @@ in
               family = "FiraCode Nerd Font Mono";
               style  = "Regular";
             };
-            size = 16.0;
+            size = 12.0;
           };
 
           colors = {
