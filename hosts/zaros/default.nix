@@ -28,7 +28,15 @@
     };
   };
 
-  virtualisation.docker.enable = true;
+  virtualisation.docker = {
+    enable = true;
+    enableNvidia = true;
+  };
+
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-cuda;
+  };
 
   programs.zsh.enable = true;
   users.users.felipe = {
@@ -51,7 +59,7 @@
   # Home Manager wiring
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "bak"; 
+  home-manager.backupFileExtension = "bak";
   home-manager.users.felipe = {
     imports = [
       ../../modules/home/common
@@ -65,8 +73,8 @@
       ../../modules/home/desktop/yazi.nix
     ];
 
-    desktop.terminal.name   = "alacritty";
-    desktop.colorScheme     = "catppuccin-mocha";
+    desktop.terminal.name = "alacritty";
+    desktop.colorScheme = "catppuccin-mocha";
 
     home = {
       username = "felipe";
