@@ -1,7 +1,8 @@
 # modules/home/desktop/hyprland/binds.nix
 { config, ... }:
 let
-  term = config.desktop.terminal.exec;
+  term     = config.desktop.terminal.exec;
+  termHere = config.desktop.terminal.execHere;
 in
 {
   wayland.windowManager.hyprland.settings = {
@@ -10,7 +11,7 @@ in
     "$terminal" = term;
 
     bind = [
-      "$mod, Return, exec, $terminal"
+      "$mod, Return, exec, ${termHere}"
       "$mod, W, killactive"
       "$mod, F, fullscreen"
       "$mod, T, togglefloating"

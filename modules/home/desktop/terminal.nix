@@ -20,6 +20,29 @@ in
       readOnly = true;
       default  = "uwsm app -- ${config.desktop.terminal.name}";
     };
+    execHere = lib.mkOption {
+      type     = lib.types.str;
+      readOnly = true;
+      default  =
+        let
+          script = pkgs.writeShellScript "term-here" ''
+            pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
+            cwd=""
+            if [ -n "$pid" ]; then
+              # Walk down: terminal emulator PID → shell PID
+              while child=$(pgrep -P "$pid" 2>/dev/null | head -1) && [ -n "$child" ]; do
+                pid=$child
+              done
+              cwd=$(readlink "/proc/$pid/cwd" 2>/dev/null)
+            fi
+            if [ -n "$cwd" ] && [ -d "$cwd" ]; then
+              exec uwsm app -- ${config.desktop.terminal.name} --working-directory="$cwd"
+            else
+              exec uwsm app -- ${config.desktop.terminal.name}
+            fi
+          '';
+        in "${script}";
+    };
     openCmd = lib.mkOption {
       type     = lib.types.str;
       readOnly = true;
