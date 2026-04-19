@@ -24,4 +24,7 @@
   nix.registry.nixpkgs.flake = inputs.nixpkgs;
 
   nixpkgs.config.allowUnfree = true;
+
+  # Allow running generic Linux binaries (e.g. npm packages like workerd)
+  programs.nix-ld.enable = true;
 }

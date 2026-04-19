@@ -520,11 +520,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1776125184,
-        "narHash": "sha256-kNLbpEt9TP9zAaht+gDeAV4LPxGsuOJHI3BmzMG8eHc=",
+        "lastModified": 1776568537,
+        "narHash": "sha256-EO2Be/EXQdAl6Y0HoKkCyKfFNQmY2Kme4WdcK2Fu36k=",
         "owner": "FelipeMalacarne",
         "repo": "nvim",
-        "rev": "48da1510647713922ea44ef24c0cbe9b5354c136",
+        "rev": "b7643e800ef394e32f440657b680ea93f1ffa2df",
         "type": "github"
       },
       "original": {

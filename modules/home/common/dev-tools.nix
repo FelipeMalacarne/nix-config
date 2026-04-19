@@ -5,6 +5,7 @@
     # --- Core Languages ---
     go
     nodejs
+    pnpm
     python3
     python3Packages.pip
     php85

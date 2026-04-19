@@ -16,6 +16,7 @@
     ./btop.nix
     ./dev-tools.nix
     ./ssh.nix
+    ./claude-code.nix
   ];
 
   options.desktop.colorScheme = lib.mkOption {

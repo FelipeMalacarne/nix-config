@@ -2,7 +2,7 @@
 { pkgs, ... }:
 {
   # ripgrep has no Home Manager module — add directly to packages
-  home.packages = with pkgs; [ ripgrep claude-code ];
+  home.packages = with pkgs; [ ripgrep ];
 
   programs.yazi = {
     enable = true;
