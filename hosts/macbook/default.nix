@@ -42,7 +42,7 @@
       ../../modules/home/desktop/terminal.nix
       ../../modules/home/desktop/firefox.nix
     ];
-    desktop.terminal.name = "ghostty";
+    desktop.terminal.name = "alacritty";
     desktop.colorScheme = "catppuccin-mocha";
     home.username = "felipeautentique";
     home.homeDirectory = "/Users/felipeautentique";
