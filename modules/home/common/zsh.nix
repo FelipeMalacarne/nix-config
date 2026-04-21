@@ -8,6 +8,7 @@
     enableCompletion = true;
     shellAliases = {
       sail = "[ -f sail ] && sh sail || sh vendor/bin/sail";
+      pint = "vendor/bin/pint";
     };
     # Emit OSC 7 on every directory change so terminals (Alacritty, etc.)
     # can open new windows/tabs in the same directory.
