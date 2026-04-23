@@ -19,5 +19,7 @@
     jq
     bat
     lazygit
+    google-cloud-sdk
+    terraform
   ];
 }
