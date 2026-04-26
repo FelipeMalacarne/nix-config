@@ -30,6 +30,8 @@
 
     home.packages = with pkgs; [
       fastfetch
+      zip
+      unzip
     ];
 
     # stateVersion must match or be lower than the system stateVersion
