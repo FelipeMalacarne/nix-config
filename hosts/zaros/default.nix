@@ -38,6 +38,8 @@
     package = pkgs.ollama-cuda;
   };
 
+  services.flatpak.enable = true;
+
   programs.zsh.enable = true;
   users.users.felipe = {
     isNormalUser = true;
@@ -88,6 +90,7 @@
         hunspellDicts.pt_BR
         hunspellDicts.en_US
         zathura
+        dbeaver-bin
       ];
     };
   };
