@@ -12,6 +12,7 @@
     ../../modules/nixos/kdeconnect.nix
     ../../modules/nixos/tailscale.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/noctalia.nix
   ];
 
   networking.hostName = "zaros";
@@ -67,7 +68,6 @@
       ../../modules/home/common
       ../../modules/home/desktop/hyprland
       ../../modules/home/desktop/terminal.nix
-      ../../modules/home/desktop/noctalia.nix
       ../../modules/home/desktop/idle.nix
       ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
