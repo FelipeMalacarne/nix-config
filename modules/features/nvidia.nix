@@ -1,9 +1,6 @@
-# modules/nixos/gpu/nvidia.nix
-# RTX 4070 Super — open kernel module (recommended for RTX 40xx series)
 { config, ... }:
 {
-  # Required to load the nvidia kernel module
-  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.graphics.enable = true;
 
   hardware.nvidia = {
     modesetting.enable = true;
@@ -12,7 +9,7 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  hardware.graphics.enable = true;
+  services.xserver.videoDrivers = [ "nvidia" ];
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";

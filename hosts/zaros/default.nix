@@ -8,11 +8,11 @@
     ../../modules/nixos/boot.nix
     ../../modules/nixos/network.nix
     ../../modules/nixos/audio.nix
-    ../../modules/nixos/gpu/nvidia.nix
     ../../modules/nixos/desktop.nix
     ../../modules/nixos/kdeconnect.nix
     ../../modules/nixos/tailscale.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/nvidia.nix
     ../../modules/features/hyprland
     ../../modules/features/noctalia.nix
     ../../modules/features/alacritty.nix
