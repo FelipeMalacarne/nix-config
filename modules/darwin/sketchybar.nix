@@ -5,6 +5,6 @@
   services.sketchybar.package = pkgs.sketchybar;
 
   fonts.packages = with pkgs; [
-      sketchybar-app-font
-    ];
+    sketchybar-app-font
+  ];
 }

@@ -38,7 +38,13 @@
   };
 
   outputs =
-    { nixpkgs, home-manager, darwin, nur, ... }@inputs:
+    {
+      nixpkgs,
+      home-manager,
+      darwin,
+      nur,
+      ...
+    }@inputs:
     {
       darwinConfigurations = {
         macbook = darwin.lib.darwinSystem {

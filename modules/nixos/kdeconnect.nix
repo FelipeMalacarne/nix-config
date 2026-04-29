@@ -12,8 +12,11 @@
     allowedUDPPortRanges = allowedTCPPortRanges;
   };
 
-  home-manager.sharedModules = lib.optional (options ? home-manager) ({ pkgs, ... }: {
-    services.kdeconnect.enable = true;
-    home.packages = [ pkgs.kdePackages.kdeconnect-kde ];
-  });
+  home-manager.sharedModules = lib.optional (options ? home-manager) (
+    { pkgs, ... }:
+    {
+      services.kdeconnect.enable = true;
+      home.packages = [ pkgs.kdePackages.kdeconnect-kde ];
+    }
+  );
 }

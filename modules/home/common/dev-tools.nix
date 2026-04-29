@@ -21,5 +21,6 @@
     lazygit
     google-cloud-sdk
     terraform
+    nixfmt-tree
   ];
 }

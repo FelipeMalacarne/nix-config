@@ -20,8 +20,8 @@
   ];
 
   options.desktop.colorScheme = lib.mkOption {
-    type        = lib.types.str;
-    default     = "catppuccin-mocha";
+    type = lib.types.str;
+    default = "catppuccin-mocha";
     description = "nix-colors scheme name to use system-wide.";
   };
 

@@ -1,14 +1,20 @@
 # modules/home/common/ssh.nix
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
     matchBlocks = {
       "*" = {
-        extraOptions =
-          { AddKeysToAgent = "yes"; }
-          // lib.optionalAttrs pkgs.stdenv.isDarwin { UseKeychain = "yes"; };
+        extraOptions = {
+          AddKeysToAgent = "yes";
+        }
+        // lib.optionalAttrs pkgs.stdenv.isDarwin { UseKeychain = "yes"; };
       };
 
       "github.com" = {

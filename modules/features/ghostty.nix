@@ -2,7 +2,12 @@
 #
 # Home-manager module — imported inside home-manager.users.<user>.imports
 # on each host (works cross-platform with different usernames).
-{ lib, pkgs, config, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   p = config.colorScheme.palette;
   ghosttySettings = {

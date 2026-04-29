@@ -8,7 +8,12 @@
 #   base04=surface2/overlay2  base05=text  base06=subtext0  base07=subtext1
 #   base08=red   base09=peach  base0A=yellow  base0B=green
 #   base0C=teal  base0D=blue   base0E=mauve   base0F=flamingo
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   p = config.colorScheme.palette;
   themeName = "nix-colors";
@@ -18,17 +23,17 @@ let
     version = "1.0.0";
     description = "Generated from nix-colors colorScheme — do not edit manually";
     GlobalsColors = {
-      "--millennium-accent"         = "#${p.base0E}";
-      "--millennium-accent-hover"   = "#${p.base0D}";
-      "--millennium-bg"             = "#${p.base00}";
-      "--millennium-bg-2"           = "#${p.base01}";
-      "--millennium-surface"        = "#${p.base02}";
-      "--millennium-surface-2"      = "#${p.base03}";
-      "--millennium-text"           = "#${p.base05}";
-      "--millennium-text-muted"     = "#${p.base04}";
-      "--millennium-green"          = "#${p.base0B}";
-      "--millennium-red"            = "#${p.base08}";
-      "--millennium-yellow"         = "#${p.base0A}";
+      "--millennium-accent" = "#${p.base0E}";
+      "--millennium-accent-hover" = "#${p.base0D}";
+      "--millennium-bg" = "#${p.base00}";
+      "--millennium-bg-2" = "#${p.base01}";
+      "--millennium-surface" = "#${p.base02}";
+      "--millennium-surface-2" = "#${p.base03}";
+      "--millennium-text" = "#${p.base05}";
+      "--millennium-text-muted" = "#${p.base04}";
+      "--millennium-green" = "#${p.base0B}";
+      "--millennium-red" = "#${p.base08}";
+      "--millennium-yellow" = "#${p.base0A}";
     };
   };
 

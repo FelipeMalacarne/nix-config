@@ -8,7 +8,12 @@
 # From nix-config:   lib.mkPackage passes the active nix-colors palette
 #
 # To update: push to the nvim repo, run `nix flake update nvim-config`, then rebuild.
-{ inputs, pkgs, config, ... }:
+{
+  inputs,
+  pkgs,
+  config,
+  ...
+}:
 {
   home.packages = [
     (inputs.nvim-config.lib.mkPackage pkgs config.colorScheme.palette)

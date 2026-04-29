@@ -5,7 +5,7 @@
 # The activation step reloads the wallpaper live via hyprpaper IPC after each rebuild.
 { lib, config, ... }:
 let
-  slug      = config.colorScheme.slug;
+  slug = config.colorScheme.slug;
   wallpaper = "${config.home.homeDirectory}/Pictures/wallpapers/${slug}.png";
 in
 {

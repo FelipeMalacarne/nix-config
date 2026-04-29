@@ -1,4 +1,4 @@
-{ config,  ... }:
+{ config, ... }:
 
 let
   p = config.home-manager.users.felipeautentique.colorScheme.palette;

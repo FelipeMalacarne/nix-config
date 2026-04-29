@@ -1,5 +1,10 @@
 # modules/home/desktop/dolphin.nix
-{ inputs, config, pkgs, ... }:
+{
+  inputs,
+  config,
+  pkgs,
+  ...
+}:
 let
   p = config.colorScheme.palette;
   toRgb = inputs.nix-colors.lib.conversions.hexToRGBString ",";
@@ -16,12 +21,12 @@ in
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "image/jpeg"    = "swayimg.desktop";
-      "image/png"     = "swayimg.desktop";
-      "image/gif"     = "swayimg.desktop";
-      "image/webp"    = "swayimg.desktop";
-      "image/bmp"     = "swayimg.desktop";
-      "image/tiff"    = "swayimg.desktop";
+      "image/jpeg" = "swayimg.desktop";
+      "image/png" = "swayimg.desktop";
+      "image/gif" = "swayimg.desktop";
+      "image/webp" = "swayimg.desktop";
+      "image/bmp" = "swayimg.desktop";
+      "image/tiff" = "swayimg.desktop";
       "image/svg+xml" = "swayimg.desktop";
     };
   };

@@ -15,7 +15,10 @@ in
     genericName = "File Manager";
     exec = "${yazi-launcher}";
     terminal = false;
-    categories = [ "System" "FileManager" ];
+    categories = [
+      "System"
+      "FileManager"
+    ];
     icon = "yazi";
   };
 }

@@ -67,11 +67,31 @@ in
           };
 
           keyboard.bindings = [
-            { key = "Return"; mods = "Shift"; chars = "\\u001B\\r"; }
-            { key = "Left"; mods = "Control"; chars = "\\u001Bb"; }
-            { key = "Right"; mods = "Control"; chars = "\\u001Bf"; }
-            { key = "Left"; mods = "Alt"; chars = "\\u0001"; }
-            { key = "Right"; mods = "Alt"; chars = "\\u0005"; }
+            {
+              key = "Return";
+              mods = "Shift";
+              chars = "\\u001B\\r";
+            }
+            {
+              key = "Left";
+              mods = "Control";
+              chars = "\\u001Bb";
+            }
+            {
+              key = "Right";
+              mods = "Control";
+              chars = "\\u001Bf";
+            }
+            {
+              key = "Left";
+              mods = "Alt";
+              chars = "\\u0001";
+            }
+            {
+              key = "Right";
+              mods = "Alt";
+              chars = "\\u0005";
+            }
           ];
         };
       };
