@@ -1,7 +1,6 @@
-{ config, ... }:
+{ ... }:
 let
-  user    = config.system.primaryUser;
-  termCmd = config.home-manager.users.${user}.desktop.terminal.openCmd;
+  termCmd = "open -na Alacritty";
 in
 {
   services.skhd.enable = true;

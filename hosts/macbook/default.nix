@@ -39,10 +39,9 @@
     imports = [
       ../../modules/home/common
       ../../modules/home/darwin/sketchybar
-      ../../modules/home/desktop/terminal.nix
+      ../../modules/features/alacritty.nix
       ../../modules/home/desktop/firefox.nix
     ];
-    desktop.terminal.name = "alacritty";
     desktop.colorScheme = "catppuccin-mocha";
     home.username = "felipeautentique";
     home.homeDirectory = "/Users/felipeautentique";

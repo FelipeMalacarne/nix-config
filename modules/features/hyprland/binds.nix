@@ -1,14 +1,25 @@
-# modules/home/desktop/hyprland/binds.nix
-{ config, ... }:
+{ pkgs, ... }:
 let
-  term     = config.desktop.terminal.exec;
-  termHere = config.desktop.terminal.execHere;
+  termHere = pkgs.writeShellScript "term-here" ''
+    pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
+    cwd=""
+    if [ -n "$pid" ]; then
+      while child=$(pgrep -P "$pid" 2>/dev/null | head -1) && [ -n "$child" ]; do
+        pid=$child
+      done
+      cwd=$(readlink "/proc/$pid/cwd" 2>/dev/null)
+    fi
+    if [ -n "$cwd" ] && [ -d "$cwd" ]; then
+      exec uwsm app -- $TERMINAL --working-directory="$cwd"
+    else
+      exec uwsm app -- $TERMINAL
+    fi
+  '';
 in
 {
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
     "$ipc" = "noctalia-shell ipc call";
-    "$terminal" = term;
 
     bind = [
       "$mod, Return, exec, ${termHere}"
@@ -50,9 +61,9 @@ in
       "$mod SHIFT, 5, movetoworkspace, 5"
 
       # apps
-      "$mod SHIFT, F, exec, ${term} -e yazi"
-      "$mod SHIFT, T, exec, ${term} -e btop"
-      "$mod SHIFT, I, exec, ${term} -e bash -c 'fastfetch; read -rp \"Press enter to close...\"'"
+      "$mod SHIFT, F, exec, uwsm app -- $TERMINAL -e yazi"
+      "$mod SHIFT, T, exec, uwsm app -- $TERMINAL -e btop"
+      "$mod SHIFT, I, exec, uwsm app -- $TERMINAL -e bash -c 'fastfetch; read -rp \"Press enter to close...\"'"
       "$mod SHIFT, B, exec, uwsm app -- firefox"
     ];
 

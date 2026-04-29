@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, config, ... }:
 {
   nixpkgs.overlays = [ inputs.millennium.overlays.default ];
 
@@ -17,7 +17,7 @@
     };
   };
 
-  home-manager.users.felipe = {
+  home-manager.users.${config.myConfig.primaryUser} = {
     home = {
       packages = with pkgs; [
         lutris

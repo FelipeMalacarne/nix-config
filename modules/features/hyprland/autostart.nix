@@ -1,8 +1,7 @@
-{ config, ... }:
 {
   wayland.windowManager.hyprland.settings = {
     exec-once = [
-      config.desktop.terminal.exec
+      "uwsm app -- $TERMINAL"
       "uwsm app -- noctalia-shell"
       "uwsm app -- bitwarden"
     ];

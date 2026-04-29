@@ -1,14 +1,18 @@
 {
   pkgs,
+  config,
   ...
 }:
+let
+  user = config.myConfig.primaryUser;
+in
 {
   programs.hyprland.enable = true;
   programs.hyprland.withUWSM = true;
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.wayland.enable = true;
   services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "felipe";
+  services.displayManager.autoLogin.user = user;
 
   xdg.portal.enable = true;
 
@@ -16,7 +20,7 @@
     kdePackages.qtsvg
   ];
 
-  home-manager.users.felipe =
+  home-manager.users.${user} =
     { config, ... }:
     let
       p = config.colorScheme.palette;

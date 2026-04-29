@@ -7,6 +7,7 @@
 {
   inputs,
   pkgs,
+  config,
   ...
 }:
 {
@@ -15,7 +16,7 @@
   services.power-profiles-daemon.enable = true;
   services.upower.enable = true;
 
-  home-manager.users.felipe =
+  home-manager.users.${config.myConfig.primaryUser} =
     { config, ... }:
     let
       p = config.colorScheme.palette;

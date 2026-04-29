@@ -1,4 +1,3 @@
-{ config, ... }:
 {
   wayland.windowManager.hyprland.settings = {
     env = [
@@ -10,7 +9,6 @@
       "XCOMPOSEFILE,$HOME/.XCompose"
       "XCURSOR_THEME,Bibata-Modern-Classic"
       "XCURSOR_SIZE,22"
-      "TERMINAL,${config.desktop.terminal.name}"
       "QT_QPA_PLATFORMTHEME,kde"
     ];
   };

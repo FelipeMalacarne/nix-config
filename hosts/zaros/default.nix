@@ -3,6 +3,7 @@
 {
   imports = [
     ./hardware.nix
+    ../../modules/options.nix
     ../../modules/nixos/core.nix
     ../../modules/nixos/boot.nix
     ../../modules/nixos/network.nix
@@ -14,6 +15,7 @@
     ../../modules/features/gaming.nix
     ../../modules/features/hyprland
     ../../modules/features/noctalia.nix
+    ../../modules/features/alacritty.nix
   ];
 
   networking.hostName = "zaros";
@@ -67,7 +69,6 @@
   home-manager.users.felipe = {
     imports = [
       ../../modules/home/common
-      ../../modules/home/desktop/terminal.nix
       ../../modules/home/desktop/idle.nix
       ../../modules/home/desktop/wallpaper.nix
       ../../modules/home/desktop/firefox.nix
@@ -75,7 +76,6 @@
       ../../modules/home/desktop/yazi.nix
     ];
 
-    desktop.terminal.name = "alacritty";
     desktop.colorScheme = "catppuccin-mocha";
 
     home = {
