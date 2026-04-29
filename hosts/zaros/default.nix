@@ -12,6 +12,7 @@
     ../../modules/nixos/kdeconnect.nix
     ../../modules/nixos/tailscale.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/hyprland
     ../../modules/features/noctalia.nix
   ];
 
@@ -66,7 +67,6 @@
   home-manager.users.felipe = {
     imports = [
       ../../modules/home/common
-      ../../modules/home/desktop/hyprland
       ../../modules/home/desktop/terminal.nix
       ../../modules/home/desktop/idle.nix
       ../../modules/home/desktop/wallpaper.nix
