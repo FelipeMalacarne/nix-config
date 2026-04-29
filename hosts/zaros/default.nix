@@ -10,8 +10,8 @@
     ../../modules/nixos/gpu/nvidia.nix
     ../../modules/nixos/desktop.nix
     ../../modules/nixos/kdeconnect.nix
-    ../../modules/nixos/steam.nix
     ../../modules/nixos/tailscale.nix
+    ../../modules/features/gaming.nix
   ];
 
   networking.hostName = "zaros";
@@ -91,6 +91,7 @@
         hunspellDicts.en_US
         zathura
         dbeaver-bin
+        mongodb-compass
       ];
     };
   };
