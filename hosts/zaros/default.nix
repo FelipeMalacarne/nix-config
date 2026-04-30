@@ -4,13 +4,12 @@
   imports = [
     ./hardware.nix
     ../../modules/options.nix
-    ../../modules/nixos/core.nix
-    ../../modules/nixos/boot.nix
     ../../modules/nixos/network.nix
     ../../modules/nixos/audio.nix
-    ../../modules/nixos/desktop.nix
     ../../modules/nixos/kdeconnect.nix
     ../../modules/nixos/tailscale.nix
+    ../../modules/features/core.nix
+    ../../modules/features/fonts.nix
     ../../modules/features/gaming.nix
     ../../modules/features/nvidia.nix
     ../../modules/features/hyprland

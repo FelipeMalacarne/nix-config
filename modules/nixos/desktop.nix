@@ -13,12 +13,5 @@
   # Note: nerd-fonts was split into individual packages in nixpkgs unstable (late 2024).
   # The old `nerdfonts.override { fonts = [...] }` pattern no longer works.
   # Use individual package names instead.
-  fonts.packages = with pkgs; [
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-color-emoji
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-  ];
 
 }
