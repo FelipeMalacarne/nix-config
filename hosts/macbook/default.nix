@@ -1,58 +1,28 @@
-{ pkgs, ... }:
-
+{ ... }:
 {
   imports = [
-    ../../modules/darwin/yabai.nix
-    ../../modules/darwin/skhd.nix
-    ../../modules/darwin/sketchybar.nix
-    ../../modules/darwin/borders.nix
+    ../../modules/options.nix
+    ../../modules/features/theming.nix
+    ../../modules/features/darwin/core.nix
+    ../../modules/features/darwin/yabai.nix
+    ../../modules/features/darwin/skhd.nix
+    ../../modules/features/darwin/borders.nix
+    ../../modules/features/darwin/sketchybar
+    ../../modules/features/zsh.nix
+    ../../modules/features/git.nix
+    ../../modules/features/ssh.nix
+    ../../modules/features/nvim.nix
+    ../../modules/features/cli.nix
+    ../../modules/features/btop.nix
+    ../../modules/features/yazi.nix
+    ../../modules/features/fonts.nix
+    ../../modules/features/alacritty.nix
+    ../../modules/features/firefox.nix
   ];
-
-  environment.systemPackages = with pkgs; [
-    vim
-    git
-  ];
-
-  nix.settings.experimental-features = "nix-command flakes";
-
-  nixpkgs.config.allowUnfree = true;
 
   nixpkgs.hostPlatform = "aarch64-darwin";
   system.stateVersion = 4;
 
-  users.users.felipeautentique = {
-    name = "felipeautentique";
-    home = "/Users/felipeautentique";
-  };
-
-  system.primaryUser = "felipeautentique";
-  system.defaults = {
-    NSGlobalDomain = {
-      _HIHideMenuBar = true;
-    };
-  };
-
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "backup";
-  home-manager.users.felipeautentique = {
-    imports = [
-      ../../modules/home/common
-      ../../modules/home/darwin/sketchybar
-      ../../modules/features/alacritty.nix
-      ../../modules/home/desktop/firefox.nix
-    ];
-    desktop.colorScheme = "catppuccin-mocha";
-    home.username = "felipeautentique";
-    home.homeDirectory = "/Users/felipeautentique";
-  };
-
-  # homebrew = {
-  #   enable = true;
-  #   onActivation.upgrade = true;
-  #
-  #   casks = [
-  #     # "firefox"
-  #   ];
-  # };
+  myConfig.primaryUser = "felipeautentique";
+  myConfig.colorScheme = "catppuccin-mocha";
 }

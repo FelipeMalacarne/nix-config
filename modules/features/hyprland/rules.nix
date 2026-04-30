@@ -1,4 +1,4 @@
-# modules/home/desktop/hyprland/rules.nix
+# modules/features/hyprland/rules.nix
 { ... }:
 {
   wayland.windowManager.hyprland.settings = {

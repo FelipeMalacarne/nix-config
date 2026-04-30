@@ -1,4 +1,4 @@
-# modules/home/desktop/hyprland/animations.nix
+# modules/features/hyprland/animations.nix
 { ... }:
 {
   wayland.windowManager.hyprland.settings = {
