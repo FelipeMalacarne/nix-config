@@ -1,7 +1,7 @@
 # modules/features/hyprland/wallpaper.nix
 #
 # Configures hyprpaper with a per-theme wallpaper based on colorScheme.slug.
-# Add wallpapers at: modules/features/hyprland/wallpapers/<colorScheme.slug>.png
+# Add wallpapers at: modules/wallpapers/<colorScheme.slug>.png
 # Reloads the wallpaper live via systemctl after each rebuild.
 { config, lib, ... }:
 let
@@ -9,7 +9,7 @@ let
   wallpaper = "${config.home.homeDirectory}/Pictures/wallpapers/${slug}.png";
 in
 {
-  home.file."Pictures/wallpapers/${slug}.png".source = ./wallpapers/${slug}.png;
+  home.file."Pictures/wallpapers/${slug}.png".source = ../../wallpapers/${slug}.png;
 
   services.hyprpaper = {
     enable = true;
