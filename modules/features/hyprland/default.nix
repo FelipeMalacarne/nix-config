@@ -40,12 +40,17 @@ in
         ./envs.nix
         ./monitors.nix
         ./input.nix
+        ./wallpaper.nix
+        ./idle.nix
       ];
 
       gtk = {
         enable = true;
         gtk3.extraConfig.gtk-application-prefer-dark-theme = true;
-        gtk4.extraConfig.gtk-application-prefer-dark-theme = true;
+        gtk4 = {
+          extraConfig.gtk-application-prefer-dark-theme = true;
+          theme = null;
+        };
       };
 
       # Tells portals and apps that query color-scheme (e.g. Firefox, Electron) to use dark
@@ -64,7 +69,6 @@ in
       systemd.user.sessionVariables = {
         XCURSOR_THEME = "Bibata-Modern-Classic";
         XCURSOR_SIZE = "22";
-        SSH_AUTH_SOCK = "$HOME/.bitwarden-ssh-agent.sock";
         XCOMPOSEFILE = "$HOME/.XCompose";
       };
 

@@ -1,7 +1,7 @@
 # modules/features/programming.nix
 #
-# System + home-manager module — programming tools, shell aliases,
-# and environment setup for development workflows.
+# Development environment: languages, dev tools, database clients,
+# AI coding assistants, and infrastructure tooling.
 { config, pkgs, ... }:
 let
   user = config.myConfig.primaryUser;
@@ -19,18 +19,20 @@ in
       php85Packages.composer
       (laravel.override { php = php85; })
 
-      # CLI utilities
-      ripgrep
-      fd
-      fzf
-      jq
-      bat
+      # Dev CLI
       lazygit
       nixfmt-tree
 
       # Infrastructure
       google-cloud-sdk
       terraform
+
+      # Database clients
+      dbeaver-bin
+      mongodb-compass
+
+      # AI coding
+      opencode
     ];
 
     programs.zsh.shellAliases = {
@@ -40,6 +42,27 @@ in
 
       # Git
       lg = "lazygit";
+    };
+
+    programs.claude-code = {
+      enable = true;
+
+      plugins = [
+        (pkgs.fetchFromGitHub {
+          owner = "JuliusBrussee";
+          repo = "caveman";
+          rev = "84cc3c14fa1e10182adaced856e003406ccd250d";
+          hash = "sha256-M+NoWXxrhtbkbe/lmq7P0/KpmqOZzJjhgeUVjY+7N2k=";
+        })
+        (pkgs.fetchFromGitHub {
+          owner = "obra";
+          repo = "superpowers";
+          rev = "b55764852ac78870e65c6565fb585b6cd8b3c5c9";
+          hash = "sha256-cobQloF7Y6K0IC0/6xSnA2Io+fKgk2SRmCwoZZtVCco=";
+        })
+      ];
+
+      settings.enabledPlugins."gopls-lsp@claude-plugins-official" = true;
     };
   };
 }

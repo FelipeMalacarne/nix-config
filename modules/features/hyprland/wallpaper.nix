@@ -1,9 +1,9 @@
-# modules/home/desktop/wallpaper.nix
+# modules/features/hyprland/wallpaper.nix
 #
 # Configures hyprpaper with a per-theme wallpaper based on colorScheme.slug.
-# Add wallpapers at: modules/home/desktop/wallpapers/<colorScheme.slug>.png
-# The activation step reloads the wallpaper live via hyprpaper IPC after each rebuild.
-{ lib, config, ... }:
+# Add wallpapers at: modules/features/hyprland/wallpapers/<colorScheme.slug>.png
+# Reloads the wallpaper live via systemctl after each rebuild.
+{ config, lib, ... }:
 let
   slug = config.colorScheme.slug;
   wallpaper = "${config.home.homeDirectory}/Pictures/wallpapers/${slug}.png";
@@ -20,9 +20,6 @@ in
     };
   };
 
-  # Restart hyprpaper after every rebuild so the new wallpaper is applied immediately.
-  # Using systemctl instead of hyprctl IPC because HYPRLAND_INSTANCE_SIGNATURE
-  # is not available in the home-manager activation environment.
   home.activation.reloadWallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run /run/current-system/sw/bin/systemctl --user restart hyprpaper.service
   '';

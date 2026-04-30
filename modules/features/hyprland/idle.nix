@@ -1,3 +1,6 @@
+# modules/features/hyprland/idle.nix
+#
+# Hypridle: lock after 3 min, DPMS off after 4 min.
 { ... }:
 {
   services.hypridle = {

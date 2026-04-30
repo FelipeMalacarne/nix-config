@@ -1,4 +1,4 @@
-# modules/nixos/tailscale.nix
+# modules/features/tailscale.nix
 { ... }:
 {
   services.tailscale.enable = true;

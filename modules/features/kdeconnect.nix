@@ -1,3 +1,4 @@
+# modules/features/kdeconnect.nix
 { lib, options, ... }:
 {
   programs.kdeconnect.enable = true;

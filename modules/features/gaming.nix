@@ -1,9 +1,15 @@
+# modules/features/gaming.nix
+#
+# Gaming stack: Steam with Millennium, Proton GE, Gamemode.
 {
   pkgs,
   inputs,
   config,
   ...
 }:
+let
+  user = config.myConfig.primaryUser;
+in
 {
   nixpkgs.overlays = [ inputs.millennium.overlays.default ];
 
@@ -17,20 +23,17 @@
       enable = true;
       package = pkgs.millennium-steam;
       protontricks.enable = true;
-
       extraCompatPackages = [ pkgs.proton-ge-bin ];
     };
   };
 
-  home-manager.users.${config.myConfig.primaryUser} = {
-    home = {
-      packages = with pkgs; [
-        lutris
-        heroic
-        mangohud
-        gamescope
-        dxvk
-      ];
-    };
+  home-manager.users.${user} = {
+    home.packages = with pkgs; [
+      lutris
+      heroic
+      mangohud
+      gamescope
+      dxvk
+    ];
   };
 }
