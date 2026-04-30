@@ -16,6 +16,7 @@ in
     ../../modules/features/fonts.nix
     ../../modules/features/gaming.nix
     ../../modules/features/nvidia.nix
+    ../../modules/features/programming.nix
     ../../modules/features/hyprland
     ../../modules/features/noctalia.nix
     ../../modules/features/alacritty.nix

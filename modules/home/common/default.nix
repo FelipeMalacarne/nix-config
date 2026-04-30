@@ -13,7 +13,6 @@
     ./nvim.nix
     ./cli.nix
     ./btop.nix
-    ./dev-tools.nix
     ./ssh.nix
     ./claude-code.nix
   ];
