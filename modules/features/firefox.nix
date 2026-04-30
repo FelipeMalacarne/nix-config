@@ -32,7 +32,7 @@ in
             "cursor": "#${p.base05}"
           },
           "colors": {
-            "color0": "#${p.base01}", "color1": "#${p.base08}",
+            "color0": "#${p.base00}", "color1": "#${p.base08}",
             "color2": "#${p.base0B}", "color3": "#${p.base0A}",
             "color4": "#${p.base0D}", "color5": "#${p.base0E}",
             "color6": "#${p.base0C}", "color7": "#${p.base05}",

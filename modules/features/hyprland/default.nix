@@ -26,11 +26,18 @@ in
       p = config.colorScheme.palette;
     in
     {
-      home.file.".XCompose".text = ''
-        include "%L"
-        <dead_acute> <c> : "ç" ccedilla
-        <dead_acute> <C> : "Ç" Ccedilla
-      '';
+      home.file = builtins.listToAttrs (
+        map (f: {
+          name = "Pictures/wallpapers/${f}";
+          value.source = ../../wallpapers + "/${f}";
+        }) (builtins.attrNames (builtins.readDir ../../wallpapers))
+      ) // {
+        ".XCompose".text = ''
+          include "%L"
+          <dead_acute> <c> : "ç" ccedilla
+          <dead_acute> <C> : "Ç" Ccedilla
+        '';
+      };
 
       imports = [
         ./autostart.nix
@@ -40,7 +47,6 @@ in
         ./envs.nix
         ./monitors.nix
         ./input.nix
-        ./wallpaper.nix
         ./idle.nix
       ];
 

@@ -39,7 +39,7 @@
         enable = true;
 
         colors = {
-          mSurface = "#${p.base01}";
+          mSurface = "#${p.base00}";
           mSurfaceVariant = "#${p.base02}";
           mPrimary = "#${p.base0E}";
           mOnPrimary = "#${p.base00}";
