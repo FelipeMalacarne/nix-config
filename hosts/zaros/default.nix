@@ -1,5 +1,8 @@
 # hosts/zaros/default.nix
-{ pkgs, ... }:
+{ pkgs, config, ... }:
+let
+  user = config.myConfig.primaryUser;
+in
 {
   imports = [
     ./hardware.nix
@@ -9,6 +12,7 @@
     ../../modules/nixos/kdeconnect.nix
     ../../modules/nixos/tailscale.nix
     ../../modules/features/core.nix
+    ../../modules/features/zsh.nix
     ../../modules/features/fonts.nix
     ../../modules/features/gaming.nix
     ../../modules/features/nvidia.nix
@@ -43,10 +47,8 @@
 
   services.flatpak.enable = true;
 
-  programs.zsh.enable = true;
-  users.users.felipe = {
+  users.users.${user} = {
     isNormalUser = true;
-    shell = pkgs.zsh;
     initialPassword = "nixos";
     openssh.authorizedKeys.keyFiles = [
       ../../keys/zaros.pub

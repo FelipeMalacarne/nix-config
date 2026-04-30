@@ -10,7 +10,6 @@
   imports = [
     inputs.nix-colors.homeManagerModules.default
     ./git.nix
-    ./zsh.nix
     ./nvim.nix
     ./cli.nix
     ./btop.nix
