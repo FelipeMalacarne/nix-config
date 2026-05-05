@@ -34,6 +34,7 @@ in
       mangohud
       gamescope
       dxvk
+      cemu
     ];
   };
 }
