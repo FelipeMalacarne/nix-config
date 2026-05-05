@@ -11,6 +11,8 @@ in
   users.users.${user}.shell = pkgs.zsh;
 
   home-manager.users.${user} = {
+    home.sessionVariables.EDITOR = "nvim";
+
     programs.zsh = {
       enable = true;
       autosuggestion.enable = true;
@@ -30,6 +32,8 @@ in
       # Emit OSC 7 on every directory change so terminals (Alacritty, etc.)
       # can open new windows/tabs in the same directory.
       initContent = ''
+        export EDITOR=nvim
+        export VISUAL=nvim
         _osc7_cwd() { printf '\e]7;file://%s%s\e\\' "$HOST" "$PWD"; }
         autoload -Uz add-zsh-hook
         add-zsh-hook chpwd _osc7_cwd

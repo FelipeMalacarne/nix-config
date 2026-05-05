@@ -35,6 +35,10 @@
     nur.url = "github:nix-community/NUR";
     millennium.url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -43,6 +47,7 @@
       home-manager,
       darwin,
       nur,
+      sops-nix,
       ...
     }@inputs:
     {
@@ -68,10 +73,10 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/zaros
+            sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
               home-manager.extraSpecialArgs = { inherit inputs; };
-              # APPLY THE OVERLAY FOR ZAROS (Optional but recommended)
               nixpkgs.overlays = [ nur.overlays.default ];
             }
           ];
@@ -82,10 +87,10 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/saradomin
+            sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
               home-manager.extraSpecialArgs = { inherit inputs; };
-              # APPLY THE OVERLAY FOR SARADOMIN (Optional but recommended)
               nixpkgs.overlays = [ nur.overlays.default ];
             }
           ];

@@ -1,44 +1,26 @@
 # hosts/saradomin/default.nix
-{ pkgs, ... }:
+{ config, pkgs, ... }:
+let
+  user = config.myConfig.primaryUser;
+in
 {
   imports = [
     ./hardware.nix
-    ../../modules/nixos/core.nix
-    ../../modules/nixos/boot.nix
-    ../../modules/nixos/network.nix
-    ../../modules/nixos/desktop.nix # temporary — remove after desktop validation
+    ../../modules/options.nix
+    ../../modules/presets/base.nix
+    ../../modules/features/sops.nix
   ];
 
   networking.hostName = "saradomin";
 
-  # User account
-  programs.zsh.enable = true;
-  users.users.felipe = {
-    isNormalUser = true;
-    shell = pkgs.zsh;
-    initialPassword = "nixos"; # change after install
-    extraGroups = [
-      "wheel"
-      "networkmanager"
-      "video"
-      "audio"
-    ];
-  };
-
-  # Home Manager wiring
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.users.felipe = {
-    imports = [
-      ../../modules/home/common
-      ../../modules/home/desktop/hyprland
-      ../../modules/home/desktop/ghostty.nix
-      ../../modules/home/desktop/noctalia.nix
-      ../../modules/home/desktop/wallpaper.nix
-    ];
-    home.username = "felipe";
-    home.homeDirectory = "/home/felipe";
-  };
-
+  myConfig.colorScheme = "catppuccin-mocha";
   system.stateVersion = "24.11";
+
+  security.pki.certificateFiles = [
+    ../../certs/saradomin-internal-ca.crt
+  ];
+
+  users.users.${user}.openssh.authorizedKeys.keyFiles = [
+    ../../keys/zaros.pub
+  ];
 }

@@ -9,6 +9,7 @@ in
     ../../modules/options.nix
     ../../modules/presets/base.nix
     ../../modules/presets/desktop.nix
+    ../../modules/features/sops.nix
     ../../modules/features/nvidia.nix
     ../../modules/features/gaming.nix
     ../../modules/features/programming.nix
@@ -21,6 +22,7 @@ in
   ];
 
   networking.hostName = "zaros";
+
   myConfig.colorScheme = "catppuccin-mocha";
   system.stateVersion = "24.11";
 
