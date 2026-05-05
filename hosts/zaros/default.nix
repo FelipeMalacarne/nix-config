@@ -19,6 +19,7 @@ in
     ../../modules/features/flatpak.nix
     ../../modules/features/tailscale.nix
     ../../modules/features/office.nix
+    ../../modules/features/virtualization.nix
   ];
 
   networking.hostName = "zaros";
