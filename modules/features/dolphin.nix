@@ -20,6 +20,7 @@ in
     {
       home.packages = with pkgs; [
         kdePackages.dolphin
+        kdePackages.kio-extras
         swayimg
         kdePackages.kde-cli-tools
         kdePackages.qtsvg
