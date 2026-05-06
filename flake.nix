@@ -57,6 +57,7 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/macbook
+            sops-nix.darwinModules.sops
             home-manager.darwinModules.home-manager
             {
               home-manager.extraSpecialArgs = { inherit inputs; };

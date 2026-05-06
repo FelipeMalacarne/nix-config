@@ -6,8 +6,6 @@ let
   user = config.myConfig.primaryUser;
 in
 {
-  programs.firefox.enable = true;
-
   home-manager.users.${user} =
     {
       config,
