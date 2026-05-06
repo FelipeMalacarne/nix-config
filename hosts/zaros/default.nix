@@ -13,6 +13,7 @@ in
     ../../modules/features/nvidia.nix
     ../../modules/features/gaming.nix
     ../../modules/features/programming.nix
+    ../../modules/features/opencode.nix
     ../../modules/features/docker.nix
     ../../modules/features/ollama.nix
     ../../modules/features/openssh.nix

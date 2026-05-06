@@ -30,12 +30,6 @@ in
       # Database clients
       dbeaver-bin
       mongodb-compass
-
-      # AI coding
-      (writeShellApplication {
-        name = "opencode";
-        text = ''exec ${nodejs}/bin/npx opencode-ai@latest "$@"'';
-      })
     ];
 
     programs.zsh.shellAliases = {

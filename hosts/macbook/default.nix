@@ -20,6 +20,7 @@
     ../../modules/features/alacritty.nix
     ../../modules/features/firefox.nix
     ../../modules/features/programming.nix
+    ../../modules/features/opencode.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
