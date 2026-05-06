@@ -5,11 +5,12 @@
 }:
 let
   user = config.myConfig.primaryUser;
+  homeDirectory = config.home-manager.users.${user}.home.homeDirectory;
 in
 {
   sops.secrets."zaros-private-key" = {
     owner = user;
-    path = "/home/${user}/.ssh/zaros";
+    path = "${homeDirectory}/.ssh/zaros";
     mode = "0600";
   };
 
