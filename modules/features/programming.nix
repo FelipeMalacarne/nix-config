@@ -32,7 +32,10 @@ in
       mongodb-compass
 
       # AI coding
-      opencode
+      (writeShellApplication {
+        name = "opencode";
+        text = ''exec ${nodejs}/bin/npx opencode-ai@latest "$@"'';
+      })
     ];
 
     programs.zsh.shellAliases = {
