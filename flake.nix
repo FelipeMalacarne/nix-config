@@ -82,6 +82,20 @@
           ];
         };
 
+        saradomin-vm = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/saradomin-vm
+            sops-nix.nixosModules.sops
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.extraSpecialArgs = { inherit inputs; };
+              nixpkgs.overlays = [ nur.overlays.default ];
+            }
+          ];
+        };
+
         saradomin = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = { inherit inputs; };

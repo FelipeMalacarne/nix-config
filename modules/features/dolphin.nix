@@ -21,6 +21,7 @@ in
       home.packages = with pkgs; [
         kdePackages.dolphin
         kdePackages.kio-extras
+        kdePackages.plasma-integration
         swayimg
         kdePackages.kde-cli-tools
         kdePackages.qtsvg
