@@ -5,12 +5,17 @@
 { config, pkgs, ... }:
 let
   user = config.myConfig.primaryUser;
+  linearKeyPath = config.sops.secrets."linear-api-key".path;
 in
 {
+  sops.secrets."linear-api-key" = { owner = user; };
+
   home-manager.users.${user} = {
     home.packages = with pkgs; [
       # Languages
       go
+      elixir_1_19
+      erlang
       nodejs
       pnpm
       python3
@@ -22,6 +27,7 @@ in
       # Dev CLI
       lazygit
       nixfmt-tree
+      gh
 
       # Infrastructure
       google-cloud-sdk
@@ -30,7 +36,16 @@ in
       # Database clients
       dbeaver-bin
       mongodb-compass
+
+      (pkgs.writeShellApplication {
+        name = "codex";
+        text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
+      })
     ];
+
+    programs.zsh.initContent = ''
+      export LINEAR_API_KEY="$(cat ${linearKeyPath} 2>/dev/null)"
+    '';
 
     programs.zsh.shellAliases = {
       # Laravel / PHP
@@ -45,12 +60,12 @@ in
       enable = true;
 
       plugins = [
-        (pkgs.fetchFromGitHub {
-          owner = "JuliusBrussee";
-          repo = "caveman";
-          rev = "84cc3c14fa1e10182adaced856e003406ccd250d";
-          hash = "sha256-M+NoWXxrhtbkbe/lmq7P0/KpmqOZzJjhgeUVjY+7N2k=";
-        })
+        # (pkgs.fetchFromGitHub {
+        #   owner = "JuliusBrussee";
+        #   repo = "caveman";
+        #   rev = "84cc3c14fa1e10182adaced856e003406ccd250d";
+        #   hash = "sha256-M+NoWXxrhtbkbe/lmq7P0/KpmqOZzJjhgeUVjY+7N2k=";
+        # })
         (pkgs.fetchFromGitHub {
           owner = "obra";
           repo = "superpowers";
