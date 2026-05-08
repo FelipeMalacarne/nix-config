@@ -23,6 +23,7 @@ in
       php85
       php85Packages.composer
       (laravel.override { php = php85; })
+      gcc
 
       # Dev CLI
       lazygit

@@ -35,6 +35,8 @@ in
       gamescope
       dxvk
       cemu
+      prismlauncher
+      ferium
     ];
   };
 }

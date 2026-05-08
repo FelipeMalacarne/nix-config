@@ -15,6 +15,7 @@ in
       fastfetch
       zip
       unzip
+      p7zip-rar
     ];
 
     programs.fzf = {
