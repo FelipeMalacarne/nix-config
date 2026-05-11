@@ -10,6 +10,7 @@ in
     ../../modules/presets/base.nix
     ../../modules/presets/desktop.nix
     ../../modules/features/sops.nix
+    ../../modules/features/restic.nix
     ../../modules/features/nvidia.nix
     ../../modules/features/gaming.nix
     ../../modules/features/programming.nix
@@ -26,6 +27,13 @@ in
   networking.hostName = "zaros";
 
   myConfig.colorScheme = "catppuccin-mocha";
+  myConfig.restic = {
+    enable = true;
+    paths = [
+      "/home/${user}/Documents"
+      "/home/${user}/.local/share/PrismLauncher/instances/ProjectOzone 3/minecraft/saves"
+    ];
+  };
   system.stateVersion = "24.11";
 
   security.pki.certificateFiles = [

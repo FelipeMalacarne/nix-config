@@ -1,6 +1,6 @@
 # modules/features/dolphin.nix
 #
-# KDE Dolphin file manager with nix-colors theming and swayimg for images.
+# KDE Dolphin file manager with nix-colors theming and common file handlers.
 {
   config,
   inputs,
@@ -22,22 +22,63 @@ in
         kdePackages.dolphin
         kdePackages.kio-extras
         kdePackages.plasma-integration
+        kdePackages.ark
+        kdePackages.gwenview
+        kdePackages.kimageformats
+        kdePackages.okular
+        mpv
         swayimg
         kdePackages.kde-cli-tools
+        kdePackages.kservice
         kdePackages.qtsvg
         kdePackages.breeze-icons
+        unar
+        unzip
+        zip
+        zstd
       ];
 
       xdg.mimeApps = {
         enable = true;
         defaultApplications = {
-          "image/jpeg" = "swayimg.desktop";
-          "image/png" = "swayimg.desktop";
-          "image/gif" = "swayimg.desktop";
-          "image/webp" = "swayimg.desktop";
-          "image/bmp" = "swayimg.desktop";
-          "image/tiff" = "swayimg.desktop";
-          "image/svg+xml" = "swayimg.desktop";
+          "application/pdf" = "org.kde.okular.desktop";
+          "application/x-pdf" = "org.kde.okular.desktop";
+
+          "application/zip" = "org.kde.ark.desktop";
+          "application/x-zip-compressed" = "org.kde.ark.desktop";
+          "application/x-7z-compressed" = "org.kde.ark.desktop";
+          "application/x-bzip2" = "org.kde.ark.desktop";
+          "application/x-bzip-compressed-tar" = "org.kde.ark.desktop";
+          "application/x-compressed-tar" = "org.kde.ark.desktop";
+          "application/gzip" = "org.kde.ark.desktop";
+          "application/vnd.rar" = "org.kde.ark.desktop";
+          "application/x-rar" = "org.kde.ark.desktop";
+          "application/x-rar-compressed" = "org.kde.ark.desktop";
+          "application/x-tar" = "org.kde.ark.desktop";
+          "application/x-xz" = "org.kde.ark.desktop";
+          "application/x-xz-compressed-tar" = "org.kde.ark.desktop";
+          "application/zstd" = "org.kde.ark.desktop";
+          "application/x-zstd-compressed-tar" = "org.kde.ark.desktop";
+
+          "image/jpeg" = "org.kde.gwenview.desktop";
+          "image/png" = "org.kde.gwenview.desktop";
+          "image/gif" = "org.kde.gwenview.desktop";
+          "image/webp" = "org.kde.gwenview.desktop";
+          "image/bmp" = "org.kde.gwenview.desktop";
+          "image/tiff" = "org.kde.gwenview.desktop";
+          "image/svg+xml" = "org.kde.gwenview.desktop";
+
+          "video/mp4" = "mpv.desktop";
+          "video/3gpp" = "mpv.desktop";
+          "video/mpeg" = "mpv.desktop";
+          "video/ogg" = "mpv.desktop";
+          "video/quicktime" = "mpv.desktop";
+          "video/webm" = "mpv.desktop";
+          "video/x-flv" = "mpv.desktop";
+          "video/x-m4v" = "mpv.desktop";
+          "video/x-matroska" = "mpv.desktop";
+          "video/x-msvideo" = "mpv.desktop";
+          "video/x-ms-wmv" = "mpv.desktop";
         };
       };
 
@@ -46,9 +87,17 @@ in
         platformTheme.name = "kde";
       };
 
+      xdg.configFile."dolphinrc".text = ''
+        [General]
+        ShowSelectionToggle=false
+      '';
+
       xdg.configFile."kdeglobals".text = ''
         [General]
         ColorScheme=NixGenerated
+
+        [KDE]
+        SingleClick=false
 
         [Icons]
         Theme=breeze-dark
