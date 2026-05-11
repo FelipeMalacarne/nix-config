@@ -16,6 +16,7 @@ in
       zip
       unzip
       p7zip-rar
+      gnumake
     ];
 
     programs.fzf = {
