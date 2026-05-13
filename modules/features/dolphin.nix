@@ -16,10 +16,52 @@ in
     let
       p = config.colorScheme.palette;
       toRgb = inputs.nix-colors.lib.conversions.hexToRGBString ",";
+      mimeApplications = {
+        "application/pdf" = "org.kde.okular.desktop";
+        "application/x-pdf" = "org.kde.okular.desktop";
+
+        "application/zip" = "org.kde.ark.desktop";
+        "application/x-zip-compressed" = "org.kde.ark.desktop";
+        "application/x-7z-compressed" = "org.kde.ark.desktop";
+        "application/x-bzip2" = "org.kde.ark.desktop";
+        "application/x-bzip-compressed-tar" = "org.kde.ark.desktop";
+        "application/x-compressed-tar" = "org.kde.ark.desktop";
+        "application/gzip" = "org.kde.ark.desktop";
+        "application/vnd.rar" = "org.kde.ark.desktop";
+        "application/x-rar" = "org.kde.ark.desktop";
+        "application/x-rar-compressed" = "org.kde.ark.desktop";
+        "application/x-tar" = "org.kde.ark.desktop";
+        "application/x-xz" = "org.kde.ark.desktop";
+        "application/x-xz-compressed-tar" = "org.kde.ark.desktop";
+        "application/zstd" = "org.kde.ark.desktop";
+        "application/x-zstd-compressed-tar" = "org.kde.ark.desktop";
+
+        "image/jpeg" = "org.kde.gwenview.desktop";
+        "image/png" = "org.kde.gwenview.desktop";
+        "image/gif" = "org.kde.gwenview.desktop";
+        "image/webp" = "org.kde.gwenview.desktop";
+        "image/bmp" = "org.kde.gwenview.desktop";
+        "image/tiff" = "org.kde.gwenview.desktop";
+        "image/svg+xml" = "org.kde.gwenview.desktop";
+
+        "video/mp4" = "mpv.desktop";
+        "video/3gpp" = "mpv.desktop";
+        "video/mpeg" = "mpv.desktop";
+        "video/ogg" = "mpv.desktop";
+        "video/quicktime" = "mpv.desktop";
+        "video/webm" = "mpv.desktop";
+        "video/x-flv" = "mpv.desktop";
+        "video/x-m4v" = "mpv.desktop";
+        "video/x-matroska" = "mpv.desktop";
+        "video/x-msvideo" = "mpv.desktop";
+        "video/x-ms-wmv" = "mpv.desktop";
+      };
     in
     {
       home.packages = with pkgs; [
         kdePackages.dolphin
+        # Provides Dolphin's embedded terminal panel and terminal service menu.
+        kdePackages.konsole
         kdePackages.kio-extras
         kdePackages.plasma-integration
         kdePackages.ark
@@ -40,46 +82,8 @@ in
 
       xdg.mimeApps = {
         enable = true;
-        defaultApplications = {
-          "application/pdf" = "org.kde.okular.desktop";
-          "application/x-pdf" = "org.kde.okular.desktop";
-
-          "application/zip" = "org.kde.ark.desktop";
-          "application/x-zip-compressed" = "org.kde.ark.desktop";
-          "application/x-7z-compressed" = "org.kde.ark.desktop";
-          "application/x-bzip2" = "org.kde.ark.desktop";
-          "application/x-bzip-compressed-tar" = "org.kde.ark.desktop";
-          "application/x-compressed-tar" = "org.kde.ark.desktop";
-          "application/gzip" = "org.kde.ark.desktop";
-          "application/vnd.rar" = "org.kde.ark.desktop";
-          "application/x-rar" = "org.kde.ark.desktop";
-          "application/x-rar-compressed" = "org.kde.ark.desktop";
-          "application/x-tar" = "org.kde.ark.desktop";
-          "application/x-xz" = "org.kde.ark.desktop";
-          "application/x-xz-compressed-tar" = "org.kde.ark.desktop";
-          "application/zstd" = "org.kde.ark.desktop";
-          "application/x-zstd-compressed-tar" = "org.kde.ark.desktop";
-
-          "image/jpeg" = "org.kde.gwenview.desktop";
-          "image/png" = "org.kde.gwenview.desktop";
-          "image/gif" = "org.kde.gwenview.desktop";
-          "image/webp" = "org.kde.gwenview.desktop";
-          "image/bmp" = "org.kde.gwenview.desktop";
-          "image/tiff" = "org.kde.gwenview.desktop";
-          "image/svg+xml" = "org.kde.gwenview.desktop";
-
-          "video/mp4" = "mpv.desktop";
-          "video/3gpp" = "mpv.desktop";
-          "video/mpeg" = "mpv.desktop";
-          "video/ogg" = "mpv.desktop";
-          "video/quicktime" = "mpv.desktop";
-          "video/webm" = "mpv.desktop";
-          "video/x-flv" = "mpv.desktop";
-          "video/x-m4v" = "mpv.desktop";
-          "video/x-matroska" = "mpv.desktop";
-          "video/x-msvideo" = "mpv.desktop";
-          "video/x-ms-wmv" = "mpv.desktop";
-        };
+        associations.added = mimeApplications;
+        defaultApplications = mimeApplications;
       };
 
       qt = {
@@ -95,6 +99,8 @@ in
       xdg.configFile."kdeglobals".text = ''
         [General]
         ColorScheme=NixGenerated
+        TerminalApplication=alacritty
+        TerminalService=Alacritty.desktop
 
         [KDE]
         SingleClick=false
