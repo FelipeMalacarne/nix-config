@@ -37,6 +37,7 @@ in
       cemu
       prismlauncher
       ferium
+      bolt-launcher
     ];
   };
 }
