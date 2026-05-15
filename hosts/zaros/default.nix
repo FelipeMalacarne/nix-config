@@ -13,6 +13,7 @@ in
     ../../modules/features/restic.nix
     ../../modules/features/nvidia.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/microbot.nix
     ../../modules/features/programming.nix
     ../../modules/features/opencode.nix
     ../../modules/features/docker.nix
