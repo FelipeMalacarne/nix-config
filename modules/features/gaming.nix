@@ -1,8 +1,9 @@
 # modules/features/gaming.nix
 #
-# Gaming stack: Steam, Proton GE, Gamemode.
+# Gaming stack: Steam with Millennium, Proton GE, Gamemode.
 {
   pkgs,
+  inputs,
   config,
   ...
 }:
@@ -10,16 +11,7 @@ let
   user = config.myConfig.primaryUser;
 in
 {
-  nixpkgs.overlays = [
-    (_final: prev: {
-      pkgsi686Linux = prev.pkgsi686Linux.extend (_final32: prev32: {
-        openldap = prev32.openldap.overrideAttrs (_old: {
-          # Lutris' 32-bit closure currently hits flaky OpenLDAP replication tests.
-          doCheck = false;
-        });
-      });
-    })
-  ];
+  nixpkgs.overlays = [ inputs.millennium.overlays.default ];
 
   hardware.graphics.enable = true;
 
@@ -29,6 +21,7 @@ in
 
     steam = {
       enable = true;
+      package = pkgs.millennium-steam;
       protontricks.enable = true;
       extraCompatPackages = [ pkgs.proton-ge-bin ];
     };
