@@ -5,6 +5,13 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+
+    import-tree.url = "github:vic/import-tree";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -41,75 +48,6 @@
     };
   };
 
-  outputs =
-    {
-      nixpkgs,
-      home-manager,
-      darwin,
-      nur,
-      sops-nix,
-      ...
-    }@inputs:
-    {
-      darwinConfigurations = {
-        macbook = darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/macbook
-            sops-nix.darwinModules.sops
-            home-manager.darwinModules.home-manager
-            {
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              # 2. APPLY THE OVERLAY FOR MACOS
-              nixpkgs.overlays = [ nur.overlays.default ];
-            }
-          ];
-        };
-      };
-
-      nixosConfigurations = {
-        zaros = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/zaros
-            sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              nixpkgs.overlays = [ nur.overlays.default ];
-            }
-          ];
-        };
-
-        saradomin-vm = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/saradomin-vm
-            sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              nixpkgs.overlays = [ nur.overlays.default ];
-            }
-          ];
-        };
-
-        saradomin = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/saradomin
-            sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              nixpkgs.overlays = [ nur.overlays.default ];
-            }
-          ];
-        };
-      };
-    };
+  outputs = inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./parts);
 }
