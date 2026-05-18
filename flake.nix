@@ -33,8 +33,6 @@
     nix-colors.url = "github:Misterio77/nix-colors";
 
     nur.url = "github:nix-community/NUR";
-    millennium.url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
-
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
