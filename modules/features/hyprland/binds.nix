@@ -59,6 +59,8 @@ in
       "$mod SHIFT, 3, movetoworkspace, 3"
       "$mod SHIFT, 4, movetoworkspace, 4"
       "$mod SHIFT, 5, movetoworkspace, 5"
+      "$mod SHIFT, 6, movetoworkspace, 6"
+      "$mod SHIFT, 7, movetoworkspace, 7"
 
       # apps
       "$mod SHIFT, F, exec, uwsm app -- $TERMINAL -e yazi"
