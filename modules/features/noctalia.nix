@@ -638,54 +638,37 @@ let
       };
     };
 
-  defaultColors = {
-    mSurface = "#1e1e2e";
-    mSurfaceVariant = "#313244";
-    mPrimary = "#cba6f7";
-    mOnPrimary = "#1e1e2e";
-    mSecondary = "#89b4fa";
-    mOnSecondary = "#1e1e2e";
-    mTertiary = "#a6e3a1";
-    mOnTertiary = "#1e1e2e";
-    mError = "#f38ba8";
-    mOnError = "#1e1e2e";
-    mOnSurface = "#cdd6f4";
-    mOnSurfaceVariant = "#585b70";
-    mOutline = "#45475a";
-    mHover = "#313244";
-    mOnHover = "#cdd6f4";
-    mShadow = "#000000";
-  };
 in
 {
   flake.nixosModules.noctalia =
     {
       config,
+      pkgs,
       ...
     }:
     let
-      c = config.lib.stylix.colors;
+      col = config.my.colors;
     in
     {
       nixpkgs.overlays = [
         (final: _: {
           noctalia-shell = mkNoctalia final {
-            mSurface = "#${c.base00}";
-            mSurfaceVariant = "#${c.base02}";
-            mPrimary = "#${c.base0E}";
-            mOnPrimary = "#${c.base00}";
-            mSecondary = "#${c.base0D}";
-            mOnSecondary = "#${c.base00}";
-            mTertiary = "#${c.base0B}";
-            mOnTertiary = "#${c.base00}";
-            mError = "#${c.base08}";
-            mOnError = "#${c.base00}";
-            mOnSurface = "#${c.base05}";
-            mOnSurfaceVariant = "#${c.base04}";
-            mOutline = "#${c.base03}";
-            mHover = "#${c.base02}";
-            mOnHover = "#${c.base05}";
-            mShadow = "#000000";
+            mSurface = col.background;
+            mSurfaceVariant = col.overlay;
+            mPrimary = col.purple;
+            mOnPrimary = col.background;
+            mSecondary = col.blue;
+            mOnSecondary = col.background;
+            mTertiary = col.green;
+            mOnTertiary = col.background;
+            mError = col.red;
+            mOnError = col.background;
+            mOnSurface = col.text;
+            mOnSurfaceVariant = col.subtle;
+            mOutline = col.muted;
+            mHover = col.overlay;
+            mOnHover = col.text;
+            mShadow = col.shadow;
           };
         })
       ];
@@ -694,11 +677,5 @@ in
       hardware.bluetooth.enable = true;
       services.power-profiles-daemon.enable = true;
       services.upower.enable = true;
-    };
-
-  perSystem =
-    { pkgs, ... }:
-    {
-      packages.noctalia-shell = mkNoctalia pkgs defaultColors;
     };
 }
