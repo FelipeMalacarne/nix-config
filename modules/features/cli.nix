@@ -1,37 +1,40 @@
-# modules/features/cli.nix
-#
-# General-purpose CLI tools: search, navigation, and base utilities.
-{ config, pkgs, ... }:
 let
-  user = config.my.user.name;
+  module = { config, pkgs, ... }:
+    let
+      user = config.my.user.name;
+    in
+    {
+      home-manager.users.${user} = {
+        home.packages = with pkgs; [
+          ripgrep
+          fd
+          jq
+          bat
+          fastfetch
+          zip
+          unzip
+          p7zip-rar
+          gnumake
+        ];
+
+        programs.fzf = {
+          enable = true;
+          enableZshIntegration = true;
+        };
+
+        programs.eza = {
+          enable = true;
+          enableZshIntegration = true;
+        };
+
+        programs.zoxide = {
+          enable = true;
+          enableZshIntegration = true;
+        };
+      };
+    };
 in
 {
-  home-manager.users.${user} = {
-    home.packages = with pkgs; [
-      ripgrep
-      fd
-      jq
-      bat
-      fastfetch
-      zip
-      unzip
-      p7zip-rar
-      gnumake
-    ];
-
-    programs.fzf = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-
-    programs.eza = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-
-    programs.zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-  };
+  flake.nixosModules.cli = module;
+  flake.darwinModules.cli = module;
 }

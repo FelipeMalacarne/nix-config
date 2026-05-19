@@ -4,7 +4,7 @@
     let
       user = config.my.user.name;
       p = inputs.nix-colors.colorSchemes.${config.myConfig.colorScheme}.palette;
-      source = ../../../modules/features/darwin/sketchybar;
+      source = ../../../assets/sketchybar;
     in
     {
       services.sketchybar = {
