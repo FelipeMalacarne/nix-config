@@ -3,9 +3,9 @@
 # Shared option declarations used across feature modules.
 { lib, ... }:
 {
-  options.myConfig.primaryUser = lib.mkOption {
+  options.my.user.name = lib.mkOption {
     type = lib.types.str;
     default = "felipe";
-    description = "Primary user account name. Used by feature modules to wire home-manager.";
+    description = "User account name used by system and home-manager modules.";
   };
 }

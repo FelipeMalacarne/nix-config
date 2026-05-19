@@ -3,7 +3,7 @@
 # libvirt + virt-manager for running local VMs (KVM/QEMU).
 { config, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   virtualisation.libvirtd.enable = true;

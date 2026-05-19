@@ -3,7 +3,7 @@
 # Microbot launcher packaged from the official AppImage release.
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
   browser = pkgs.chromium;
   jdk = pkgs.jdk;
 

@@ -3,7 +3,7 @@
 # PipeWire with ALSA + PulseAudio compatibility (32-bit support for gaming).
 { config, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   services.pipewire = {

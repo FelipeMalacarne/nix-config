@@ -8,7 +8,7 @@
   ...
 }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   nixpkgs.overlays = [ inputs.millennium.overlays.default ];

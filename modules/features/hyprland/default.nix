@@ -4,7 +4,7 @@
   ...
 }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   programs.hyprland.enable = true;

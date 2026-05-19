@@ -1,7 +1,7 @@
 # modules/features/git.nix
 { config, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   home-manager.users.${user} = {

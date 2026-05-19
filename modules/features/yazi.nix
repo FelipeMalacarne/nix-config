@@ -4,7 +4,7 @@
 # inside the configured terminal instead of relying on Terminal=true.
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
   yazi-launcher = pkgs.writeShellScript "yazi-launcher" ''
     exec $TERMINAL -e yazi
   '';

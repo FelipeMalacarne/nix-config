@@ -4,7 +4,7 @@
 # Colors derived from myConfig.colorScheme via nix-colors.
 { pkgs, config, inputs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
   p = inputs.nix-colors.colorSchemes.${config.myConfig.colorScheme}.palette;
 in
 {

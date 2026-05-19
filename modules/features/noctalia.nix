@@ -16,7 +16,7 @@
   services.power-profiles-daemon.enable = true;
   services.upower.enable = true;
 
-  home-manager.users.${config.myConfig.primaryUser} =
+  home-manager.users.${config.my.user.name} =
     { config, ... }:
     let
       p = config.colorScheme.palette;

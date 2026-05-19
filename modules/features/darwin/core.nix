@@ -4,7 +4,7 @@
 # Handles nix settings, user account, home-manager wiring, and macOS defaults.
 { config, lib, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   nix.settings.experimental-features = "nix-command flakes";

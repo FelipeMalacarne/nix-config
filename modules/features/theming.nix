@@ -10,7 +10,7 @@
   ...
 }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   options.myConfig.colorScheme = lib.mkOption {

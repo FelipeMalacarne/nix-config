@@ -4,7 +4,7 @@
 # if the nvidia feature is also active (hardware.nvidia.modesetting.enable).
 { config, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   virtualisation.docker.enable = true;

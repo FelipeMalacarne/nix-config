@@ -3,7 +3,7 @@
 # Btop system monitor with nix-colors theme.
 { config, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   home-manager.users.${user} =

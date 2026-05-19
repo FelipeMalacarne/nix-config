@@ -2,12 +2,12 @@
 {
   flake.nixosModules.zaros = { config, ... }:
     let
-      user = config.myConfig.primaryUser;
+      user = config.my.user.name;
     in
     {
       imports = [
         self.nixosModules.zarosHardware
-        ../../../modules/options.nix
+        self.nixosModules.identity
         ../../../modules/presets/base.nix
         ../../../modules/presets/desktop.nix
         ../../../modules/features/sops.nix
@@ -17,7 +17,6 @@
         ../../../modules/features/microbot.nix
         ../../../modules/features/programming.nix
         ../../../modules/features/opencode.nix
-        ../../../modules/features/docker.nix
         ../../../modules/features/ollama.nix
         ../../../modules/features/office.nix
         ../../../modules/features/virtualization.nix
@@ -30,6 +29,7 @@
         self.nixosModules.flatpak
         self.nixosModules.openssh
         self.nixosModules.tailscale
+        self.nixosModules.docker
       ];
 
       networking.hostName = "zaros";

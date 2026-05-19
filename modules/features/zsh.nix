@@ -4,7 +4,7 @@
 # and configures plugins, history, and prompt (starship).
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   programs.zsh.enable = true;

@@ -4,7 +4,7 @@
 # AI coding assistants, and infrastructure tooling.
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
   linearKeyPath = config.sops.secrets."linear-api-key".path;
 in
 {

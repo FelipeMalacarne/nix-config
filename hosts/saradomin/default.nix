@@ -1,7 +1,7 @@
 # hosts/saradomin/default.nix
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   imports = [

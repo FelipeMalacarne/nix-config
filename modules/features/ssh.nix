@@ -4,7 +4,7 @@
   ...
 }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
   homeDirectory = config.home-manager.users.${user}.home.homeDirectory;
 in
 {

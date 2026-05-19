@@ -9,7 +9,7 @@
   ...
 }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   i18n.defaultLocale = "en_US.UTF-8";

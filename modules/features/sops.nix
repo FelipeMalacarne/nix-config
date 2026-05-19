@@ -1,7 +1,7 @@
 # sops-nix integration. Age private key must exist at /var/lib/sops-age/keys.txt.
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   environment.systemPackages = [ pkgs.sops ];

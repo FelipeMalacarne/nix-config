@@ -1,7 +1,7 @@
 # OpenCode CLI and TUI theme generated from the active nix-colors palette.
 { config, pkgs, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   home-manager.users.${user} =

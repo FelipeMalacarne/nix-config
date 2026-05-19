@@ -5,7 +5,7 @@
 # to boot a local QEMU VM for testing before deploying to real hardware.
 { config, ... }:
 let
-  user = config.myConfig.primaryUser;
+  user = config.my.user.name;
 in
 {
   imports = [
