@@ -1,4 +1,4 @@
-{ self, ... }:
+{ ... }:
 {
   flake.nixosModules.hyprland =
     {
@@ -9,8 +9,7 @@
     }:
     let
       user = config.my.user.name;
-      selfpkgs = self.packages.${pkgs.stdenv.hostPlatform.system};
-      noctalia = lib.getExe selfpkgs.noctalia;
+      noctalia = lib.getExe pkgs.noctalia-shell;
       hyprctl = "${pkgs.hyprland}/bin/hyprctl";
       wallpaperDir = ../../assets/wallpapers;
 
