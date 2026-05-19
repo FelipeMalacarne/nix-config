@@ -3,7 +3,25 @@ let
   mkNoctalia =
     { pkgs, colors }:
     inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
-      inherit pkgs colors;
+      inherit pkgs;
+      colors = {
+        mSurface = colors.background;
+        mSurfaceVariant = colors.overlay;
+        mPrimary = colors.purple;
+        mOnPrimary = colors.background;
+        mSecondary = colors.blue;
+        mOnSecondary = colors.background;
+        mTertiary = colors.green;
+        mOnTertiary = colors.background;
+        mError = colors.red;
+        mOnError = colors.background;
+        mOnSurface = colors.text;
+        mOnSurfaceVariant = colors.subtle;
+        mOutline = colors.muted;
+        mHover = colors.overlay;
+        mOnHover = colors.text;
+        mShadow = colors.shadow;
+      };
       extraPackages = with pkgs; [
         grim
         imagemagick
@@ -653,24 +671,7 @@ in
         (_: prev: {
           noctalia-shell = mkNoctalia {
             pkgs = prev;
-            colors = {
-              mSurface = col.background;
-              mSurfaceVariant = col.overlay;
-              mPrimary = col.purple;
-              mOnPrimary = col.background;
-              mSecondary = col.blue;
-              mOnSecondary = col.background;
-              mTertiary = col.green;
-              mOnTertiary = col.background;
-              mError = col.red;
-              mOnError = col.background;
-              mOnSurface = col.text;
-              mOnSurfaceVariant = col.subtle;
-              mOutline = col.muted;
-              mHover = col.overlay;
-              mOnHover = col.text;
-              mShadow = col.shadow;
-            };
+            colors = col;
           };
         })
       ];
@@ -679,5 +680,30 @@ in
       hardware.bluetooth.enable = true;
       services.power-profiles-daemon.enable = true;
       services.upower.enable = true;
+    };
+
+  perSystem =
+    { pkgs, ... }:
+    {
+      packages.noctalia-shell = mkNoctalia {
+        inherit pkgs;
+        colors = {
+          background = "#1e1e2e";
+          surface = "#181825";
+          overlay = "#313244";
+          muted = "#45475a";
+          subtle = "#585b70";
+          text = "#cdd6f4";
+          red = "#f38ba8";
+          orange = "#fab387";
+          yellow = "#f9e2af";
+          green = "#a6e3a1";
+          cyan = "#94e2d5";
+          blue = "#89b4fa";
+          purple = "#cba6f7";
+          brown = "#f38ba8";
+          shadow = "#000000";
+        };
+      };
     };
 }
