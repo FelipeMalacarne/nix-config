@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ self, ... }:
 {
   flake.nixosModules.zaros = { config, ... }:
     let
@@ -20,8 +20,6 @@
         self.nixosModules.ollama
         self.nixosModules.office
         self.nixosModules.virtualization
-        inputs.sops-nix.nixosModules.sops
-        inputs.home-manager.nixosModules.home-manager
         self.nixosModules.flatpak
         self.nixosModules.openssh
         self.nixosModules.tailscale

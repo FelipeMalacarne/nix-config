@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ self, ... }:
 {
   flake.nixosModules.saradomin = { config, ... }:
     let
@@ -11,8 +11,6 @@
         self.nixosModules.base
         self.nixosModules.sops
         self.nixosModules.openssh
-        inputs.sops-nix.nixosModules.sops
-        inputs.home-manager.nixosModules.home-manager
       ];
 
       networking.hostName = "saradomin";

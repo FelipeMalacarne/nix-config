@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ self, ... }:
 {
   flake.nixosModules."saradomin-vm" = { config, ... }:
     let
@@ -17,8 +17,6 @@
         self.nixosModules.sops
         self.nixosModules.openssh
         self.nixosModules.tailscale
-        inputs.sops-nix.nixosModules.sops
-        inputs.home-manager.nixosModules.home-manager
       ];
 
       networking.hostName = "saradomin-vm";

@@ -5,6 +5,8 @@
       user = config.my.user.name;
     in
     {
+      imports = [ inputs.home-manager.nixosModules.home-manager ];
+
       i18n.defaultLocale = "en_US.UTF-8";
       time.timeZone = "America/Sao_Paulo";
 

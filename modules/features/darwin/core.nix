@@ -1,9 +1,12 @@
+{ inputs, ... }:
 {
   flake.darwinModules.core = { config, lib, ... }:
     let
       user = config.my.user.name;
     in
     {
+      imports = [ inputs.home-manager.darwinModules.home-manager ];
+
       nix.settings.experimental-features = "nix-command flakes";
       nixpkgs.config.allowUnfree = true;
 

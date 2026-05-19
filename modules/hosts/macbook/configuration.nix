@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ self, ... }:
 {
   flake.darwinModules.macbook = {
     imports = [
@@ -21,8 +21,6 @@
       self.darwinModules.firefox
       self.darwinModules.programming
       self.darwinModules.opencode
-      inputs.sops-nix.darwinModules.sops
-      inputs.home-manager.darwinModules.home-manager
     ];
 
     networking.hostName = "macbook";

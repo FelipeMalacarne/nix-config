@@ -1,9 +1,12 @@
+{ inputs, ... }:
 {
   flake.nixosModules.sops = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
     {
+      imports = [ inputs.sops-nix.nixosModules.sops ];
+
       environment.systemPackages = [ pkgs.sops ];
       sops.age.keyFile = "/var/lib/sops-age/keys.txt";
       sops.defaultSopsFile = ../../secrets/secrets.yaml;
@@ -22,6 +25,8 @@
       keyFile = "/Users/${user}/.config/sops/age/keys.txt";
     in
     {
+      imports = [ inputs.sops-nix.darwinModules.sops ];
+
       environment.systemPackages = [ pkgs.sops ];
       sops.age.keyFile = keyFile;
       sops.defaultSopsFile = ../../secrets/secrets.yaml;

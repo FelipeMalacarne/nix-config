@@ -2,7 +2,7 @@
   flake.nixosModules.hyprland = { config, pkgs, ... }:
     let
       user = config.my.user.name;
-      wallpaperDir = ../../modules/wallpapers;
+      wallpaperDir = ../../assets/wallpapers;
       termHere = pkgs.writeShellScript "term-here" ''
         pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
         cwd=""
