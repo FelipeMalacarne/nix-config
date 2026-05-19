@@ -1,5 +1,6 @@
-let
-  module = { config, pkgs, ... }:
+{ self, ... }:
+{
+  flake.nixosModules.opencode = { pkgs, config, ... }:
     let
       user = config.my.user.name;
     in
@@ -10,12 +11,7 @@ let
           themeName = "nix-colors";
         in
         {
-          home.packages = [
-            (pkgs.writeShellApplication {
-              name = "opencode";
-              text = ''exec ${pkgs.nodejs}/bin/npx opencode-ai@latest "$@"'';
-            })
-          ];
+          home.packages = [ self.packages.${pkgs.system}.opencode ];
 
           xdg.configFile."opencode/tui.json".text =
             (builtins.toJSON {
@@ -83,8 +79,4 @@ let
             + "\n";
         };
     };
-in
-{
-  flake.nixosModules.opencode = module;
-  flake.darwinModules.opencode = module;
 }
