@@ -1,7 +1,7 @@
 { inputs, ... }:
 let
   mkNoctalia =
-    pkgs: colors:
+    { pkgs, colors }:
     inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
       inherit pkgs colors;
       extraPackages = with pkgs; [
@@ -643,7 +643,6 @@ in
   flake.nixosModules.noctalia =
     {
       config,
-      pkgs,
       ...
     }:
     let
@@ -651,24 +650,27 @@ in
     in
     {
       nixpkgs.overlays = [
-        (final: _: {
-          noctalia-shell = mkNoctalia final {
-            mSurface = col.background;
-            mSurfaceVariant = col.overlay;
-            mPrimary = col.purple;
-            mOnPrimary = col.background;
-            mSecondary = col.blue;
-            mOnSecondary = col.background;
-            mTertiary = col.green;
-            mOnTertiary = col.background;
-            mError = col.red;
-            mOnError = col.background;
-            mOnSurface = col.text;
-            mOnSurfaceVariant = col.subtle;
-            mOutline = col.muted;
-            mHover = col.overlay;
-            mOnHover = col.text;
-            mShadow = col.shadow;
+        (_: prev: {
+          noctalia-shell = mkNoctalia {
+            pkgs = prev;
+            colors = {
+              mSurface = col.background;
+              mSurfaceVariant = col.overlay;
+              mPrimary = col.purple;
+              mOnPrimary = col.background;
+              mSecondary = col.blue;
+              mOnSecondary = col.background;
+              mTertiary = col.green;
+              mOnTertiary = col.background;
+              mError = col.red;
+              mOnError = col.background;
+              mOnSurface = col.text;
+              mOnSurfaceVariant = col.subtle;
+              mOutline = col.muted;
+              mHover = col.overlay;
+              mOnHover = col.text;
+              mShadow = col.shadow;
+            };
           };
         })
       ];
