@@ -10,22 +10,18 @@
         self.nixosModules.identity
         self.nixosModules.base
         self.nixosModules.desktop
-        ../../../modules/features/sops.nix
-        ../../../modules/features/restic.nix
-        ../../../modules/features/nvidia.nix
-        ../../../modules/features/gaming.nix
-        ../../../modules/features/microbot.nix
-        ../../../modules/features/programming.nix
-        ../../../modules/features/opencode.nix
-        ../../../modules/features/ollama.nix
-        ../../../modules/features/office.nix
-        ../../../modules/features/virtualization.nix
+        self.nixosModules.sops
+        self.nixosModules.restic
+        self.nixosModules.nvidia
+        self.nixosModules.gaming
+        self.nixosModules.microbot
+        self.nixosModules.programming
+        self.nixosModules.opencode
+        self.nixosModules.ollama
+        self.nixosModules.office
+        self.nixosModules.virtualization
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
-        {
-          home-manager.extraSpecialArgs = { inherit inputs; };
-          nixpkgs.overlays = [ inputs.nur.overlays.default ];
-        }
         self.nixosModules.flatpak
         self.nixosModules.openssh
         self.nixosModules.tailscale

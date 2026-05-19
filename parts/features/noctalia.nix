@@ -4,25 +4,23 @@
 #   base05=text  base08=red       base0B=green     base0D=blue  base0E=mauve
 #
 # To switch themes: set `colorScheme` in the host file.
+{ inputs, ... }:
 {
-  inputs,
-  pkgs,
-  config,
-  ...
-}:
-{
-  networking.networkmanager.enable = true;
-  hardware.bluetooth.enable = true;
-  services.power-profiles-daemon.enable = true;
-  services.upower.enable = true;
-
-  home-manager.users.${config.my.user.name} =
-    { config, ... }:
-    let
-      p = config.colorScheme.palette;
-    in
+  flake.nixosModules.noctalia =
+    { pkgs, config, ... }:
     {
-      imports = [ inputs.noctalia.homeModules.default ];
+      networking.networkmanager.enable = true;
+      hardware.bluetooth.enable = true;
+      services.power-profiles-daemon.enable = true;
+      services.upower.enable = true;
+
+      home-manager.users.${config.my.user.name} =
+        { config, ... }:
+        let
+          p = config.colorScheme.palette;
+        in
+        {
+          imports = [ inputs.noctalia.homeModules.default ];
 
       home.packages = with pkgs; [
         # screnshot plugin
@@ -755,5 +753,6 @@
           };
         };
       };
+        };
     };
 }

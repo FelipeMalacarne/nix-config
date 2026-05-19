@@ -1,15 +1,16 @@
+{ self, ... }:
 {
   flake.nixosModules.desktop = {
     imports = [
-      ../../modules/features/audio.nix
-      ../../modules/features/network.nix
-      ../../modules/features/hyprland
-      ../../modules/features/noctalia.nix
-      ../../modules/features/firefox.nix
-      ../../modules/features/dolphin.nix
-      ../../modules/features/alacritty.nix
-      ../../modules/features/kdeconnect.nix
-      ../../modules/features/bitwarden.nix
+      self.nixosModules.audio
+      self.nixosModules.network
+      self.nixosModules.hyprland
+      self.nixosModules.noctalia
+      self.nixosModules.firefox
+      self.nixosModules.dolphin
+      self.nixosModules.alacritty
+      self.nixosModules.kdeconnect
+      self.nixosModules.bitwarden
     ];
   };
 }

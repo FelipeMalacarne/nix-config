@@ -1,16 +1,17 @@
+{ self, ... }:
 {
   flake.nixosModules.base = {
     imports = [
-      ../../modules/features/core.nix
-      ../../modules/features/theming.nix
-      ../../modules/features/zsh.nix
-      ../../modules/features/git.nix
-      ../../modules/features/ssh.nix
-      ../../modules/features/nvim.nix
-      ../../modules/features/cli.nix
-      ../../modules/features/btop.nix
-      ../../modules/features/yazi.nix
-      ../../modules/features/fonts.nix
+      self.nixosModules.core
+      self.nixosModules.theming
+      self.nixosModules.zsh
+      self.nixosModules.git
+      self.nixosModules.ssh
+      self.nixosModules.nvim
+      self.nixosModules.cli
+      self.nixosModules.btop
+      self.nixosModules.yazi
+      self.nixosModules.fonts
     ];
   };
 }
