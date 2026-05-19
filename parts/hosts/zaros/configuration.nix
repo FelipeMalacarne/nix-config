@@ -8,8 +8,8 @@
       imports = [
         self.nixosModules.zarosHardware
         self.nixosModules.identity
-        ../../../modules/presets/base.nix
-        ../../../modules/presets/desktop.nix
+        self.nixosModules.base
+        self.nixosModules.desktop
         ../../../modules/features/sops.nix
         ../../../modules/features/restic.nix
         ../../../modules/features/nvidia.nix
