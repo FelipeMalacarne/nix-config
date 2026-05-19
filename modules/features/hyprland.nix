@@ -3,7 +3,8 @@
   flake.nixosModules.hyprland = { config, pkgs, lib, ... }:
     let
       user = config.my.user.name;
-      noctalia = lib.getExe self.packages.${pkgs.system}.noctalia;
+      noctaliaPackage = self.packages.${pkgs.stdenv.hostPlatform.system}.noctalia;
+      noctalia = lib.getExe noctaliaPackage;
       hyprctl = "${pkgs.hyprland}/bin/hyprctl";
       wallpaperDir = ../../assets/wallpapers;
 
@@ -171,6 +172,7 @@
               "$mod, W, killactive"
               "$mod, F, fullscreen"
               "$mod, T, togglefloating"
+              "$mod, N, ${noctalia}"
               "$mod, E, layoutmsg, togglesplit"
               "$mod, Space, exec, $ipc launcher toggle"
               "$mod, C, exec, $ipc controlCenter toggle"

@@ -11,7 +11,7 @@ let
           p = config.lib.stylix.colors;
         in
         {
-          home.packages = [ self.packages.${pkgs.system}.opencode ];
+          home.packages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.opencode ];
 
           xdg.configFile."opencode/tui.json".text =
             (builtins.toJSON {
