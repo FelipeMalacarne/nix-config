@@ -5,28 +5,29 @@
     {
       imports = [ inputs.stylix.nixosModules.stylix ];
 
-      stylix.enable = true;
-      stylix.polarity = "dark";
-      stylix.image = ../../assets/wallpapers/catppuccin-mocha.png;
-      stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
-
-      stylix.fonts = {
-        monospace = {
-          name = "Fira Code Nerd Font Mono";
-          package = pkgs.nerd-fonts.fira-code;
+      stylix = {
+        enable = true;
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+        fonts = {
+          emoji = {
+            name = "Noto Color Emoji";
+            package = pkgs.noto-fonts-color-emoji;
+          };
+          monospace = {
+            name = "Fira Code Nerd Font Mono";
+            package = pkgs.nerd-fonts.fira-code;
+          };
+          sansSerif = {
+            name = "Noto Sans";
+            package = pkgs.noto-fonts;
+          };
+          serif = {
+            name = "Noto Serif";
+            package = pkgs.noto-fonts;
+          };
         };
-        sansSerif = {
-          name = "Noto Sans";
-          package = pkgs.noto-fonts;
-        };
-        serif = {
-          name = "Noto Serif";
-          package = pkgs.noto-fonts;
-        };
-        emoji = {
-          name = "Noto Color Emoji";
-          package = pkgs.noto-fonts-color-emoji;
-        };
+        image = ../../assets/wallpapers/catppuccin-mocha.png;
+        polarity = "dark";
       };
 
       environment.systemPackages = [ pkgs.nerd-fonts.symbols-only ];
@@ -39,7 +40,6 @@
 
       stylix = {
         enable = true;
-
         polarity = "dark";
         base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
