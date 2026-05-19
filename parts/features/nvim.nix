@@ -1,6 +1,6 @@
 { inputs, ... }:
-{
-  flake.nixosModules.nvim = { config, pkgs, ... }:
+let
+  module = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -11,4 +11,8 @@
         ];
       };
     };
+in
+{
+  flake.nixosModules.nvim = module;
+  flake.darwinModules.nvim = module;
 }

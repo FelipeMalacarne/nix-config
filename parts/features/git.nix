@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.git = { config, ... }:
+let
+  module = { config, ... }:
     let
       user = config.my.user.name;
     in
@@ -15,4 +15,8 @@
         };
       };
     };
+in
+{
+  flake.nixosModules.git = module;
+  flake.darwinModules.git = module;
 }

@@ -1,6 +1,6 @@
 { inputs, ... }:
-{
-  flake.nixosModules.firefox = { config, pkgs, ... }:
+let
+  module = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -65,6 +65,10 @@
           '';
         };
 
-    nixpkgs.overlays = [ inputs.nur.overlays.default ];
+      nixpkgs.overlays = [ inputs.nur.overlays.default ];
     };
+in
+{
+  flake.nixosModules.firefox = module;
+  flake.darwinModules.firefox = module;
 }

@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.alacritty = { config, pkgs, ... }:
+let
+  module = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -96,4 +96,8 @@
           };
         };
     };
+in
+{
+  flake.nixosModules.alacritty = module;
+  flake.darwinModules.alacritty = module;
 }

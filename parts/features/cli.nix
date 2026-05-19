@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.cli = { config, pkgs, ... }:
+let
+  module = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -33,4 +33,8 @@
         };
       };
     };
+in
+{
+  flake.nixosModules.cli = module;
+  flake.darwinModules.cli = module;
 }

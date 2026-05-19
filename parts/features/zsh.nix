@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.zsh = { config, pkgs, ... }:
+let
+  module = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -42,4 +42,8 @@
         };
       };
     };
+in
+{
+  flake.nixosModules.zsh = module;
+  flake.darwinModules.zsh = module;
 }

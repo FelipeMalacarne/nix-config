@@ -1,6 +1,6 @@
 { inputs, ... }:
-{
-  flake.nixosModules.theming = { config, lib, ... }:
+let
+  module = { config, lib, ... }:
     let
       user = config.my.user.name;
     in
@@ -16,4 +16,8 @@
         colorScheme = inputs.nix-colors.colorSchemes.${config.myConfig.colorScheme};
       };
     };
+in
+{
+  flake.nixosModules.theming = module;
+  flake.darwinModules.theming = module;
 }

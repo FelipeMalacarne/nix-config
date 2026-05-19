@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.ssh = { config, ... }:
+let
+  module = { config, ... }:
     let
       user = config.my.user.name;
       homeDirectory = config.home-manager.users.${user}.home.homeDirectory;
@@ -32,4 +32,8 @@
         };
       };
     };
+in
+{
+  flake.nixosModules.ssh = module;
+  flake.darwinModules.ssh = module;
 }

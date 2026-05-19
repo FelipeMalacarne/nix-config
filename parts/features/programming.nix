@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.programming = { config, pkgs, ... }:
+let
+  module = { config, lib, pkgs, ... }:
     let
       user = config.my.user.name;
       linearKeyPath = config.sops.secrets."linear-api-key".path;
@@ -25,12 +25,13 @@
           gh
           google-cloud-sdk
           terraform
-          dbeaver-bin
-          mongodb-compass
           (pkgs.writeShellApplication {
             name = "codex";
             text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
           })
+        ] ++ lib.optionals pkgs.stdenv.isLinux [
+          dbeaver-bin
+          mongodb-compass
         ];
 
         programs.zsh.initContent = ''
@@ -57,4 +58,8 @@
         };
       };
     };
+in
+{
+  flake.nixosModules.programming = module;
+  flake.darwinModules.programming = module;
 }

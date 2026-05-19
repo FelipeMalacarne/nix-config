@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.btop = { config, ... }:
+let
+  module = { config, ... }:
     let
       user = config.my.user.name;
     in
@@ -82,4 +82,8 @@
           '';
         };
     };
+in
+{
+  flake.nixosModules.btop = module;
+  flake.darwinModules.btop = module;
 }

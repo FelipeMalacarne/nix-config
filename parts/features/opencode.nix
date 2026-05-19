@@ -1,5 +1,5 @@
-{
-  flake.nixosModules.opencode = { config, pkgs, ... }:
+let
+  module = { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -83,4 +83,8 @@
             + "\n";
         };
     };
+in
+{
+  flake.nixosModules.opencode = module;
+  flake.darwinModules.opencode = module;
 }

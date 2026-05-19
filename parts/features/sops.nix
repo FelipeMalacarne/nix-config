@@ -15,4 +15,16 @@
       home-manager.users.${user}.home.sessionVariables.SOPS_AGE_KEY_FILE =
         "/var/lib/sops-age/keys.txt";
     };
+
+  flake.darwinModules.sops = { config, pkgs, ... }:
+    let
+      user = config.my.user.name;
+      keyFile = "/Users/${user}/.config/sops/age/keys.txt";
+    in
+    {
+      environment.systemPackages = [ pkgs.sops ];
+      sops.age.keyFile = keyFile;
+      sops.defaultSopsFile = ../../secrets/secrets.yaml;
+      home-manager.users.${user}.home.sessionVariables.SOPS_AGE_KEY_FILE = keyFile;
+    };
 }
