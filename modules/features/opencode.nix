@@ -1,12 +1,14 @@
 { self, ... }:
 let
-  module = { pkgs, config, ... }:
+  module =
+    { pkgs, config, ... }:
     let
       user = config.my.user.name;
       themeName = "nix-colors";
     in
     {
-      home-manager.users.${user} = { config, ... }:
+      home-manager.users.${user} =
+        { config, ... }:
         let
           p = config.lib.stylix.colors;
         in

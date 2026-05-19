@@ -1,5 +1,6 @@
 let
-  module = { config, pkgs, ... }:
+  module =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in

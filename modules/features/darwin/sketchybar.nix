@@ -1,6 +1,7 @@
 { ... }:
 {
-  flake.darwinModules.sketchybar = { config, pkgs, ... }:
+  flake.darwinModules.sketchybar =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
       p = config.lib.stylix.colors;

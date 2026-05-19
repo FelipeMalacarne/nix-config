@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.bitwarden = { config, pkgs, ... }:
+  flake.nixosModules.bitwarden =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in

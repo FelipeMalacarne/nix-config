@@ -1,6 +1,7 @@
 { inputs, ... }:
 {
-  flake.nixosModules.sops = { config, pkgs, ... }:
+  flake.nixosModules.sops =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -15,11 +16,11 @@
         "z /var/lib/sops-age/keys.txt 0600 ${user} root -"
       ];
 
-      home-manager.users.${user}.home.sessionVariables.SOPS_AGE_KEY_FILE =
-        "/var/lib/sops-age/keys.txt";
+      home-manager.users.${user}.home.sessionVariables.SOPS_AGE_KEY_FILE = "/var/lib/sops-age/keys.txt";
     };
 
-  flake.darwinModules.sops = { config, pkgs, ... }:
+  flake.darwinModules.sops =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
       keyFile = "/Users/${user}/.config/sops/age/keys.txt";

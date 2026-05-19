@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.dolphin = { config, pkgs, ... }:
+  flake.nixosModules.dolphin =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
       mimeApplications = {
@@ -41,7 +42,8 @@
       };
     in
     {
-      home-manager.users.${user} = { config, ... }:
+      home-manager.users.${user} =
+        { config, ... }:
         let
           p = config.lib.stylix.colors;
           rgb = n: "${p."${n}-rgb-r"},${p."${n}-rgb-g"},${p."${n}-rgb-b"}";

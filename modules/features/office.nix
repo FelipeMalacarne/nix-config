@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.office = { config, pkgs, ... }:
+  flake.nixosModules.office =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in

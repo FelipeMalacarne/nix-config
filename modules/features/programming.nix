@@ -1,38 +1,49 @@
 let
-  module = { config, lib, pkgs, ... }:
+  module =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       user = config.my.user.name;
       linearKeyPath = config.sops.secrets."linear-api-key".path;
     in
     {
-      sops.secrets."linear-api-key" = { owner = user; };
+      sops.secrets."linear-api-key" = {
+        owner = user;
+      };
 
       home-manager.users.${user} = {
-        home.packages = with pkgs; [
-          go
-          elixir_1_19
-          erlang
-          nodejs
-          pnpm
-          python3
-          python3Packages.pip
-          php85
-          php85Packages.composer
-          (laravel.override { php = php85; })
-          gcc
-          lazygit
-          nixfmt-tree
-          gh
-          google-cloud-sdk
-          terraform
-          (pkgs.writeShellApplication {
-            name = "codex";
-            text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
-          })
-        ] ++ lib.optionals pkgs.stdenv.isLinux [
-          dbeaver-bin
-          mongodb-compass
-        ];
+        home.packages =
+          with pkgs;
+          [
+            go
+            elixir_1_19
+            erlang
+            nodejs
+            pnpm
+            python3
+            python3Packages.pip
+            php85
+            php85Packages.composer
+            (laravel.override { php = php85; })
+            gcc
+            lazygit
+            nixfmt-tree
+            gh
+            google-cloud-sdk
+            terraform
+            (pkgs.writeShellApplication {
+              name = "codex";
+              text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
+            })
+          ]
+          ++ lib.optionals pkgs.stdenv.isLinux [
+            dbeaver-bin
+            mongodb-compass
+          ];
 
         programs.zsh.initContent = ''
           export LINEAR_API_KEY="$(cat ${linearKeyPath} 2>/dev/null)"

@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.yazi = { config, pkgs, ... }:
+  flake.nixosModules.yazi =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
       yazi-launcher = pkgs.writeShellScript "yazi-launcher" ''

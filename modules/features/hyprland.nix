@@ -1,6 +1,12 @@
 { self, ... }:
 {
-  flake.nixosModules.hyprland = { config, pkgs, lib, ... }:
+  flake.nixosModules.hyprland =
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     let
       user = config.my.user.name;
       noctaliaPackage = self.packages.${pkgs.stdenv.hostPlatform.system}.noctalia;
@@ -59,18 +65,20 @@
       home-manager.users.${user} = {
         stylix.targets.hyprland.hyprpaper.enable = false;
 
-        home.file = builtins.listToAttrs (
-          map (f: {
-            name = "Pictures/wallpapers/${f}";
-            value.source = wallpaperDir + "/${f}";
-          }) (builtins.attrNames (builtins.readDir wallpaperDir))
-        ) // {
-          ".XCompose".text = ''
-            include "%L"
-            <dead_acute> <c> : "ç" ccedilla
-            <dead_acute> <C> : "Ç" Ccedilla
-          '';
-        };
+        home.file =
+          builtins.listToAttrs (
+            map (f: {
+              name = "Pictures/wallpapers/${f}";
+              value.source = wallpaperDir + "/${f}";
+            }) (builtins.attrNames (builtins.readDir wallpaperDir))
+          )
+          // {
+            ".XCompose".text = ''
+              include "%L"
+              <dead_acute> <c> : "ç" ccedilla
+              <dead_acute> <C> : "Ç" Ccedilla
+            '';
+          };
 
         gtk = {
           enable = true;

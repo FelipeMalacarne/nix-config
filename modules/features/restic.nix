@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.restic = { config, lib, ... }:
+  flake.nixosModules.restic =
+    { config, lib, ... }:
     let
       cfg = config.myConfig.restic;
       hostName = config.networking.hostName;

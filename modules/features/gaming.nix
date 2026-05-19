@@ -1,6 +1,7 @@
 { inputs, ... }:
 {
-  flake.nixosModules.gaming = { config, pkgs, ... }:
+  flake.nixosModules.gaming =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in

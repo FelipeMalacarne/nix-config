@@ -1,6 +1,7 @@
 { inputs, ... }:
 {
-  flake.nixosModules.core = { config, lib, ... }:
+  flake.nixosModules.core =
+    { config, lib, ... }:
     let
       user = config.my.user.name;
     in

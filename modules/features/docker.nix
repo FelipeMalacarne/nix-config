@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.docker = { config, ... }:
+  flake.nixosModules.docker =
+    { config, ... }:
     let
       user = config.my.user.name;
     in

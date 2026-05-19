@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.microbot = { config, pkgs, ... }:
+  flake.nixosModules.microbot =
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
       browser = pkgs.chromium;

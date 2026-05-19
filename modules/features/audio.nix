@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.audio = { config, ... }:
+  flake.nixosModules.audio =
+    { config, ... }:
     let
       user = config.my.user.name;
     in

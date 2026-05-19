@@ -1,6 +1,7 @@
 { inputs, ... }:
 {
-  flake.darwinModules.core = { config, lib, ... }:
+  flake.darwinModules.core =
+    { config, lib, ... }:
     let
       user = config.my.user.name;
     in

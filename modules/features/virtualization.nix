@@ -1,5 +1,6 @@
 {
-  flake.nixosModules.virtualization = { config, ... }:
+  flake.nixosModules.virtualization =
+    { config, ... }:
     let
       user = config.my.user.name;
     in

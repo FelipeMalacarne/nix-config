@@ -1,6 +1,7 @@
 { self, ... }:
 {
-  flake.nixosModules.zaros = { config, ... }:
+  flake.nixosModules.zaros =
+    { config, ... }:
     let
       user = config.my.user.name;
     in

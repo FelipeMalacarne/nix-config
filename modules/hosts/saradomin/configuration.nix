@@ -1,6 +1,7 @@
 { self, ... }:
 {
-  flake.nixosModules.saradomin = { config, ... }:
+  flake.nixosModules.saradomin =
+    { config, ... }:
     let
       user = config.my.user.name;
     in
