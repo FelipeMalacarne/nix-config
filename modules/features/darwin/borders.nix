@@ -1,15 +1,11 @@
-{ inputs, ... }:
+{ ... }:
 {
-  flake.darwinModules.borders = { config, ... }:
-    let
-      p = inputs.nix-colors.colorSchemes.${config.myConfig.colorScheme}.palette;
-    in
-    {
-      services.jankyborders = {
-        enable = true;
-        active_color = "0xff${p.base0B}";
-        inactive_color = "0x60${p.base02}";
-        width = 8.0;
-      };
+  flake.darwinModules.borders = { config, lib, ... }: {
+    services.jankyborders = {
+      enable = true;
+      active_color = lib.mkForce "0xff${config.lib.stylix.colors.base0B}";
+      inactive_color = lib.mkForce "0x60${config.lib.stylix.colors.base02}";
+      width = 8.0;
     };
+  };
 }

@@ -20,7 +20,6 @@
       ];
 
       networking.hostName = "saradomin-vm";
-      myConfig.colorScheme = "catppuccin-mocha";
       system.stateVersion = "24.11";
 
       services.qemuGuest.enable = true;

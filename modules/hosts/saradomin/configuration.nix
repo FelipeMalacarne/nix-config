@@ -14,7 +14,6 @@
       ];
 
       networking.hostName = "saradomin";
-      myConfig.colorScheme = "catppuccin-mocha";
       system.stateVersion = "24.11";
 
       security.pki.certificateFiles = [

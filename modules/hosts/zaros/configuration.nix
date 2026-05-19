@@ -28,7 +28,6 @@
 
       networking.hostName = "zaros";
 
-      myConfig.colorScheme = "catppuccin-mocha";
       myConfig.restic = {
         enable = true;
         paths = [

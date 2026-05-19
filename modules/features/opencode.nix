@@ -1,14 +1,14 @@
 { self, ... }:
-{
-  flake.nixosModules.opencode = { pkgs, config, ... }:
+let
+  module = { pkgs, config, ... }:
     let
       user = config.my.user.name;
+      themeName = "nix-colors";
     in
     {
       home-manager.users.${user} = { config, ... }:
         let
-          p = config.colorScheme.palette;
-          themeName = "nix-colors";
+          p = config.lib.stylix.colors;
         in
         {
           home.packages = [ self.packages.${pkgs.system}.opencode ];
@@ -79,4 +79,8 @@
             + "\n";
         };
     };
+in
+{
+  flake.nixosModules.opencode = module;
+  flake.darwinModules.opencode = module;
 }

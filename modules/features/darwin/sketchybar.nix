@@ -1,9 +1,9 @@
-{ inputs, ... }:
+{ ... }:
 {
   flake.darwinModules.sketchybar = { config, pkgs, ... }:
     let
       user = config.my.user.name;
-      p = inputs.nix-colors.colorSchemes.${config.myConfig.colorScheme}.palette;
+      p = config.lib.stylix.colors;
       source = ../../../assets/sketchybar;
     in
     {

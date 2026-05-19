@@ -49,11 +49,9 @@
         kdePackages.qtsvg
       ];
 
-      home-manager.users.${user} = { config, ... }:
-        let
-          p = config.colorScheme.palette;
-        in
-        {
+      home-manager.users.${user} = {
+          stylix.targets.hyprland.hyprpaper.enable = false;
+
           home.file = builtins.listToAttrs (
             map (f: {
               name = "Pictures/wallpapers/${f}";
@@ -240,8 +238,6 @@
                 gaps_in = 5;
                 gaps_out = 10;
                 border_size = 2;
-                "col.active_border" = "rgba(${p.base0E}ff)";
-                "col.inactive_border" = "rgba(${p.base04}ff)";
                 layout = "dwindle";
               };
 
@@ -253,7 +249,6 @@
                   enabled = true;
                   range = 4;
                   render_power = 3;
-                  color = "rgba(1a1a1aee)";
                 };
 
                 blur = {

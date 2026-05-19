@@ -7,7 +7,7 @@ let
     {
       home-manager.users.${user} = { config, lib, pkgs, ... }:
         let
-          p = config.colorScheme.palette;
+          p = config.lib.stylix.colors;
           isMac = pkgs.stdenv.isDarwin;
         in
         {

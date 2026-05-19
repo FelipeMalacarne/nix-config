@@ -11,7 +11,6 @@
       self.nixosModules.cli
       self.nixosModules.btop
       self.nixosModules.yazi
-      self.nixosModules.fonts
     ];
   };
 }

@@ -16,7 +16,6 @@
       self.darwinModules.nvim
       self.darwinModules.cli
       self.darwinModules.btop
-      self.darwinModules.fonts
       self.darwinModules.alacritty
       self.darwinModules.firefox
       self.darwinModules.programming
@@ -28,6 +27,5 @@
     system.stateVersion = 4;
 
     my.user.name = "felipeautentique";
-    myConfig.colorScheme = "catppuccin-mocha";
   };
 }

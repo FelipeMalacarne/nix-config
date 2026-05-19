@@ -37,7 +37,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-colors.url = "github:Misterio77/nix-colors";
+    stylix = {
+      url = "github:nix-community/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     nur.url = "github:nix-community/NUR";
     millennium.url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
