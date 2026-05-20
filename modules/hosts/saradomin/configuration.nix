@@ -12,6 +12,7 @@
         self.nixosModules.base
         self.nixosModules.sops
         self.nixosModules.openssh
+        self.nixosModules.k3s
       ];
 
       networking.hostName = "saradomin";
@@ -23,6 +24,7 @@
 
       users.users.${user}.openssh.authorizedKeys.keyFiles = [
         ../../../keys/zaros.pub
+        ../../../keys/bitbaut.pub
       ];
     };
 }
