@@ -20,6 +20,7 @@
       self.darwinModules.firefox
       self.darwinModules.programming
       self.darwinModules.opencode
+      self.darwinModules.k8s
     ];
 
     networking.hostName = "macbook";

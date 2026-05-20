@@ -25,6 +25,7 @@
         self.nixosModules.openssh
         self.nixosModules.tailscale
         self.nixosModules.docker
+        self.nixosModules.k8s
       ];
 
       networking.hostName = "zaros";
