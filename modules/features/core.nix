@@ -37,7 +37,7 @@
 
       users.users.${user} = {
         isNormalUser = true;
-        initialPassword = "nixos";
+        hashedPassword = "$y$j9T$ZqyDJ7iWYtwx7.LZV2SVC.$rOHD5WSlDpCIf7mBvx1Y3SUr5fEatWAiEeKRYMZMKz1";
         extraGroups = [
           "wheel"
           "networkmanager"
