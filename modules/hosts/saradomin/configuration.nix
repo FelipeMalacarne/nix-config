@@ -18,7 +18,7 @@
       ];
 
       networking.hostName = "saradomin";
-      system.stateVersion = "24.11";
+      system.stateVersion = "25.11";
 
       security.pki.certificateFiles = [
         ../../../certs/saradomin-internal-ca.crt
