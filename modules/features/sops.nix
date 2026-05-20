@@ -23,7 +23,7 @@
     { config, pkgs, ... }:
     let
       user = config.my.user.name;
-      keyFile = "/Users/${user}/.config/sops/age/keys.txt";
+      keyFile = "/var/lib/sops-age/keys.txt";
     in
     {
       imports = [ inputs.sops-nix.darwinModules.sops ];
