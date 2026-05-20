@@ -18,7 +18,7 @@ let
         mode = "0600";
       };
 
-      sops.secrets."saradomin-ssh-key" = {
+      sops.secrets."saradomin-private-key" = {
         owner = user;
         path = "/home/${user}/.ssh/id_ed25519";
         mode = "0600";
