@@ -292,9 +292,18 @@
             };
             calendar = {
               cards = [
-                { enabled = true; id = "calendar-header-card"; }
-                { enabled = true; id = "calendar-month-card"; }
-                { enabled = true; id = "weather-card"; }
+                {
+                  enabled = true;
+                  id = "calendar-header-card";
+                }
+                {
+                  enabled = true;
+                  id = "calendar-month-card";
+                }
+                {
+                  enabled = true;
+                  id = "weather-card";
+                }
               ];
             };
             colorSchemes = {
@@ -310,12 +319,30 @@
             };
             controlCenter = {
               cards = [
-                { enabled = true; id = "profile-card"; }
-                { enabled = true; id = "shortcuts-card"; }
-                { enabled = true; id = "audio-card"; }
-                { enabled = false; id = "brightness-card"; }
-                { enabled = true; id = "weather-card"; }
-                { enabled = true; id = "media-sysmon-card"; }
+                {
+                  enabled = true;
+                  id = "profile-card";
+                }
+                {
+                  enabled = true;
+                  id = "shortcuts-card";
+                }
+                {
+                  enabled = true;
+                  id = "audio-card";
+                }
+                {
+                  enabled = false;
+                  id = "brightness-card";
+                }
+                {
+                  enabled = true;
+                  id = "weather-card";
+                }
+                {
+                  enabled = true;
+                  id = "media-sysmon-card";
+                }
               ];
               diskPath = "/";
               position = "close_to_bar_button";
@@ -392,7 +419,10 @@
               iRadiusRatio = 1;
               keybinds = {
                 keyDown = [ "Down" ];
-                keyEnter = [ "Return" "Enter" ];
+                keyEnter = [
+                  "Return"
+                  "Enter"
+                ];
                 keyEscape = [ "Esc" ];
                 keyLeft = [ "Left" ];
                 keyRemove = [ "Del" ];
@@ -521,7 +551,11 @@
               autoHideMs = 2000;
               # backgroundOpacity managed by stylix opacity.popups
               enabled = true;
-              enabledTypes = [ 0 1 2 ];
+              enabledTypes = [
+                0
+                1
+                2
+              ];
               location = "top_right";
               monitors = [ ];
               overlayLayer = true;
@@ -537,13 +571,41 @@
               largeButtonsStyle = true;
               position = "center";
               powerOptions = [
-                { action = "lock"; enabled = true; keybind = "1"; }
-                { action = "suspend"; enabled = true; keybind = "2"; }
-                { action = "hibernate"; enabled = true; keybind = "3"; }
-                { action = "reboot"; enabled = true; keybind = "4"; }
-                { action = "logout"; enabled = true; keybind = "5"; }
-                { action = "shutdown"; enabled = true; keybind = "6"; }
-                { action = "rebootToUefi"; enabled = true; keybind = "7"; }
+                {
+                  action = "lock";
+                  enabled = true;
+                  keybind = "1";
+                }
+                {
+                  action = "suspend";
+                  enabled = true;
+                  keybind = "2";
+                }
+                {
+                  action = "hibernate";
+                  enabled = true;
+                  keybind = "3";
+                }
+                {
+                  action = "reboot";
+                  enabled = true;
+                  keybind = "4";
+                }
+                {
+                  action = "logout";
+                  enabled = true;
+                  keybind = "5";
+                }
+                {
+                  action = "shutdown";
+                  enabled = true;
+                  keybind = "6";
+                }
+                {
+                  action = "rebootToUefi";
+                  enabled = true;
+                  keybind = "7";
+                }
               ];
               showHeader = true;
               showKeybinds = true;

@@ -19,7 +19,10 @@
                   type = "filesystem";
                   format = "vfat";
                   mountpoint = "/boot/efi";
-                  mountOptions = [ "fmask=0077" "dmask=0077" ];
+                  mountOptions = [
+                    "fmask=0077"
+                    "dmask=0077"
+                  ];
                 };
               };
               swap = {
