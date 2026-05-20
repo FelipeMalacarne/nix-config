@@ -18,6 +18,12 @@ let
         mode = "0600";
       };
 
+      sops.secrets."saradomin-ssh-key" = {
+        owner = user;
+        path = "/home/${user}/.ssh/id_ed25519";
+        mode = "0600";
+      };
+
       home-manager.users.${user}.programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
