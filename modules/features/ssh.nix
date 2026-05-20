@@ -1,5 +1,5 @@
 let
-  module =
+  baseModule =
     { config, ... }:
     let
       user = config.my.user.name;
@@ -45,8 +45,24 @@ let
         };
       };
     };
+
+  nixosModule =
+    {
+      config,
+      ...
+    }:
+    let
+      user = config.my.user.name;
+    in
+    {
+      imports = [ baseModule ];
+
+      systemd.tmpfiles.rules = [
+        "d ${config.users.users.${user}.home}/.ssh 0700 ${user} users -"
+      ];
+    };
 in
 {
-  flake.nixosModules.ssh = module;
-  flake.darwinModules.ssh = module;
+  flake.nixosModules.ssh = nixosModule;
+  flake.darwinModules.ssh = baseModule;
 }
