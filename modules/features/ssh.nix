@@ -20,7 +20,7 @@ let
 
       sops.secrets."saradomin-private-key" = {
         owner = user;
-        path = "/home/${user}/.ssh/id_ed25519";
+        path = "${homeDirectory}/.ssh/saradomin";
         mode = "0600";
       };
 
