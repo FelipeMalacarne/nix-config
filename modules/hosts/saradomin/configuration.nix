@@ -7,6 +7,7 @@
     in
     {
       imports = [
+        self.nixosModules.saradominDisk
         self.nixosModules.saradominHardware
         self.nixosModules.identity
         self.nixosModules.base

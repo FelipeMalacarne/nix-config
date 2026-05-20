@@ -1,8 +1,8 @@
 { self, inputs, ... }:
 {
   perSystem =
-    { pkgs, lib, ... }:
-    {
+    { pkgs, lib, system, ... }:
+    lib.optionalAttrs (lib.hasSuffix "-linux" system) {
       packages.niri = inputs.wrapper-modules.wrappers.niri.wrap {
         inherit pkgs;
         settings = {
