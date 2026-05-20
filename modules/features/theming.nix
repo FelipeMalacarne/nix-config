@@ -48,6 +48,10 @@
         stylix = {
           enable = true;
           base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+          opacity = {
+            desktop = 0.93;
+            popups = 1.0;
+          };
           fonts = {
             emoji = {
               name = "Noto Color Emoji";
