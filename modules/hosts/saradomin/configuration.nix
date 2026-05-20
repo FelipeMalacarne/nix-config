@@ -14,6 +14,7 @@
         self.nixosModules.sops
         self.nixosModules.openssh
         self.nixosModules.k3s
+        self.nixosModules.tailscale
       ];
 
       networking.hostName = "saradomin";
