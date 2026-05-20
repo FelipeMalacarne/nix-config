@@ -12,6 +12,12 @@ let
         mode = "0600";
       };
 
+      sops.secrets."zamorak-private-key" = {
+        owner = user;
+        path = "${homeDirectory}/.ssh/zamorak";
+        mode = "0600";
+      };
+
       home-manager.users.${user}.programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
