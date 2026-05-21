@@ -2,10 +2,10 @@
   flake.nixosModules.k3s =
     { config, lib, ... }:
     let
-      cfg = config.myConfig.k3s;
+      cfg = config.my.k3s;
     in
     {
-      options.myConfig.k3s.tlsSans = lib.mkOption {
+      options.my.k3s.tlsSans = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "Additional TLS SANs to include in the k3s API server certificate.";

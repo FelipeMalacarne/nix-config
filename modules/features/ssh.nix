@@ -44,7 +44,7 @@ let
           };
 
           "saradomin" = {
-            user = user;
+            user = "felipe";
             identityFile = "~/.ssh/zaros";
             extraOptions.IdentitiesOnly = "yes";
           };

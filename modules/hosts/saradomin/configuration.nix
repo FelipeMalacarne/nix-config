@@ -18,6 +18,12 @@
       ];
 
       networking.hostName = "saradomin";
+
+      my.k3s.tlsSans = [
+        "100.106.58.87"
+        "saradomin"
+        "saradomin.tail34cc60.ts.net"
+      ];
       system.stateVersion = "25.11";
 
       security.pki.certificateFiles = [
