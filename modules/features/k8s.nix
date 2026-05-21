@@ -1,5 +1,5 @@
 let
-  module =
+  baseModule =
     { config, pkgs, ... }:
     let
       user = config.my.user.name;
@@ -35,8 +35,23 @@ let
         );
       };
     };
+
+  nixosModule =
+    { config, ... }:
+    let
+      user = config.my.user.name;
+      homeDirectory = config.users.users.${user}.home;
+    in
+    {
+      imports = [ baseModule ];
+
+      systemd.tmpfiles.rules = [
+        "d ${homeDirectory}/.kube 0700 ${user} users -"
+        "d ${homeDirectory}/.kube/configs 0700 ${user} users -"
+      ];
+    };
 in
 {
-  flake.nixosModules.k8s = module;
-  flake.darwinModules.k8s = module;
+  flake.nixosModules.k8s = nixosModule;
+  flake.darwinModules.k8s = baseModule;
 }
