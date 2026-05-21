@@ -13,7 +13,13 @@ let
           p = config.lib.stylix.colors;
         in
         {
-          home.packages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.opencode ];
+          home.packages = [
+            # self.packages.${pkgs.stdenv.hostPlatform.system}.opencode
+            (pkgs.writeShellApplication {
+              name = "opencode";
+              text = ''exec ${pkgs.nodejs}/bin/npx opencode-ai@latest "$@"'';
+            })
+          ];
 
           xdg.configFile."opencode/tui.json".text =
             (builtins.toJSON {
