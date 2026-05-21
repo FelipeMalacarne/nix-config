@@ -4,7 +4,10 @@ let
     let
       user = config.my.user.name;
       homeDirectory = config.home-manager.users.${user}.home.homeDirectory;
-      clusters = [ "zamorak" ];
+      clusters = [
+        "zamorak"
+        "saradomin"
+      ];
     in
     {
       sops.secrets = builtins.listToAttrs (

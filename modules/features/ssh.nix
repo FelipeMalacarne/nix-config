@@ -42,6 +42,12 @@ let
             user = "ubuntu";
             identityFile = "~/.ssh/zamorak";
           };
+
+          "saradomin" = {
+            user = user;
+            identityFile = "~/.ssh/zaros";
+            extraOptions.IdentitiesOnly = "yes";
+          };
         };
       };
     };
