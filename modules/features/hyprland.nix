@@ -16,6 +16,14 @@
       monitorMain = "desc:Samsung Electric Company Odyssey G61SD HNBYB00003";
       monitorSide = "desc:Samsung Electric Company LS27A600U HNMW900149";
 
+      refreshLayerClients = pkgs.writeShellScript "refresh-hyprland-layer-clients" ''
+        sleep 0.5
+        ${pkgs.systemd}/bin/systemctl --user restart hyprpaper.service 2>/dev/null || true
+        ${pkgs.procps}/bin/pkill -u "$USER" -f 'quickshell.*noctalia-shell' 2>/dev/null || true
+        sleep 0.2
+        exec uwsm app -- ${noctalia}
+      '';
+
       termHere = pkgs.writeShellScript "term-here" ''
         pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
         cwd=""
@@ -131,9 +139,12 @@
             "$ipc" = "${noctalia} ipc call";
 
             exec-once = [
-              "uwsm app -- ${noctalia}"
               "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
+
+            # exec = [
+            #   "${refreshLayerClients}"
+            # ];
 
             env = [
               "NVD_BACKEND,direct"
@@ -148,8 +159,8 @@
             ];
 
             monitor = [
-              "${monitorMain}, 2560x1440@240, auto, 1"
-              "${monitorSide}, 2560x1440@75, auto-left, 1, transform, 1"
+              "${monitorMain}, 2560x1440@240, 0x0, 1"
+              "${monitorSide}, 2560x1440@75, 2560x0, 1, transform, 1"
             ];
 
             workspace = [
