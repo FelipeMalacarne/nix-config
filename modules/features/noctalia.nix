@@ -4,6 +4,7 @@
     {
       config,
       pkgs,
+      lib,
       ...
     }:
     let
@@ -27,6 +28,9 @@
           jq
           wf-recorder
         ];
+
+        stylix.targets.hyprpaper.enable = lib.mkForce false;
+        services.hyprpaper.enable = lib.mkForce false;
 
         programs.noctalia-shell = {
           enable = true;
@@ -514,7 +518,7 @@
             };
             noctaliaPerformance = {
               disableDesktopWidgets = true;
-              disableWallpaper = true;
+              disableWallpaper = false;
             };
             notifications = {
               # backgroundOpacity managed by stylix opacity.popups
@@ -652,7 +656,50 @@
               translucentWidgets = false;
             };
             wallpaper = {
-              enabled = false;
+              automationEnabled = false;
+              directory = "/home/${user}/Pictures/wallpapers";
+              enableMultiMonitorDirectories = false;
+              enabled = true;
+              favorites = [ ];
+              fillColor = "#000000";
+              fillMode = "crop";
+              hideWallpaperFilenames = false;
+              monitorDirectories = [ ];
+              overviewBlur = 0.4;
+              overviewEnabled = false;
+              overviewTint = 0.6;
+              panelPosition = "follow_bar";
+              randomIntervalSec = 300;
+              setWallpaperOnAllMonitors = true;
+              showHiddenFiles = false;
+              skipStartupTransition = false;
+              solidColor = "#1a1a2e";
+              sortOrder = "name";
+              transitionDuration = 1500;
+              transitionEdgeSmoothness = 0.05;
+              transitionType = [
+                "fade"
+                "disc"
+                "stripes"
+                "wipe"
+                "pixelate"
+                "honeycomb"
+              ];
+              useOriginalImages = false;
+              useSolidColor = false;
+              useWallhaven = false;
+              viewMode = "single";
+              wallhavenApiKey = "";
+              wallhavenCategories = "111";
+              wallhavenOrder = "desc";
+              wallhavenPurity = "100";
+              wallhavenQuery = "";
+              wallhavenRatios = "";
+              wallhavenResolutionHeight = "";
+              wallhavenResolutionMode = "atleast";
+              wallhavenResolutionWidth = "";
+              wallhavenSorting = "relevance";
+              wallpaperChangeMode = "random";
             };
           };
         };

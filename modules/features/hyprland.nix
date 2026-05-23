@@ -18,7 +18,7 @@
 
       refreshLayerClients = pkgs.writeShellScript "refresh-hyprland-layer-clients" ''
         sleep 0.5
-        ${pkgs.systemd}/bin/systemctl --user restart hyprpaper.service 2>/dev/null || true
+        ${pkgs.systemd}/bin/systemctl --user stop hyprpaper.service 2>/dev/null || true
         ${pkgs.procps}/bin/pkill -u "$USER" -f 'quickshell.*noctalia-shell' 2>/dev/null || true
         sleep 0.2
         exec uwsm app -- ${noctalia}
@@ -142,9 +142,9 @@
               "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
 
-            # exec = [
-            #   "${refreshLayerClients}"
-            # ];
+            exec = [
+              "${refreshLayerClients}"
+            ];
 
             env = [
               "NVD_BACKEND,direct"
