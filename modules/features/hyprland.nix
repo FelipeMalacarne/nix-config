@@ -142,9 +142,9 @@
               "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
 
-            exec = [
-              "${refreshLayerClients}"
-            ];
+            # exec = [
+            #   "${refreshLayerClients}"
+            # ];
 
             env = [
               "NVD_BACKEND,direct"
@@ -171,6 +171,8 @@
               "5, monitor:${monitorMain}"
               "6, monitor:${monitorSide}"
               "7, monitor:${monitorSide}"
+              "8, monitor:${monitorSide}"
+              "9, monitor:${monitorSide}"
             ];
 
             input = {
@@ -213,6 +215,8 @@
               "$mod, 5, workspace, 5"
               "$mod, 6, workspace, 6"
               "$mod, 7, workspace, 7"
+              "$mod, 8, workspace, 8"
+              "$mod, 9, workspace, 9"
               "$mod SHIFT, 1, movetoworkspace, 1"
               "$mod SHIFT, 2, movetoworkspace, 2"
               "$mod SHIFT, 3, movetoworkspace, 3"
@@ -220,6 +224,15 @@
               "$mod SHIFT, 5, movetoworkspace, 5"
               "$mod SHIFT, 6, movetoworkspace, 6"
               "$mod SHIFT, 7, movetoworkspace, 7"
+              "$mod SHIFT, 8, movetoworkspace, 8"
+              "$mod SHIFT, 9, movetoworkspace, 9"
+            ];
+
+            binde = [
+              "$mod ALT, H, resizeactive, -80 0"
+              "$mod ALT, L, resizeactive, 80 0"
+              "$mod ALT, K, resizeactive, 0 -80"
+              "$mod ALT, J, resizeactive, 0 80"
             ];
 
             bindm = [
