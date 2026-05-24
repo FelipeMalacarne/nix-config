@@ -10,8 +10,12 @@
     let
       user = config.my.user.name;
       noctalia = lib.getExe pkgs.noctalia-shell;
+      brightnessctl = lib.getExe pkgs.brightnessctl;
+      grimblast = lib.getExe pkgs.grimblast;
       hyprctl = "${pkgs.hyprland}/bin/hyprctl";
+      playerctl = lib.getExe pkgs.playerctl;
       wallpaperDir = ../../assets/wallpapers;
+      wpctl = "${pkgs.wireplumber}/bin/wpctl";
 
       monitorMain = "desc:Samsung Electric Company Odyssey G61SD HNBYB00003";
       monitorSide = "desc:Samsung Electric Company LS27A600U HNMW900149";
@@ -139,6 +143,7 @@
             "$ipc" = "${noctalia} ipc call";
 
             exec-once = [
+              "uwsm app -- ${lib.getExe pkgs.noctalia-shell}"
               "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
 
@@ -191,11 +196,20 @@
               "$mod, F, fullscreen"
               "$mod, T, togglefloating"
               "$mod, E, layoutmsg, togglesplit"
+              "$mod, P, pseudo"
+              "$mod SHIFT, P, pin"
+              "$mod SHIFT, R, exec, ${hyprctl} reload"
+              "$mod SHIFT, Q, exit"
               "$mod, Space, exec, $ipc launcher toggle"
               "$mod, C, exec, $ipc controlCenter toggle"
               "$mod, comma, exec, $ipc settings toggle"
               "$mod SHIFT, Escape, exec, $ipc sessionMenu toggle"
               "$mod Control, L, exec, $ipc lockScreen lock"
+              "$mod, S, togglespecialworkspace, scratch"
+              "$mod SHIFT, S, movetoworkspacesilent, special:scratch"
+              ", Print, exec, ${grimblast} copy output"
+              "SHIFT, Print, exec, ${grimblast} copy area"
+              "$mod, Print, exec, ${grimblast} save area"
               "$mod, H, movefocus, l"
               "$mod, L, movefocus, r"
               "$mod, K, movefocus, u"
@@ -204,6 +218,11 @@
               "$mod SHIFT, L, movewindow, r"
               "$mod SHIFT, K, movewindow, u"
               "$mod SHIFT, J, movewindow, d"
+              "$mod, Tab, workspace, previous"
+              "$mod, bracketright, workspace, e+1"
+              "$mod, bracketleft, workspace, e-1"
+              "$mod, period, focusmonitor, +1"
+              "$mod SHIFT, period, movewindow, mon:+1"
               "$mod SHIFT, F, exec, uwsm app -- $TERMINAL -e ${lib.getExe pkgs.yazi}"
               "$mod SHIFT, T, exec, uwsm app -- $TERMINAL -e ${lib.getExe pkgs.btop}"
               "$mod SHIFT, I, exec, uwsm app -- $TERMINAL -e ${lib.getExe pkgs.bash} -c '${lib.getExe pkgs.fastfetch}; read -rp \"Press enter to close...\"'"
@@ -243,10 +262,16 @@
             bindel = [
               ", XF86AudioRaiseVolume, exec, $ipc volume increase"
               ", XF86AudioLowerVolume, exec, $ipc volume decrease"
+              ", XF86MonBrightnessUp, exec, ${brightnessctl} set +5%"
+              ", XF86MonBrightnessDown, exec, ${brightnessctl} set 5%-"
             ];
 
             bindl = [
               ", XF86AudioMute, exec, $ipc volume muteOutput"
+              ", XF86AudioMicMute, exec, ${wpctl} set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+              ", XF86AudioPlay, exec, ${playerctl} play-pause"
+              ", XF86AudioNext, exec, ${playerctl} next"
+              ", XF86AudioPrev, exec, ${playerctl} previous"
             ];
 
             animations = {
