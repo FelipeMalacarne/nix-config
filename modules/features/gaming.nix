@@ -32,6 +32,7 @@
         prismlauncher
         ferium
         bolt-launcher
+        xivlauncher
       ];
     };
 }

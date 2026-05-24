@@ -6,29 +6,35 @@
       user = config.my.user.name;
     in
     {
-      imports = [
-        self.nixosModules.zarosHardware
-        self.nixosModules.identity
-        self.nixosModules.base
-        self.nixosModules.desktop
-        self.nixosModules.sops
-        self.nixosModules.restic
-        self.nixosModules.nvidia
-        self.nixosModules.gaming
-        self.nixosModules.microbot
-        self.nixosModules.programming
-        self.nixosModules.opencode
-        self.nixosModules.ollama
-        self.nixosModules.office
-        self.nixosModules.virtualization
-        self.nixosModules.flatpak
-        self.nixosModules.openssh
-        self.nixosModules.tailscale
-        self.nixosModules.docker
-        self.nixosModules.k8s
+      imports = with self.nixosModules; [
+        zarosHardware
+        identity
+        base
+        desktop
+        sops
+        restic
+        nvidia
+        gaming
+        rgb
+        microbot
+        programming
+        opencode
+        ollama
+        office
+        virtualization
+        flatpak
+        openssh
+        tailscale
+        docker
+        k8s
       ];
 
       networking.hostName = "zaros";
+
+      my.rgb = {
+        enable = true;
+        color = config.my.colors.background;
+      };
 
       myConfig.restic = {
         enable = true;
