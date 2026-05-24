@@ -165,7 +165,7 @@
 
             monitor = [
               "${monitorMain}, 2560x1440@240, 0x0, 1"
-              "${monitorSide}, 2560x1440@75, 2560x0, 1, transform, 1"
+              "${monitorSide}, 2560x1440@75, 2560x0, 1"
             ];
 
             workspace = [
