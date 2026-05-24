@@ -33,7 +33,7 @@
 
       my.rgb = {
         enable = true;
-        color = config.my.colors.background;
+        color = config.my.colors.secondary;
       };
 
       myConfig.restic = {

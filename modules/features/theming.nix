@@ -21,17 +21,34 @@
             c = config.lib.stylix.colors;
           in
           {
-            # Backgrounds (dark to light)
+            # Base UI surfaces
             background = "#${c.base00}";
             surface = "#${c.base01}";
-            overlay = "#${c.base02}";
+            surfaceAlt = "#${c.base02}";
+            selection = "#${c.base02}";
+            overlay = "#${c.base03}";
 
-            # Text / foreground (light to dark)
+            # Text / foreground
+            foreground = "#${c.base05}";
             text = "#${c.base05}";
+            textMuted = "#${c.base04}";
+            textSubtle = "#${c.base03}";
+            textBright = "#${c.base06}";
+            textHighest = "#${c.base07}";
             subtle = "#${c.base04}";
             muted = "#${c.base03}";
 
-            # Accent colors
+            # Semantic theme roles
+            primary = "#${c.base0D}";
+            secondary = "#${c.base0E}";
+            accent = "#${c.base0C}";
+            special = "#${c.base0F}";
+            success = "#${c.base0B}";
+            warning = "#${c.base0A}";
+            error = "#${c.base08}";
+            info = "#${c.base0C}";
+
+            # Familiar Base16 color aliases
             red = "#${c.base08}";
             orange = "#${c.base09}";
             yellow = "#${c.base0A}";
@@ -39,7 +56,6 @@
             cyan = "#${c.base0C}";
             blue = "#${c.base0D}";
             purple = "#${c.base0E}";
-            brown = "#${c.base0F}";
 
             # Extra
             shadow = "#000000";

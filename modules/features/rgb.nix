@@ -26,10 +26,10 @@
 
         color = lib.mkOption {
           type = hexColor;
-          default = config.my.colors.purple;
-          defaultText = "config.my.colors.purple";
-          description = "RGB color to apply, usually sourced from the active Stylix palette.";
-          example = "#cba6f7";
+          default = config.my.colors.primary;
+          defaultText = "config.my.colors.primary";
+          description = "RGB color to apply, usually sourced from the main theme color.";
+          example = "#89b4fa";
         };
 
         mode = lib.mkOption {
