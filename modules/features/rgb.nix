@@ -124,9 +124,22 @@
               done < <(run_openrgb --list-devices)
             }
 
+            configure_devices() {
+              local device line
+
+              while IFS= read -r line; do
+                case "$line" in
+                  [0-9]*:*)
+                    device="''${line%%:*}"
+                    run_openrgb --device "$device" "''${common_args[@]}"
+                    ;;
+                esac
+              done < <(run_openrgb --list-devices)
+            }
+
             apply_rgb() {
               configure_argb_headers
-              run_openrgb "''${common_args[@]}"
+              configure_devices
             }
 
             attempt=1
