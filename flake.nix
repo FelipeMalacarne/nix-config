@@ -55,11 +55,16 @@
       inputs.noctalia-qs.follows = "noctalia-qs";
     };
 
-     nvf = {
-       url = "github:notashelf/nvf";
-       inputs.nixpkgs.follows = "nixpkgs";
-     };
+    nvf = {
+      url = "github:notashelf/nvf";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
+  outputs = inputs:
+    let
+      # Feature-local config/ folders are imported manually, not by import-tree.
+      moduleTree = inputs.import-tree.matchNot ".*/config/.*";
+    in
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } (moduleTree ./modules);
 }

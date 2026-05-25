@@ -68,6 +68,8 @@ let
             };
           };
 
+          stylix.targets.firefox.profileNames = [ config.home.username ];
+
           home.activation.updatePywalfox = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${pkgs.pywalfox-native}/bin/pywalfox update || true
           '';

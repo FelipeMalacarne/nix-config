@@ -1,19 +1,9 @@
-{ inputs, ... }:
+{ lib, ... }:
 let
-  inherit (inputs.nvf.lib.nvim.dag) entryAfter entryBefore entryAnywhere;
+  inherit (lib.nvim.dag) entryAfter;
 in
 {
   vim = {
-    pluginRC = {
-      dressing = entryAnywhere ''
-        require("dressing").setup({})
-      '';
-
-      ts-context-commentstring = entryBefore [ "mini-comment" ] ''
-        require("ts_context_commentstring").setup({ enable_autocmd = false })
-      '';
-    };
-
     luaConfigRC = {
       custom-options = entryAfter [ "optionsScript" ] ''
         local undodir = vim.fn.expand("~/.vim/undodir")

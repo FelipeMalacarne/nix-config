@@ -1,0 +1,18 @@
+{
+  imports = [
+    ./dressing.nix
+    ./ts-context-commentstring.nix
+    ./telescope.nix
+    ./neo-tree.nix
+    ./blink-cmp.nix
+    ./copilot.nix
+    ./copilot-chat.nix
+    ./gitsigns.nix
+    ./which-key.nix
+    ./snacks.nix
+    ./nvim-autopairs.nix
+    ./mini.nix
+    ./indent-blankline.nix
+    ./colorizer.nix
+  ];
+}
