@@ -49,5 +49,11 @@
         { section = "startup"; }
       ];
     };
+    setupOpts.zen.enabled = true;
+    setupOpts.zen.toggles.dim = false;
+    setupOpts.styles.zen.backdrop = {
+      transparent = false;
+      blend = 99;
+    };
   };
 }

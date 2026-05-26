@@ -151,6 +151,13 @@
     }
     {
       mode = "n";
+      key = "<leader>z";
+      action = "function() Snacks.zen() end";
+      lua = true;
+      desc = "Zen mode";
+    }
+    {
+      mode = "n";
       key = "<leader>e";
       action = "<cmd>Neotree toggle<cr>";
       desc = "Explorer (root)";
