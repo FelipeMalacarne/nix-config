@@ -28,6 +28,18 @@ let
             })
             + "\n";
 
+          xdg.configFile."opencode/opencode.json".text =
+            (builtins.toJSON {
+              "$schema" = "https://opencode.ai/config.json";
+              permission = {
+                external_directory = {
+                  "~/repos/**" = "allow";
+                };
+              };
+              plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
+            })
+            + "\n";
+
           xdg.configFile."opencode/themes/${themeName}.json".text =
             (builtins.toJSON {
               "$schema" = "https://opencode.ai/theme.json";

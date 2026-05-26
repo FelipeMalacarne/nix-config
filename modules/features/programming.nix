@@ -40,6 +40,7 @@ let
               text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
             })
             zed-editor
+            obsidian
           ]
           ++ lib.optionals pkgs.stdenv.isLinux [
             dbeaver-bin
