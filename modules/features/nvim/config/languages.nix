@@ -54,96 +54,40 @@ in
       enableTreesitter = true;
       enableFormat = true;
 
-      go = {
+      nix = {
         enable = true;
-        format.enable = false;
-        extraDiagnostics.enable = true;
+        format.type = [ "nixfmt" ];
       };
 
       php = {
         enable = true;
         format.enable = false;
-        extraDiagnostics.enable = true;
       };
 
-      typescript = {
-        enable = true;
-        format.type = [ "prettier" ];
-        extraDiagnostics.enable = true;
-      };
+      lua.enable = true;
 
-      tsx = {
-        enable = true;
-        format.type = [ "prettier" ];
-        extraDiagnostics.enable = false;
-      };
+      go.enable = true;
 
-      lua = {
-        enable = true;
-        lsp.lazydev.enable = true;
-        format.type = [ "stylua" ];
-      };
+      typescript.enable = true;
 
-      nix = {
-        enable = true;
-        lsp.servers = [ "nixd" ];
-        format.type = [ "nixfmt" ];
-        extraDiagnostics.enable = true;
-      };
+      tsx.enable = true;
 
-      bash = {
-        enable = true;
-        lsp.enable = false;
-        format.type = [ "shfmt" ];
-        extraDiagnostics.enable = false;
-      };
+      html.enable = true;
 
-      css = {
-        enable = true;
-        lsp.enable = false;
-        format.type = [ "prettier" ];
-      };
+      css.enable = true;
 
-      scss = {
-        enable = true;
-        lsp.enable = false;
-        format.type = [ "prettier" ];
-        extraDiagnostics.enable = false;
-      };
+      json.enable = true;
 
-      html = {
-        enable = true;
-        lsp.enable = false;
-        format.enable = false;
-        extraDiagnostics.enable = false;
-      };
+      markdown.enable = true;
 
-      json = {
-        enable = true;
-        lsp.enable = false;
-        format.type = [ "prettier" ];
-      };
+      yaml.enable = true;
 
-      markdown = {
-        enable = true;
-        lsp.enable = false;
-        format.enable = false;
-        extraDiagnostics.enable = false;
-      };
-
-      yaml = {
-        enable = true;
-        lsp.enable = false;
-      };
+      bash.enable = true;
     };
 
     treesitter = {
       enable = true;
       fold = true;
-      filetypeMappings = {
-        tsx = [ "typescriptreact" ];
-        javascript = [ "javascriptreact" ];
-      };
       grammars = with pkgs.vimPlugins.nvim-treesitter.grammarPlugins; [
         phpdoc
         blade
@@ -153,7 +97,6 @@ in
         toml
         dockerfile
         regex
-        c
       ];
     };
   };
