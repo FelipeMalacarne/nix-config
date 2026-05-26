@@ -21,6 +21,7 @@
         };
       };
       window = {
+        position = "float";
         width = 35;
         mappings = {
           "<space>" = "none";
