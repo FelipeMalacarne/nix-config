@@ -41,6 +41,8 @@
         paths = [
           "/home/${user}/Documents"
           "/home/${user}/.local/share/PrismLauncher/instances/ProjectOzone 3/minecraft/saves"
+          "/home/${user}/.runelite/screenshots"
+
         ];
       };
       system.stateVersion = "24.11";
