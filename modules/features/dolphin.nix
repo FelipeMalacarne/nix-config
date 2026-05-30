@@ -1,71 +1,81 @@
 {
   flake.nixosModules.dolphin =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       user = config.my.user.name;
-      mimeApplications = {
-        "application/pdf" = "org.kde.okular.desktop";
-        "application/x-pdf" = "org.kde.okular.desktop";
-        "application/zip" = "org.kde.ark.desktop";
-        "application/x-zip-compressed" = "org.kde.ark.desktop";
-        "application/x-7z-compressed" = "org.kde.ark.desktop";
-        "application/x-bzip2" = "org.kde.ark.desktop";
-        "application/x-bzip-compressed-tar" = "org.kde.ark.desktop";
-        "application/x-compressed-tar" = "org.kde.ark.desktop";
-        "application/gzip" = "org.kde.ark.desktop";
-        "application/vnd.rar" = "org.kde.ark.desktop";
-        "application/x-rar" = "org.kde.ark.desktop";
-        "application/x-rar-compressed" = "org.kde.ark.desktop";
-        "application/x-tar" = "org.kde.ark.desktop";
-        "application/x-xz" = "org.kde.ark.desktop";
-        "application/x-xz-compressed-tar" = "org.kde.ark.desktop";
-        "application/zstd" = "org.kde.ark.desktop";
-        "application/x-zstd-compressed-tar" = "org.kde.ark.desktop";
-        "image/jpeg" = "org.kde.gwenview.desktop";
-        "image/png" = "org.kde.gwenview.desktop";
-        "image/gif" = "org.kde.gwenview.desktop";
-        "image/webp" = "org.kde.gwenview.desktop";
-        "image/bmp" = "org.kde.gwenview.desktop";
-        "image/tiff" = "org.kde.gwenview.desktop";
-        "image/svg+xml" = "org.kde.gwenview.desktop";
-        "video/mp4" = "mpv.desktop";
-        "video/3gpp" = "mpv.desktop";
-        "video/mpeg" = "mpv.desktop";
-        "video/ogg" = "mpv.desktop";
-        "video/quicktime" = "mpv.desktop";
-        "video/webm" = "mpv.desktop";
-        "video/x-flv" = "mpv.desktop";
-        "video/x-m4v" = "mpv.desktop";
-        "video/x-matroska" = "mpv.desktop";
-        "video/x-msvideo" = "mpv.desktop";
-        "video/x-ms-wmv" = "mpv.desktop";
-      };
+      imageTypes = [
+        "image/jpeg"
+        "image/png"
+        "image/gif"
+        "image/webp"
+        "image/bmp"
+        "image/tiff"
+        "image/svg+xml"
+      ];
+      archiveTypes = [
+        "application/gzip"
+        "application/vnd.rar"
+        "application/zip"
+        "application/zstd"
+        "application/x-7z-compressed"
+        "application/x-bzip2"
+        "application/x-bzip-compressed-tar"
+        "application/x-compressed-tar"
+        "application/x-rar"
+        "application/x-rar-compressed"
+        "application/x-tar"
+        "application/x-xz"
+        "application/x-xz-compressed-tar"
+        "application/x-zip-compressed"
+        "application/x-zstd-compressed-tar"
+      ];
+      videoTypes = [
+        "video/3gpp"
+        "video/mp4"
+        "video/mpeg"
+        "video/ogg"
+        "video/quicktime"
+        "video/webm"
+        "video/x-flv"
+        "video/x-m4v"
+        "video/x-matroska"
+        "video/x-ms-wmv"
+        "video/x-msvideo"
+      ];
+      defaultApplications = {
+        "application/pdf" = "okularApplication_pdf.desktop";
+        "application/x-pdf" = "okularApplication_pdf.desktop";
+      }
+      // lib.genAttrs imageTypes (_: "org.kde.gwenview.desktop")
+      // lib.genAttrs archiveTypes (_: "org.kde.ark.desktop")
+      // lib.genAttrs videoTypes (_: "mpv.desktop");
     in
     {
       home-manager.users.${user} =
-        { config, ... }:
+        { config, lib, ... }:
         let
           p = config.lib.stylix.colors;
           rgb = n: "${p."${n}-rgb-r"},${p."${n}-rgb-g"},${p."${n}-rgb-b"}";
         in
         {
-          stylix.targets.qt.enable = false;
-
           home.packages = with pkgs; [
-            kdePackages.dolphin
-            kdePackages.konsole
-            kdePackages.kio-extras
-            kdePackages.plasma-integration
             kdePackages.ark
-            kdePackages.gwenview
-            kdePackages.kimageformats
-            kdePackages.okular
-            mpv
-            swayimg
-            kdePackages.kde-cli-tools
-            kdePackages.kservice
-            kdePackages.qtsvg
             kdePackages.breeze-icons
+            kdePackages.dolphin
+            kdePackages.gwenview
+            kdePackages.kde-cli-tools
+            kdePackages.kimageformats
+            kdePackages.kio-extras
+            kdePackages.kservice
+            kdePackages.okular
+            kdePackages.plasma-integration
+            kdePackages.qtsvg
+            mpv
             unar
             unzip
             zip
@@ -74,18 +84,12 @@
 
           xdg.mimeApps = {
             enable = true;
-            associations.added = mimeApplications;
-            defaultApplications = mimeApplications;
+            associations.added = defaultApplications;
+            inherit defaultApplications;
           };
 
-          qt = {
-            enable = true;
-            platformTheme.name = "kde";
-          };
-
-          xdg.configFile."dolphinrc".text = ''
-            [General]
-            ShowSelectionToggle=false
+          home.activation.rebuildKServiceCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            ${pkgs.kdePackages.kservice}/bin/kbuildsycoca6 --noincremental
           '';
 
           xdg.configFile."kdeglobals".text = ''
