@@ -28,6 +28,8 @@ let
           kubernetes-helm
           k9s
           yq-go
+          kustomize
+          kustomize-sops
         ];
 
         home.sessionVariables.KUBECONFIG = builtins.concatStringsSep ":" (
