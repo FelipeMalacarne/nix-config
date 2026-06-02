@@ -82,7 +82,17 @@ in
 
       yaml.enable = true;
 
+      hcl.enable = true;
+
+      helm.enable = true;
+
       bash.enable = true;
+
+      make.enable = true;
+
+      # docker.enable = true;
+
+      sql.enable = true;
     };
 
     treesitter = {
