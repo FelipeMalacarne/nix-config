@@ -48,6 +48,12 @@ let
             identityFile = "~/.ssh/zaros";
             extraOptions.IdentitiesOnly = "yes";
           };
+
+          "zaros" = {
+            user = "felipe";
+            identityFile = "~/.ssh/zaros";
+            extraOptions.IdentitiesOnly = "yes";
+          };
         };
       };
     };
