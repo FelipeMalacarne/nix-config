@@ -3,11 +3,13 @@
   vim.filetree.neo-tree = {
     enable = true;
     setupOpts = {
-      # close_if_last_window = true;
+      close_if_last_window = true;
+
+      git_status_async = true;
       # sources = [ "filesystem" ];
-      # filesystem = {
+      filesystem = {
+        follow_current_file.enabled = true;
       #   bind_to_cwd = false;
-      #   follow_current_file.enabled = true;
       #   use_libuv_file_watcher = true;
       #   filtered_items = {
       #     visible = false;
@@ -19,7 +21,7 @@
       #       "vendor"
       #     ];
       #   };
-      # };
+      };
       window = {
         position = "float";
         width = 35;
