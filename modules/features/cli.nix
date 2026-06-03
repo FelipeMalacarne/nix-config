@@ -16,6 +16,7 @@ let
           unzip
           p7zip-rar
           gnumake
+          wakeonlan
         ];
 
         programs.fzf = {
