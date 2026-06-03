@@ -28,6 +28,19 @@
         exec uwsm app -- ${noctalia}
       '';
 
+      startLockedNoctalia = pkgs.writeShellScript "start-locked-noctalia" ''
+        uwsm app -- ${noctalia} &
+
+        for _ in $(${pkgs.coreutils}/bin/seq 1 100); do
+          if ${noctalia} ipc call lockScreen lock 2>/dev/null; then
+            exit 0
+          fi
+          ${pkgs.coreutils}/bin/sleep 0.1
+        done
+
+        ${noctalia} ipc call lockScreen lock 2>/dev/null || true
+      '';
+
       termHere = pkgs.writeShellScript "term-here" ''
         pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
         cwd=""
@@ -143,8 +156,7 @@
             "$ipc" = "${noctalia} ipc call";
 
             exec-once = [
-              "uwsm app -- ${lib.getExe pkgs.noctalia-shell}"
-              "$ipc lockScreen lock"
+              "${startLockedNoctalia}"
               "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
 
