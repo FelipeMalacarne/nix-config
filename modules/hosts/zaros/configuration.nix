@@ -1,7 +1,7 @@
 { self, ... }:
 {
   flake.nixosModules.zaros =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -30,6 +30,18 @@
       ];
 
       networking.hostName = "zaros";
+
+      systemd.services.enable-wol = {
+        description = "Enable Wake-on-LAN on enp12s0";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network-pre.target" ];
+        before = [ "network.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.ethtool}/bin/ethtool -s enp12s0 wol g";
+          RemainAfterExit = "yes";
+        };
+      };
 
       my.rgb = {
         enable = true;

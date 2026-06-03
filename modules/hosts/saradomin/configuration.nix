@@ -1,7 +1,7 @@
 { self, ... }:
 {
   flake.nixosModules.saradomin =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
       user = config.my.user.name;
     in
@@ -28,6 +28,15 @@
 
       security.pki.certificateFiles = [
         ../../../certs/saradomin-internal-ca.crt
+      ];
+
+      home-manager.users.${user}.home.packages = [
+        (pkgs.writeShellApplication {
+          name = "wake-zaros";
+          text = ''
+            wakeonlan 04:7c:16:db:d9:e1
+          '';
+        })
       ];
 
       users.users.${user}.openssh.authorizedKeys.keyFiles = [
