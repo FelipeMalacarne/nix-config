@@ -1,15 +1,23 @@
 let
   module =
-    { config, lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       user = config.my.user.name;
+      rustdesk = pkgs.rustdesk-flutter;
     in
     {
       home-manager.users.${user} = {
-        home.packages = [ pkgs.rustdesk ];
+        home.packages = [
+          rustdesk
+        ];
 
         wayland.windowManager.hyprland.settings.exec-once = [
-          "uwsm app -- ${lib.getExe pkgs.rustdesk}"
+          "uwsm app -- ${lib.getExe rustdesk}"
         ];
       };
     };
