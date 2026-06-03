@@ -144,6 +144,7 @@
 
             exec-once = [
               "uwsm app -- ${lib.getExe pkgs.noctalia-shell}"
+              "$ipc lockScreen lock"
               "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
 
