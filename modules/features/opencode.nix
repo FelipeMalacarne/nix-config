@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 let
   module =
     { pkgs, config, ... }:
@@ -14,11 +14,7 @@ let
         in
         {
           home.packages = [
-            # self.packages.${pkgs.stdenv.hostPlatform.system}.opencode
-            (pkgs.writeShellApplication {
-              name = "opencode";
-              text = ''exec ${pkgs.nodejs}/bin/npx opencode-ai@latest "$@"'';
-            })
+            self.packages.${pkgs.stdenv.hostPlatform.system}.opencode
           ];
 
           xdg.configFile."opencode/tui.json".text =
