@@ -152,9 +152,8 @@
     {
       mode = "n";
       key = "<leader>z";
-      action = "function() Snacks.zen() end";
-      lua = true;
-      desc = "Zen mode";
+      action = "<cmd>NoNeckPain<cr>";
+      desc = "Toggle centered layout";
     }
     {
       mode = "n";

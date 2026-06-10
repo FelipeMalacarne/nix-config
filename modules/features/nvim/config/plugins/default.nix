@@ -10,6 +10,7 @@
     ./gitsigns.nix
     ./which-key.nix
     ./snacks.nix
+    ./no-neck-pain.nix
     ./nvim-autopairs.nix
     ./mini.nix
     ./indent-blankline.nix
