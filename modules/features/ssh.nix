@@ -49,6 +49,12 @@ let
             extraOptions.IdentitiesOnly = "yes";
           };
 
+          "macbook" = {
+            user = "felipeautentique";
+            identityFile = "~/.ssh/zaros";
+            extraOptions.IdentitiesOnly = "yes";
+          };
+
           "zaros" = {
             user = "felipe";
             identityFile = "~/.ssh/zaros";
