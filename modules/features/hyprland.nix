@@ -1,4 +1,4 @@
-{ ... }:
+{ inputs, ... }:
 {
   flake.nixosModules.hyprland =
     {
@@ -9,7 +9,7 @@
     }:
     let
       user = config.my.user.name;
-      noctalia = lib.getExe pkgs.noctalia-shell;
+      noctalia = lib.getExe inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
       brightnessctl = lib.getExe pkgs.brightnessctl;
       grimblast = lib.getExe pkgs.grimblast;
       hyprctl = "${pkgs.hyprland}/bin/hyprctl";
@@ -23,7 +23,7 @@
       refreshLayerClients = pkgs.writeShellScript "refresh-hyprland-layer-clients" ''
         sleep 0.5
         ${pkgs.systemd}/bin/systemctl --user stop hyprpaper.service 2>/dev/null || true
-        ${pkgs.procps}/bin/pkill -u "$USER" -f 'quickshell.*noctalia-shell' 2>/dev/null || true
+        ${pkgs.procps}/bin/pkill -u "$USER" -f 'noctalia' 2>/dev/null || true
         sleep 0.2
         exec uwsm app -- ${noctalia}
       '';
@@ -32,13 +32,13 @@
         uwsm app -- ${noctalia} &
 
         for _ in $(${pkgs.coreutils}/bin/seq 1 100); do
-          if ${noctalia} ipc call lockScreen lock 2>/dev/null; then
+          if ${noctalia} msg session lock 2>/dev/null; then
             exit 0
           fi
           ${pkgs.coreutils}/bin/sleep 0.1
         done
 
-        ${noctalia} ipc call lockScreen lock 2>/dev/null || true
+        ${noctalia} msg session lock 2>/dev/null || true
       '';
 
       termHere = pkgs.writeShellScript "term-here" ''
@@ -105,10 +105,7 @@
         gtk = {
           enable = true;
           gtk3.extraConfig.gtk-application-prefer-dark-theme = true;
-          gtk4 = {
-            extraConfig.gtk-application-prefer-dark-theme = true;
-            theme = null;
-          };
+          gtk4.extraConfig.gtk-application-prefer-dark-theme = true;
         };
 
         dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
@@ -131,14 +128,14 @@
           enable = true;
           settings = {
             general = {
-              lock_cmd = "${noctalia} ipc call lockScreen lock";
-              before_sleep_cmd = "${noctalia} ipc call lockScreen lock";
+              lock_cmd = "${noctalia} msg session lock";
+              before_sleep_cmd = "${noctalia} msg session lock";
               after_sleep_cmd = "${hyprctl} dispatch dpms on";
             };
             listener = [
               {
                 timeout = 180;
-                on-timeout = "${noctalia} ipc call lockScreen lock";
+                on-timeout = "${noctalia} msg session lock";
               }
               {
                 timeout = 240;
@@ -153,7 +150,7 @@
           enable = true;
           settings = {
             "$mod" = "SUPER";
-            "$ipc" = "${noctalia} ipc call";
+            "$ipc" = "${noctalia} msg";
 
             exec-once = [
               "${startLockedNoctalia}"
@@ -213,11 +210,11 @@
               "$mod SHIFT, P, pin"
               "$mod SHIFT, R, exec, ${hyprctl} reload"
               "$mod SHIFT, Q, exit"
-              "$mod, Space, exec, $ipc launcher toggle"
-              "$mod, C, exec, $ipc controlCenter toggle"
-              "$mod, comma, exec, $ipc settings toggle"
-              "$mod SHIFT, Escape, exec, $ipc sessionMenu toggle"
-              "$mod Control, L, exec, $ipc lockScreen lock"
+              "$mod, Space, exec, $ipc panel-toggle launcher"
+              "$mod, C, exec, $ipc panel-toggle control-center"
+              "$mod, comma, exec, $ipc settings-toggle"
+              "$mod SHIFT, Escape, exec, $ipc panel-toggle session"
+              "$mod Control, L, exec, $ipc session lock"
               "$mod, S, togglespecialworkspace, scratch"
               "$mod SHIFT, S, movetoworkspacesilent, special:scratch"
               ", Print, exec, ${grimblast} copy output"
@@ -273,14 +270,14 @@
             ];
 
             bindel = [
-              ", XF86AudioRaiseVolume, exec, $ipc volume increase"
-              ", XF86AudioLowerVolume, exec, $ipc volume decrease"
+              ", XF86AudioRaiseVolume, exec, $ipc volume-up"
+              ", XF86AudioLowerVolume, exec, $ipc volume-down"
               ", XF86MonBrightnessUp, exec, ${brightnessctl} set +5%"
               ", XF86MonBrightnessDown, exec, ${brightnessctl} set 5%-"
             ];
 
             bindl = [
-              ", XF86AudioMute, exec, $ipc volume muteOutput"
+              ", XF86AudioMute, exec, $ipc volume-mute"
               ", XF86AudioMicMute, exec, ${wpctl} set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
               ", XF86AudioPlay, exec, ${playerctl} play-pause"
               ", XF86AudioNext, exec, ${playerctl} next"
