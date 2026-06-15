@@ -34,7 +34,7 @@
 
         programs.noctalia = {
           enable = true;
-          settings = "../../assets/noctalia-config.tomlr";
+          settings = "../../assets/noctalia-config.toml";
         };
       };
     };

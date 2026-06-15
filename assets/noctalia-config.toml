@@ -2,8 +2,7 @@
 enable_overdrive = true
 
 [bar.default]
-capsule_radius = 7
-center = [ "clock", "cpu", "ram", "temp" ]
+center = [ "clock", "cpu", "ram", "temp", "weather" ]
 contact_shadow = true
 end = [ "tray", "notifications", "clipboard", "network", "bluetooth", "volume", "brightness", "control-center", "session" ]
 margin_edge = 5
@@ -189,6 +188,9 @@ directory = "/home/felipe/Pictures/wallpapers"
 [widget.brightness]
 show_label = false
 
+[widget.media]
+capsule = true
+
 [widget.network]
 show_label = false
 
@@ -199,3 +201,6 @@ stat = "gpu_vram"
 
 [widget.volume]
 show_label = false
+
+[widget.weather]
+capsule = true
