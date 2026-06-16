@@ -2,13 +2,20 @@
 enable_overdrive = true
 
 [bar.default]
-center = [ "clock", "cpu", "ram", "temp", "weather" ]
+center = [ "weather", "clock", "group:g1" ]
 contact_shadow = true
 end = [ "tray", "notifications", "clipboard", "network", "bluetooth", "volume", "brightness", "control-center", "session" ]
 margin_edge = 5
 margin_ends = 10
 start = [ "launcher", "workspaces", "media" ]
 widget_spacing = 8
+
+    [[bar.default.capsule_group]]
+    fill = "surface_variant"
+    id = "g1"
+    members = [ "ram", "cpu", "temp" ]
+    opacity = 1.0
+    padding = 6.0
 
 [brightness]
 enable_ddcutil = true
@@ -187,6 +194,9 @@ directory = "/home/felipe/Pictures/wallpapers"
 
 [widget.brightness]
 show_label = false
+
+[widget.clock]
+anchor = true
 
 [widget.media]
 capsule = true

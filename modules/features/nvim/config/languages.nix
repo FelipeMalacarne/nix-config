@@ -93,6 +93,8 @@ in
       # docker.enable = true;
 
       sql.enable = true;
+
+      tex.enable = true;
     };
 
     treesitter = {

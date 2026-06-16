@@ -34,7 +34,7 @@
 
         programs.noctalia = {
           enable = true;
-          settings = "../../assets/noctalia-config.toml";
+          settings = builtins.readFile (inputs.self + "/assets/noctalia-config.toml");
         };
       };
     };
