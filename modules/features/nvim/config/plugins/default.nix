@@ -15,5 +15,6 @@
     ./mini.nix
     ./indent-blankline.nix
     ./colorizer.nix
+    ./vimtex.nix
   ];
 }

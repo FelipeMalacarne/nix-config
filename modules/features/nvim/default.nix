@@ -7,9 +7,14 @@ let
     in
     {
       home-manager.users.${user} =
-        { lib, ... }:
+        { lib, pkgs, ... }:
         {
           imports = [ inputs.nvf.homeManagerModules.default ];
+
+          home.packages = with pkgs; [
+            texlive.combined.scheme-full
+            zathura
+          ];
 
           programs.nvf = {
             enable = true;
