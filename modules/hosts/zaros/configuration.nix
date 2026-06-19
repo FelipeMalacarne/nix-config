@@ -24,6 +24,7 @@
         office
         virtualization
         flatpak
+        webos-dev-manager
         openssh
         tailscale
         docker
