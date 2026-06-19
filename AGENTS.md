@@ -68,7 +68,7 @@ Examples: `git`, `zsh`, `ssh`, `nvim`, `cli`, `programming`, `opencode`, `themin
 ## Hosts
 
 ### zaros (NixOS, x86_64-linux)
-Hyprland + Noctalia shell desktop. Imports: identity, base, desktop, sops, restic, nvidia, gaming, rgb, microbot, programming, rustdesk, opencode, ollama, office, virtualization, flatpak, webos-dev-manager, openssh, tailscale, docker, k8s.
+Hyprland + Noctalia shell desktop. Imports: identity, base, desktop, sops, restic, sunshine, nvidia, gaming, rgb, microbot, programming, rustdesk, opencode, ollama, office, virtualization, flatpak, webos-dev-manager, openssh, tailscale, docker, k8s.
 
 ### saradomin (NixOS, x86_64-linux)
 Headless home server with k3s. Disk partitioned via disko. Imports: disko, identity, base, sops, openssh, k3s, tailscale.

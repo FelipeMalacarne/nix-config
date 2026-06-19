@@ -13,6 +13,7 @@
         desktop
         sops
         restic
+        sunshine
         nvidia
         gaming
         rgb
