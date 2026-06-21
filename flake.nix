@@ -59,6 +59,8 @@
       url = "github:notashelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    dolphin-overlay.url = "github:rumboon/dolphin-overlay";
   };
 
   outputs = inputs:
