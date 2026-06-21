@@ -64,17 +64,6 @@
         withUWSM = true;
       };
 
-      services.displayManager = {
-        sddm = {
-          enable = true;
-          wayland.enable = true;
-        };
-        autoLogin = {
-          enable = true;
-          user = user;
-        };
-      };
-
       xdg.portal = {
         enable = true;
         extraPortals = [
@@ -83,8 +72,6 @@
         ];
         config.common.default = "*";
       };
-
-      environment.systemPackages = [ pkgs.kdePackages.qtsvg ];
 
       home-manager.users.${user} = {
         home.file =

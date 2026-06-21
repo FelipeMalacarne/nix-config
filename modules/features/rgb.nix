@@ -11,25 +11,24 @@
       openrgb = lib.getExe config.services.hardware.openrgb.package;
       color = lib.removePrefix "#" cfg.color;
       server = "127.0.0.1:${toString config.services.hardware.openrgb.server.port}";
-      args =
-        [
-          "--client"
-          server
-          "--color"
-          color
-        ]
-        ++ lib.optionals (cfg.mode != null) [
-          "--mode"
-          cfg.mode
-        ]
-        ++ lib.optionals (cfg.brightness != null) [
-          "--brightness"
-          (toString cfg.brightness)
-        ]
-        ++ lib.optionals (cfg.speed != null) [
-          "--speed"
-          (toString cfg.speed)
-        ];
+      args = [
+        "--client"
+        server
+        "--color"
+        color
+      ]
+      ++ lib.optionals (cfg.mode != null) [
+        "--mode"
+        cfg.mode
+      ]
+      ++ lib.optionals (cfg.brightness != null) [
+        "--brightness"
+        (toString cfg.brightness)
+      ]
+      ++ lib.optionals (cfg.speed != null) [
+        "--speed"
+        (toString cfg.speed)
+      ];
 
       hexColor = lib.types.strMatching "#?[0-9a-fA-F]{6}";
       percent = lib.types.ints.between 0 100;

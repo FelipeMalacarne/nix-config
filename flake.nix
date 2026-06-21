@@ -63,7 +63,8 @@
     dolphin-overlay.url = "github:rumboon/dolphin-overlay";
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     let
       # Feature-local config/ folders are imported manually, not by import-tree.
       moduleTree = inputs.import-tree.matchNot ".*/config/.*";

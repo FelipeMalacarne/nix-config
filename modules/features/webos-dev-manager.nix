@@ -14,7 +14,11 @@
           hash = "sha256-1Eg8flL81vJXcGG9492tePqI4LpvEap2spuYtfIwAKU=";
         };
 
-        extraPkgs = pkgs: with pkgs; [ mesa libGL ];
+        extraPkgs =
+          pkgs: with pkgs; [
+            mesa
+            libGL
+          ];
       };
 
       devManager = pkgs.writeShellApplication {
@@ -39,7 +43,10 @@
           genericName = "webOS TV Developer Tools";
           exec = "${devManager}/bin/webos-dev-manager";
           terminal = false;
-          categories = [ "Development" "Utility" ];
+          categories = [
+            "Development"
+            "Utility"
+          ];
         };
       };
     };

@@ -9,18 +9,18 @@
       # sources = [ "filesystem" ];
       filesystem = {
         follow_current_file.enabled = true;
-      #   bind_to_cwd = false;
-      #   use_libuv_file_watcher = true;
-      #   filtered_items = {
-      #     visible = false;
-      #     hide_dotfiles = false;
-      #     hide_gitignored = true;
-      #     hide_by_name = [
-      #       ".git"
-      #       "node_modules"
-      #       "vendor"
-      #     ];
-      #   };
+        #   bind_to_cwd = false;
+        #   use_libuv_file_watcher = true;
+        #   filtered_items = {
+        #     visible = false;
+        #     hide_dotfiles = false;
+        #     hide_gitignored = true;
+        #     hide_by_name = [
+        #       ".git"
+        #       "node_modules"
+        #       "vendor"
+        #     ];
+        #   };
       };
       window = {
         position = "float";

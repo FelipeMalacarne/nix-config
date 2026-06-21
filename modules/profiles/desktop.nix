@@ -4,6 +4,7 @@
     imports = [
       self.nixosModules.audio
       self.nixosModules.network
+      self.nixosModules.sddm
       self.nixosModules.hyprland
       self.nixosModules.noctalia
       self.nixosModules.firefox

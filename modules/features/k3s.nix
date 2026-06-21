@@ -15,10 +15,7 @@
         services.k3s = {
           enable = true;
           role = "server";
-          extraFlags = toString (
-            [ "--disable=traefik" ] ++
-            map (san: "--tls-san=${san}") cfg.tlsSans
-          );
+          extraFlags = toString ([ "--disable=traefik" ] ++ map (san: "--tls-san=${san}") cfg.tlsSans);
         };
 
         # host paths that k3s pods mount via hostPath / local-path PVCs
