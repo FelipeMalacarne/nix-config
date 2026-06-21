@@ -19,7 +19,6 @@
         rgb
         microbot
         programming
-        rustdesk
         opencode
         ollama
         office
