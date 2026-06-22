@@ -27,6 +27,7 @@
           nixfmt
           shfmt
           prettierd
+          gofumpt
 
           # Misc Tools
           lazygit

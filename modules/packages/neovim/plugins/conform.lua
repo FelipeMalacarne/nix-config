@@ -4,6 +4,7 @@ require("conform").setup({
 
 		lua = { "stylua" },
 		php = { "pint" },
+		go = { "gofumpt" },
 		javascript = { "prettierd" },
 		typescript = { "prettierd" },
 		javascriptreact = { "prettierd" },

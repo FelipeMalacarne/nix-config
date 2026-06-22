@@ -7,6 +7,8 @@ vim.lsp.enable({
 	"nixd",
 	"gopls",
 	"phpantom-lsp",
+
+	-- "vscode-css-language-server",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
