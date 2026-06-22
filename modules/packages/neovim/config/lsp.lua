@@ -7,6 +7,7 @@ vim.lsp.enable({
 	"nixd",
 	"gopls",
 	"phpantom-lsp",
+	"tsgo",
 
 	-- "vscode-css-language-server",
 })

@@ -21,6 +21,7 @@
           gopls
           phpantom-lsp
           nixd
+          typescript-go
 
           # Formatters
           stylua
