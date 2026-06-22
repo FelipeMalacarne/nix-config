@@ -17,6 +17,7 @@
 
         extraPackages = with pkgs; [
           lua-language-server
+          gopls
         ];
 
         specs = {
@@ -26,6 +27,8 @@
               pkgs.vimPlugins.telescope-nvim
               pkgs.vimPlugins.plenary-nvim
               pkgs.vimPlugins.telescope-fzf-native-nvim
+              pkgs.vimPlugins.blink-cmp
+              pkgs.vimPlugins.nvim-lspconfig
             ];
           };
 
