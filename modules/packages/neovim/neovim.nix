@@ -55,6 +55,7 @@
 
               pkgs.vimPlugins.catppuccin-nvim
               pkgs.vimPlugins.conform-nvim
+              pkgs.vimPlugins.which-key-nvim
             ];
           };
 
