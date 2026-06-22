@@ -38,6 +38,8 @@
               pkgs.vimPlugins.neo-tree-nvim
               pkgs.vimPlugins.nvim-web-devicons
               pkgs.vimPlugins.nui-nvim
+
+              pkgs.vimPlugins.catppuccin-nvim
             ];
           };
 
