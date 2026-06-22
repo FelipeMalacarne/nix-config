@@ -17,8 +17,8 @@
       wallpaperDir = ../../assets/wallpapers;
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
 
-      monitorMain = "desc:Samsung Electric Company Odyssey G61SD HNBYB00003";
-      monitorSide = "desc:Samsung Electric Company LS27A600U HNMW900149";
+      monitorMain = "DP-1";
+      monitorSide = "HDMI-A-1";
 
       refreshLayerClients = pkgs.writeShellScript "refresh-hyprland-layer-clients" ''
         sleep 0.5
@@ -143,8 +143,8 @@
             "$ipc" = "${noctalia} ipc call";
 
             exec-once = [
-              "${startLockedNoctalia}"
-              "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
+              # "${startLockedNoctalia}"
+              # "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
 
             # exec = [
@@ -192,6 +192,7 @@
 
             bind = [
               "$mod, Return, exec, ${termHere}"
+
               "$mod, W, killactive"
               "$mod, F, fullscreen"
               "$mod, T, togglefloating"
@@ -200,11 +201,14 @@
               "$mod SHIFT, P, pin"
               "$mod SHIFT, R, exec, ${hyprctl} reload"
               "$mod SHIFT, Q, exit"
+
+              # noctalia
               "$mod, Space, exec, $ipc launcher toggle"
-              "$mod, C, exec, $ipc controlCenter toggle"
+              "$mod, period, exec, $ipc controlCenter toggle"
               "$mod, comma, exec, $ipc settings toggle"
-              "$mod SHIFT, Escape, exec, $ipc sessionMenu toggle"
+              "$mod, Delete, exec, $ipc sessionMenu toggle"
               "$mod Control, L, exec, $ipc lockScreen lock"
+
               "$mod, S, togglespecialworkspace, scratch"
               "$mod SHIFT, S, movetoworkspacesilent, special:scratch"
               ", Print, exec, ${grimblast} copy output"
@@ -223,10 +227,12 @@
               "$mod, bracketleft, workspace, e-1"
               "$mod, period, focusmonitor, +1"
               "$mod SHIFT, period, movewindow, mon:+1"
+
               "$mod SHIFT, F, exec, uwsm app -- $TERMINAL -e ${lib.getExe pkgs.yazi}"
               "$mod SHIFT, T, exec, uwsm app -- $TERMINAL -e ${lib.getExe pkgs.btop}"
               "$mod SHIFT, I, exec, uwsm app -- $TERMINAL -e ${lib.getExe pkgs.bash} -c '${lib.getExe pkgs.fastfetch}; read -rp \"Press enter to close...\"'"
               "$mod SHIFT, B, exec, uwsm app -- ${lib.getExe pkgs.firefox}"
+
               "$mod, 1, workspace, 1"
               "$mod, 2, workspace, 2"
               "$mod, 3, workspace, 3"
