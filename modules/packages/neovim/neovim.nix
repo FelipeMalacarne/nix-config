@@ -22,6 +22,9 @@
           phpantom-lsp
           nixd
           typescript-go
+          superhtml
+          vscode-css-languageserver
+          tailwindcss-language-server
 
           # Formatters
           stylua

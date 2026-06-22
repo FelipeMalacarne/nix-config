@@ -8,8 +8,9 @@ vim.lsp.enable({
 	"gopls",
 	"phpantom-lsp",
 	"tsgo",
-
-	-- "vscode-css-language-server",
+	"superhtml",
+	"tailwindcss",
+	"cssls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
