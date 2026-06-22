@@ -5,6 +5,7 @@ vim.lsp.config("*", {
 vim.lsp.enable({
 	"lua_ls",
 	"gopls",
+	"phpantom-lsp",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {

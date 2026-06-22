@@ -18,17 +18,26 @@
         extraPackages = with pkgs; [
           lua-language-server
           gopls
+          phpantom-lsp
         ];
 
         specs = {
           plugins = {
             data = [
               pkgs.vimPlugins.nvim-treesitter.withAllGrammars
+
+              # telescope
               pkgs.vimPlugins.telescope-nvim
               pkgs.vimPlugins.plenary-nvim
               pkgs.vimPlugins.telescope-fzf-native-nvim
+
               pkgs.vimPlugins.blink-cmp
               pkgs.vimPlugins.nvim-lspconfig
+
+              # neo-tree
+              pkgs.vimPlugins.neo-tree-nvim
+              pkgs.vimPlugins.nvim-web-devicons
+              pkgs.vimPlugins.nui-nvim
             ];
           };
 
