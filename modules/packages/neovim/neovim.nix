@@ -15,6 +15,10 @@
 
         settings.config_directory = ./.;
 
+        extraPackages = with pkgs; [
+          lua-language-server
+        ];
+
         specs = {
           plugins = {
             data = [
