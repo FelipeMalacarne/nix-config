@@ -47,6 +47,12 @@
           lazydocker
           lazysql
           tuxedo
+
+          # latex
+          texlab
+          tex-fmt
+          texlive.combined.scheme-full
+          zathura
         ];
 
         specs = {

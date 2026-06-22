@@ -18,6 +18,7 @@ vim.lsp.enable({
 	"sqls",
 	"docker-language-server",
 	"helm_ls",
+	"texlab",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
