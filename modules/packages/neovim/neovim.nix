@@ -25,11 +25,12 @@
           superhtml
           vscode-css-languageserver
           tailwindcss-language-server
-          vscode-json-language-server
+          vscode-json-languageserver
           marksman
           yaml-language-server
           tofu-ls
           sqls
+          docker-language-server
 
           # Formatters
           stylua
@@ -37,8 +38,8 @@
           shfmt
           prettierd
           gofumpt
-          bake
           sqlfluff
+          dockerfmt
 
           # Misc Tools
           lazygit
