@@ -11,6 +11,7 @@ vim.lsp.enable({
 	"superhtml",
 	"tailwindcss",
 	"cssls",
+	"jsonls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {

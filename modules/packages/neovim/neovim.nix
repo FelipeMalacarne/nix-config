@@ -25,6 +25,7 @@
           superhtml
           vscode-css-languageserver
           tailwindcss-language-server
+          vscode-json-language-server
 
           # Formatters
           stylua
