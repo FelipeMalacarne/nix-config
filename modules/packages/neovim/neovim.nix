@@ -16,11 +16,23 @@
         settings.config_directory = ./.;
 
         extraPackages = with pkgs; [
+          # LSPs
           lua-language-server
           gopls
           phpantom-lsp
           nixd
+
+          # Formatters
+          stylua
+          nixfmt
+          shfmt
+          prettierd
+
+          # Misc Tools
           lazygit
+          lazydocker
+          lazysql
+          tuxedo
         ];
 
         specs = {
@@ -42,6 +54,7 @@
               pkgs.vimPlugins.nui-nvim
 
               pkgs.vimPlugins.catppuccin-nvim
+              pkgs.vimPlugins.conform-nvim
             ];
           };
 
