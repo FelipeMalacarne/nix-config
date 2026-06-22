@@ -19,6 +19,7 @@
           lua-language-server
           gopls
           phpantom-lsp
+          nixd
         ];
 
         specs = {
