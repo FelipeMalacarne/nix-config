@@ -15,6 +15,7 @@ vim.lsp.enable({
 	"marksman",
 	"yamlls",
 	"tofu_ls",
+	"sqls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {

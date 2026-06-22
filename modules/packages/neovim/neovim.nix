@@ -29,6 +29,7 @@
           marksman
           yaml-language-server
           tofu-ls
+          sqls
 
           # Formatters
           stylua
@@ -36,6 +37,8 @@
           shfmt
           prettierd
           gofumpt
+          bake
+          sqlfluff
 
           # Misc Tools
           lazygit
