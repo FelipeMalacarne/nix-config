@@ -27,6 +27,7 @@
           tailwindcss-language-server
           vscode-json-language-server
           marksman
+          yaml-language-server
 
           # Formatters
           stylua

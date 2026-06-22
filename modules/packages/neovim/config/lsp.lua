@@ -13,6 +13,7 @@ vim.lsp.enable({
 	"cssls",
 	"jsonls",
 	"marksman",
+	"yamlls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
