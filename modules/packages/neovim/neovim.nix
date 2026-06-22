@@ -18,6 +18,7 @@
         specs = {
           plugins = {
             data = [
+              pkgs.vimPlugins.nvim-treesitter.withAllGrammars
               # pkgs.vimPlugins.lz-n
             ];
           };
