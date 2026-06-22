@@ -19,7 +19,9 @@
           plugins = {
             data = [
               pkgs.vimPlugins.nvim-treesitter.withAllGrammars
-              # pkgs.vimPlugins.lz-n
+              pkgs.vimPlugins.telescope-nvim
+              pkgs.vimPlugins.plenary-nvim
+              pkgs.vimPlugins.telescope-fzf-native-nvim
             ];
           };
 

@@ -1,8 +1,9 @@
 local dir = debug.getinfo(1, "S").source:match("^@?(.*)/")
 package.path = dir .. "/?.lua;" .. dir .. "/?/init.lua;" .. package.path
 
-require("config.options")
 require("config.globals")
+require("config.options")
+require("config.keymaps")
 
 -- Auto-load all plugin configs
 for _, file in ipairs(vim.fn.readdir(dir .. "/plugins")) do
