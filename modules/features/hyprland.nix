@@ -143,6 +143,7 @@
             "$ipc" = "${noctalia} ipc call";
 
             exec-once = [
+              "uwsm app -- ${noctalia}"
               # "${startLockedNoctalia}"
               # "uwsm app -- ${lib.getExe pkgs.bitwarden-desktop}"
             ];
