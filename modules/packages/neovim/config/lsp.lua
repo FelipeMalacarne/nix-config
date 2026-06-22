@@ -17,6 +17,7 @@ vim.lsp.enable({
 	"tofu_ls",
 	"sqls",
 	"docker-language-server",
+	"helm_ls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {

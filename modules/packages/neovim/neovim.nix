@@ -31,6 +31,7 @@
           tofu-ls
           sqls
           docker-language-server
+          helm-ls
 
           # Formatters
           stylua
