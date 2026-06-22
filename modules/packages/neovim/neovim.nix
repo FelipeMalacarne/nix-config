@@ -28,6 +28,7 @@
           vscode-json-language-server
           marksman
           yaml-language-server
+          tofu-ls
 
           # Formatters
           stylua

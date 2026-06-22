@@ -14,6 +14,7 @@ vim.lsp.enable({
 	"jsonls",
 	"marksman",
 	"yamlls",
+	"tofu_ls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
