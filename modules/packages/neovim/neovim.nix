@@ -49,10 +49,10 @@
           tuxedo
 
           # latex
-          texlab
-          tex-fmt
-          texlive.combined.scheme-full
-          zathura
+          # texlab
+          # tex-fmt
+          # texlive.combined.scheme-full
+          # zathura
         ];
 
         specs = {
