@@ -12,6 +12,7 @@ vim.lsp.enable({
 	"tailwindcss",
 	"cssls",
 	"jsonls",
+	"marksman",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
