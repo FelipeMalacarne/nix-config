@@ -33,3 +33,6 @@ keybind("n", "<C-d>", "<C-d>zz", "Scroll down (centered)")
 keybind("n", "<C-u>", "<C-u>zz", "Scroll up (centered)")
 keybind("n", "n", "nzzzv", "Next search result (centered)")
 keybind("n", "N", "Nzzzv", "Prev search result (centered)")
+
+local ui = require("config.ui")
+keybind("n", "<leader>gg", ui.open_win("lazygit"), "Opens LazyGit in a floating window")

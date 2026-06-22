@@ -20,6 +20,7 @@
           gopls
           phpantom-lsp
           nixd
+          lazygit
         ];
 
         specs = {
@@ -50,7 +51,6 @@
               # plugins which are not loaded until you vim.cmd.packadd them ...
             ];
           };
-
         };
       };
     };
