@@ -1,0 +1,221 @@
+{ ... }:
+{
+  flake.nixosModules.i3 =
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    let
+      user = config.my.user.name;
+      colors = config.my.colors;
+      wallpaper = ../../assets/wallpapers/catppuccin-mocha.png;
+      monitorMain = "DP-1";
+      monitorSide = "HDMI-A-1";
+
+      term = lib.getExe pkgs.alacritty;
+      menu = "${lib.getExe pkgs.rofi} -show drun";
+      feh = lib.getExe pkgs.feh;
+      picom = lib.getExe pkgs.picom;
+      flameshot = lib.getExe pkgs.flameshot;
+      flameshotFull = "${flameshot} full -c";
+      flameshotArea = "${flameshot} gui";
+      flameshotSave = "${flameshot} gui -s";
+      polkitAgent = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+
+      wpctl = "${pkgs.wireplumber}/bin/wpctl";
+      playerctl = lib.getExe pkgs.playerctl;
+      brightnessctl = lib.getExe pkgs.brightnessctl;
+    in
+    {
+      services.xserver.windowManager.i3 = {
+        enable = true;
+        package = pkgs.i3;
+        extraPackages = [ pkgs.i3status ];
+      };
+
+      environment.systemPackages = [
+        pkgs.rofi
+        pkgs.feh
+        pkgs.flameshot
+        pkgs.picom
+        pkgs.polkit_gnome
+      ];
+
+      home-manager.users.${user} =
+        {
+          config,
+          lib,
+          ...
+        }:
+        let
+          mod = "Mod4";
+          stylixBar = config.stylix.targets.i3.exportedBarConfig;
+        in
+        {
+          xsession.windowManager.i3 = {
+            enable = true;
+            package = pkgs.i3;
+
+            config = {
+              modifier = mod;
+              terminal = term;
+              menu = menu;
+
+              gaps = {
+                inner = 5;
+                outer = 10;
+                smartGaps = false;
+                smartBorders = "off";
+              };
+
+              window.border = 2;
+              floating.modifier = mod;
+
+              keybindings = {
+                # Terminal
+                "${mod}+Return" = "exec ${term}";
+
+                # Window ops (mirrors Hyprland: W=kill, F=fullscreen, T=float, E=split, P=layout)
+                "${mod}+w" = "kill";
+                "${mod}+f" = "fullscreen toggle";
+                "${mod}+t" = "floating toggle";
+                "${mod}+e" = "layout toggle split";
+                "${mod}+p" = "layout toggle all";
+                "${mod}+Shift+r" = "restart";
+                "${mod}+Shift+q" = "exit";
+
+                # Launcher (mirrors $mod+Space in Hyprland)
+                "${mod}+space" = "exec ${menu}";
+
+                # Focus (HJKL mirrors Hyprland movefocus)
+                "${mod}+h" = "focus left";
+                "${mod}+l" = "focus right";
+                "${mod}+k" = "focus up";
+                "${mod}+j" = "focus down";
+
+                # Move window (mirrors Hyprland movewindow)
+                "${mod}+Shift+h" = "move left";
+                "${mod}+Shift+l" = "move right";
+                "${mod}+Shift+k" = "move up";
+                "${mod}+Shift+j" = "move down";
+
+                # Workspace navigation (mirrors Hyprland)
+                "${mod}+Tab" = "workspace back_and_forth";
+                "${mod}+bracketright" = "workspace next";
+                "${mod}+bracketleft" = "workspace prev";
+                "${mod}+period" = "focus output right";
+                "${mod}+Shift+period" = "move container to output right";
+
+                # Scratchpad (mirrors Hyprland special:scratch)
+                "${mod}+s" = "scratchpad show";
+                "${mod}+Shift+s" = "move scratchpad";
+
+                # Workspace switching
+                "${mod}+1" = "workspace number 1";
+                "${mod}+2" = "workspace number 2";
+                "${mod}+3" = "workspace number 3";
+                "${mod}+4" = "workspace number 4";
+                "${mod}+5" = "workspace number 5";
+                "${mod}+6" = "workspace number 6";
+                "${mod}+7" = "workspace number 7";
+                "${mod}+8" = "workspace number 8";
+                "${mod}+9" = "workspace number 9";
+
+                # Move container to workspace
+                "${mod}+Shift+1" = "move container to workspace number 1";
+                "${mod}+Shift+2" = "move container to workspace number 2";
+                "${mod}+Shift+3" = "move container to workspace number 3";
+                "${mod}+Shift+4" = "move container to workspace number 4";
+                "${mod}+Shift+5" = "move container to workspace number 5";
+                "${mod}+Shift+6" = "move container to workspace number 6";
+                "${mod}+Shift+7" = "move container to workspace number 7";
+                "${mod}+Shift+8" = "move container to workspace number 8";
+                "${mod}+Shift+9" = "move container to workspace number 9";
+
+                # Apps (mirrors Hyprland Shift+F=yazi, Shift+T=btop, Shift+B=firefox)
+                "${mod}+Shift+f" = "exec ${term} -e ${lib.getExe pkgs.yazi}";
+                "${mod}+Shift+t" = "exec ${term} -e ${lib.getExe pkgs.btop}";
+                "${mod}+Shift+b" = "exec ${lib.getExe pkgs.firefox}";
+
+                # Screenshots (X11: flameshot replaces Wayland grimblast)
+                "Print" = "exec ${flameshotFull}";
+                "Shift+Print" = "exec ${flameshotArea}";
+                "${mod}+Print" = "exec ${flameshotSave}";
+
+                # Resize (mirrors Hyprland binde $mod+Alt+HJKL)
+                "${mod}+Mod1+h" = "resize shrink width 80 px or 80 ppt";
+                "${mod}+Mod1+l" = "resize grow width 80 px or 80 ppt";
+                "${mod}+Mod1+k" = "resize shrink height 80 px or 80 ppt";
+                "${mod}+Mod1+j" = "resize grow height 80 px or 80 ppt";
+
+                # Audio (mirrors Hyprland bindel/bindl)
+                "XF86AudioRaiseVolume" = "exec --no-startup-id ${wpctl} set-volume @DEFAULT_AUDIO_SINK@ 5%+";
+                "XF86AudioLowerVolume" = "exec --no-startup-id ${wpctl} set-volume @DEFAULT_AUDIO_SINK@ 5%-";
+                "XF86AudioMute" = "exec --no-startup-id ${wpctl} set-mute @DEFAULT_AUDIO_SINK@ toggle";
+                "XF86AudioMicMute" = "exec --no-startup-id ${wpctl} set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+                "XF86AudioPlay" = "exec --no-startup-id ${playerctl} play-pause";
+                "XF86AudioNext" = "exec --no-startup-id ${playerctl} next";
+                "XF86AudioPrev" = "exec --no-startup-id ${playerctl} previous";
+
+                # Brightness (mirrors Hyprland bindel)
+                "XF86MonBrightnessUp" = "exec --no-startup-id ${brightnessctl} set +5%";
+                "XF86MonBrightnessDown" = "exec --no-startup-id ${brightnessctl} set 5%-";
+              };
+
+              startup = [
+                {
+                  command = "${feh} --bg-fill ${wallpaper}";
+                  always = true;
+                  notification = false;
+                }
+                {
+                  command = "${picom} -b";
+                  always = true;
+                  notification = false;
+                }
+                {
+                  command = "${polkitAgent}";
+                  always = false;
+                  notification = false;
+                }
+              ];
+
+              bars = [
+                (stylixBar // {
+                  statusCommand = "i3status";
+                  position = "top";
+                  trayOutput = "none";
+                })
+              ];
+            };
+
+            extraConfig = ''
+              default_border pixel 2
+              default_floating_border pixel 2
+              workspace 1 output ${monitorMain}
+              workspace 2 output ${monitorMain}
+              workspace 3 output ${monitorMain}
+              workspace 4 output ${monitorMain}
+              workspace 5 output ${monitorMain}
+              workspace 6 output ${monitorSide}
+              workspace 7 output ${monitorSide}
+              workspace 8 output ${monitorSide}
+              workspace 9 output ${monitorSide}
+            '';
+          };
+
+          programs.i3status = {
+            enable = true;
+            general = {
+              colors = true;
+              color_good = colors.success;
+              color_degraded = colors.warning;
+              color_bad = colors.error;
+              interval = 5;
+            };
+          };
+        };
+    };
+}

@@ -5,6 +5,7 @@
       self.nixosModules.audio
       self.nixosModules.network
       self.nixosModules.sddm
+      self.nixosModules.i3
       self.nixosModules.hyprland
       self.nixosModules.noctalia
       self.nixosModules.firefox
