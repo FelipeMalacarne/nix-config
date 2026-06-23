@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ ... }:
 {
   flake.nixosModules.dolphin =
     {
@@ -11,7 +11,24 @@
       user = config.my.user.name;
     in
     {
-      nixpkgs.overlays = [ inputs.dolphin-overlay.overlays.default ];
+      nixpkgs.overlays = [
+        (final: prev: {
+          kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
+            dolphin = prev.symlinkJoin {
+              name = "dolphin-wrapped";
+              paths = [ kprev.dolphin kprev.dolphin.dev ];
+              nativeBuildInputs = [ prev.makeWrapper ];
+              postBuild = ''
+                rm $out/bin/dolphin
+                makeWrapper ${kprev.dolphin}/bin/dolphin $out/bin/dolphin \
+                  --prefix XDG_CONFIG_DIRS : "${prev.libsForQt5.__internalKF5.kservice}/etc/xdg" \
+                  --run "${kprev.kservice}/bin/kbuildsycoca6 --noincremental ${prev.libsForQt5.__internalKF5.kservice}/etc/xdg/menus/applications.menu"
+              '';
+              passthru = (kprev.dolphin.passthru or {}) // { dev = kprev.dolphin.dev; };
+            };
+          });
+        })
+      ];
 
       home-manager.users.${user} =
         { config, lib, ... }:

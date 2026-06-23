@@ -47,15 +47,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    noctalia-qs = {
-      url = "github:noctalia-dev/noctalia-qs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
+      url = "github:noctalia-dev/noctalia/legacy-v4";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.noctalia-qs.follows = "noctalia-qs";
     };
 
     nvf = {
@@ -63,7 +57,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dolphin-overlay.url = "github:rumboon/dolphin-overlay";
   };
 
   outputs =

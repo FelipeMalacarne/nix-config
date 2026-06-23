@@ -20,27 +20,6 @@
       monitorMain = "DP-1";
       monitorSide = "HDMI-A-1";
 
-      refreshLayerClients = pkgs.writeShellScript "refresh-hyprland-layer-clients" ''
-        sleep 0.5
-        ${pkgs.systemd}/bin/systemctl --user stop hyprpaper.service 2>/dev/null || true
-        ${pkgs.procps}/bin/pkill -u "$USER" -f 'quickshell.*noctalia-shell' 2>/dev/null || true
-        sleep 0.2
-        exec uwsm app -- ${noctalia}
-      '';
-
-      startLockedNoctalia = pkgs.writeShellScript "start-locked-noctalia" ''
-        uwsm app -- ${noctalia} &
-
-        for _ in $(${pkgs.coreutils}/bin/seq 1 100); do
-          if ${noctalia} ipc call lockScreen lock 2>/dev/null; then
-            exit 0
-          fi
-          ${pkgs.coreutils}/bin/sleep 0.1
-        done
-
-        ${noctalia} ipc call lockScreen lock 2>/dev/null || true
-      '';
-
       termHere = pkgs.writeShellScript "term-here" ''
         pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
         cwd=""
@@ -88,15 +67,6 @@
               <dead_acute> <C> : "Ç" Ccedilla
             '';
           };
-
-        gtk = {
-          enable = true;
-          gtk3.extraConfig.gtk-application-prefer-dark-theme = true;
-          gtk4 = {
-            extraConfig.gtk-application-prefer-dark-theme = true;
-            theme = null;
-          };
-        };
 
         dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
 

@@ -11,6 +11,14 @@
       user = config.my.user.name;
     in
     {
+
+      nix.settings = {
+        extra-substituters = [ "https://noctalia.cachix.org" ];
+        extra-trusted-public-keys = [
+          "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+        ];
+      };
+
       networking.networkmanager.enable = true;
       hardware.bluetooth.enable = true;
       services.power-profiles-daemon.enable = true;
