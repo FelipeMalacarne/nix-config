@@ -27,38 +27,38 @@ let
       home-manager.users.${user}.programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        matchBlocks = {
+        settings = {
           "github.com" = {
-            hostname = "ssh.github.com";
-            port = 443;
-            user = "git";
-            identityFile = "~/.ssh/zaros";
-            extraOptions.IdentitiesOnly = "yes";
+            HostName = "ssh.github.com";
+            Port = 443;
+            User = "git";
+            IdentityFile = "~/.ssh/zaros";
+            IdentitiesOnly = "yes";
           };
 
           "zamorak" = {
-            hostname = "137.131.204.251";
-            port = 22;
-            user = "ubuntu";
-            identityFile = "~/.ssh/zamorak";
+            Hostname = "137.131.204.251";
+            Port = 22;
+            User = "ubuntu";
+            IdentityFile = "~/.ssh/zamorak";
           };
 
           "saradomin" = {
-            user = "felipe";
-            identityFile = "~/.ssh/zaros";
-            extraOptions.IdentitiesOnly = "yes";
+            User = "felipe";
+            IdentityFile = "~/.ssh/zaros";
+            IdentitiesOnly = "yes";
           };
 
           "macbook" = {
-            user = "felipeautentique";
-            identityFile = "~/.ssh/zaros";
-            extraOptions.IdentitiesOnly = "yes";
+            User = "felipeautentique";
+            IdentityFile = "~/.ssh/zaros";
+            IdentitiesOnly = "yes";
           };
 
           "zaros" = {
-            user = "felipe";
-            identityFile = "~/.ssh/zaros";
-            extraOptions.IdentitiesOnly = "yes";
+            User = "felipe";
+            IdentityFile = "~/.ssh/zaros";
+            IdentitiesOnly = "yes";
           };
         };
       };
