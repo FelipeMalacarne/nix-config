@@ -18,7 +18,7 @@
         self.darwinModules.git
         self.darwinModules.sops
         self.darwinModules.ssh
-        self.darwinModules.nvim
+        self.darwinModules.neovim
         self.darwinModules.cli
         self.darwinModules.btop
         self.darwinModules.alacritty

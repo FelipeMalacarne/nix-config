@@ -14,7 +14,7 @@
         self.nixosModules.zsh
         self.nixosModules.git
         self.nixosModules.ssh
-        self.nixosModules.nvim
+        self.nixosModules.neovim
         self.nixosModules.sops
         self.nixosModules.openssh
         self.nixosModules.tailscale
