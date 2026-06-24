@@ -65,3 +65,13 @@ autocmd("VimResized", {
 		vim.cmd("tabdo wincmd =")
 	end,
 })
+
+-- Reload file when Neovim gains focus
+autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
+	group = augroup("checktime", { clear = true }),
+	callback = function()
+		if vim.o.buftype ~= "nofile" then
+			vim.cmd("checktime")
+		end
+	end,
+})

@@ -1,6 +1,7 @@
 local M = {}
 
-function M.open_win(executable)
+function M.open_win(executable, opts)
+	opts = opts or {}
 	local state = { buf = nil, win = nil }
 
 	local function close()
@@ -37,6 +38,9 @@ function M.open_win(executable)
 			end,
 		})
 
+		if opts.terminal then
+			vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = state.buf, desc = "Exit terminal insert mode" })
+		end
 		vim.cmd("startinsert")
 	end
 

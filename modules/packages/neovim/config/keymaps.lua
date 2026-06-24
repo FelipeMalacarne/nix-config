@@ -39,4 +39,4 @@ keybind("n", "<leader>gg", ui.open_win("lazygit"), "Opens LazyGit in a floating 
 keybind("n", "<leader>gd", ui.open_win("lazydocker"), "Opens LazyDocker in a floating window")
 keybind("n", "<leader>gs", ui.open_win("lazysql"), "Opens LazySQL in a floating window")
 keybind("n", "<leader>gt", ui.open_win("tuxedo"), "Opens Tuxedo in a floating window")
-keybind({ "n", "t" }, "<C-/>", ui.open_win(vim.o.shell), "Toggle terminal")
+keybind({ "n", "t" }, "<C-/>", ui.open_win(vim.o.shell, { terminal = true }), "Toggle terminal")
