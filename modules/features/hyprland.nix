@@ -17,8 +17,8 @@
       wallpaperDir = ../../assets/wallpapers;
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
 
-      monitorMain = "DP-1";
-      monitorSide = "HDMI-A-1";
+      monitorMain = "desc:Samsung Electric Company Odyssey G61SD";
+      monitorSide = "desc:Samsung Electric Company LS27A600U";
 
       termHere = pkgs.writeShellScript "term-here" ''
         pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
