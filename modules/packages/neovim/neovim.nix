@@ -6,7 +6,6 @@
   perSystem =
     {
       pkgs,
-      self',
       ...
     }:
     {
@@ -15,7 +14,7 @@
 
         settings.config_directory = ./.;
 
-        extraPackages = with pkgs; [
+        runtimePkgs = with pkgs; [
           # LSPs
           lua-language-server
           gopls
