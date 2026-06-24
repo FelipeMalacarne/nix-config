@@ -25,7 +25,7 @@
         self.darwinModules.firefox
         self.darwinModules.programming
         self.darwinModules.opencode
-        self.darwinModules.openclaw
+        # self.darwinModules.openclaw
         self.darwinModules.k8s
       ];
 
