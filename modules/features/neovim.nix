@@ -1,18 +1,16 @@
-{ self, ... }:
+{ self, pkgs, ... }:
 let
+
+  selfpkgs = self.packages.${pkgs.stdenv.hostPlatform.system};
   module =
     { pkgs, config, ... }:
-    let
-      user = config.my.user.name;
-    in
     {
-      home-manager.users.${user} = {
-        home.packages = [
-          self.packages.${pkgs.stdenv.hostPlatform.system}.neovim
-
-          # texlive.combined.scheme-full
-          # zathura
-        ];
+      programs.neovim = {
+        enable = true;
+        package = selfpkgs.neovim;
+        defaultEditor = true;
+        viAlias = true;
+        vimAlias = true;
       };
     };
 in
