@@ -86,15 +86,17 @@ let
   module =
     {
       pkgs,
+      config,
       ...
     }:
+    let
+      user = config.my.user.name;
+    in
     {
-      programs.neovim = {
-        enable = true;
-        package = wrapNeovim pkgs;
-        defaultEditor = true;
-        viAlias = true;
-        vimAlias = true;
+      home-manager.users.${user} = {
+        home.packages = [
+          (wrapNeovim pkgs)
+        ];
       };
     };
 in
