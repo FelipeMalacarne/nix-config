@@ -1,5 +1,5 @@
 require("snacks").setup({
-	animate = { enabled = true },
+	animate = { enabled = false },
 	bigfile = { enabled = true },
 	bufdelete = { enabled = true },
 	dim = { enabled = true },
@@ -11,7 +11,7 @@ require("snacks").setup({
 		ui_select = true,
 	},
 	scope = { enabled = true },
-	scroll = { enabled = true },
+	scroll = { enabled = false },
 	statuscolumn = { enabled = true },
 	terminal = { enabled = true },
 	words = { enabled = true },
