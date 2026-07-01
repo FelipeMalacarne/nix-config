@@ -7,6 +7,18 @@ let
     in
     {
       home-manager.users.${user} = {
+        programs.mcp = {
+          enable = true;
+
+          servers.playwright = {
+            command = "${pkgs.nodejs}/bin/npx";
+            args = [
+              "-y"
+              "@playwright/mcp"
+            ];
+          };
+        };
+
         programs.opencode = {
           enable = true;
           package = self.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
@@ -57,15 +69,16 @@ let
               };
             };
 
-            # plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
-          };
-
-          agents = {
-            docs = ./agents/docs.md;
+            plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
           };
 
           skills = {
+            browser-automation = ./skills/browser-automation;
+            development-workflow = ./skills/development-workflow;
             nix-home-manager = ./skills/nix-home-manager;
+            product-engineering = ./skills/product-engineering;
+            project-harness = ./skills/project-harness;
+            token-discipline = ./skills/token-discipline;
           };
         };
       };
