@@ -9,6 +9,9 @@ let
     let
       user = config.my.user.name;
       linearKeyPath = config.sops.secrets."linear-api-key".path;
+      go-migrate-pg = pkgs.go-migrate.overrideAttrs (oldAttrs: {
+        tags = [ "postgres" ];
+      });
     in
     {
       sops.secrets."linear-api-key" = {
@@ -20,6 +23,8 @@ let
           with pkgs;
           [
             go
+            sqlc
+            go-migrate-pg
             elixir_1_19
             erlang
             nodejs
