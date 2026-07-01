@@ -29,6 +29,7 @@
         tailscale
         docker
         k8s
+        torrent
       ];
 
       networking.hostName = "zaros";
