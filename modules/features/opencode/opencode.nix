@@ -41,40 +41,17 @@ let
               tail_turns = 20;
             };
 
-            agent = {
-              build = {
-                model = "openai/gpt-5.5";
-              };
-              plan = {
-                model = "openai/gpt-5.5";
-              };
-              general = {
-                model = "openai/gpt-5.5";
-              };
-              explore = {
-                model = "opencode/deepseek-v4-flash";
-                permission = {
-                  edit = "deny";
-                  bash = "ask";
-                };
-              };
-              title = {
-                model = "opencode/deepseek-v4-flash";
-              };
-              summary = {
-                model = "opencode/deepseek-v4-flash";
-              };
-              compaction = {
-                model = "opencode/deepseek-v4-flash";
-              };
-            };
-
             plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
+          };
+
+          commands = {
+            "setup-ai-memory" = ./prompts/setup-ai-memory.md;
           };
 
           skills = {
             browser-automation = ./skills/browser-automation;
             development-workflow = ./skills/development-workflow;
+            llm-wiki-memory = ./skills/llm-wiki-memory;
             nix-home-manager = ./skills/nix-home-manager;
             product-engineering = ./skills/product-engineering;
             project-harness = ./skills/project-harness;
