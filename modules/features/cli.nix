@@ -17,6 +17,7 @@ let
           p7zip-rar
           gnumake
           wakeonlan
+          openssl
         ];
 
         programs.tmux.enable = true;
