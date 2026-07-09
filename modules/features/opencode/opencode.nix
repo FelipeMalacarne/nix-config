@@ -42,6 +42,36 @@ let
             };
 
             plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
+
+            lsp = true;
+
+            small_model = "opencode-go/deepseek-v4-flash";
+
+            agent = {
+              explore = {
+                model = "opencode-go/deepseek-v4-flash";
+              };
+
+              title = {
+                model = "opencode-go/deepseek-v4-flash";
+              };
+
+              summary = {
+                model = "opencode-go/deepseek-v4-flash";
+              };
+
+              compaction = {
+                model = "opencode-go/deepseek-v4-flash";
+              };
+
+              ui-dev = {
+                description = "Specialized agent for UI development — Tailwind, CSS, HTML, component libraries, layouts, and responsive design";
+                mode = "subagent";
+                model = "opencode-go/glm-5.2";
+                temperature = 0.2;
+                color = "#6366f1";
+              };
+            };
           };
 
           commands = {

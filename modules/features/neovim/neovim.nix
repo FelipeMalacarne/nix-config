@@ -5,16 +5,21 @@
 let
   wrapNeovim =
     pkgs:
+    let
+      phpantom-lsp-unstable = inputs.phpantom-lsp.packages.${pkgs.system}.phpantom-lsp;
+    in
     inputs.wrapper-modules.wrappers.neovim.wrap {
       inherit pkgs;
 
       settings.config_directory = ./.;
 
       runtimePkgs = with pkgs; [
+        inotify-tools
         # LSPs
         lua-language-server
         gopls
-        phpantom-lsp
+        phpantom-lsp-unstable
+        intelephense
         nixd
         typescript-go
         superhtml

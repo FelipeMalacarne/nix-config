@@ -19,6 +19,11 @@
 
     nvim-config.url = "github:FelipeMalacarne/nvim";
 
+    phpantom-lsp = {
+      url = "github:PHPantom-dev/phpantom_lsp/f946d9ecbd68e0e2aad616e63def6634aad55582";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";

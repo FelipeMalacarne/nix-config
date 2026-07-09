@@ -6,7 +6,7 @@ vim.lsp.enable({
 	"lua_ls",
 	"nixd",
 	"gopls",
-	"phpantom-lsp",
+	"intelephense",
 	"tsgo",
 	"superhtml",
 	"tailwindcss",
