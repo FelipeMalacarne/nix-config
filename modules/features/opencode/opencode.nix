@@ -41,7 +41,7 @@ let
               tail_turns = 20;
             };
 
-            plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
+            # plugin = [ "superpowers@git+https://github.com/obra/superpowers.git" ];
 
             lsp = true;
 
