@@ -33,6 +33,7 @@
         ferium
         bolt-launcher
         xivlauncher
+        hydralauncher
       ];
     };
 }
