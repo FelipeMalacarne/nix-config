@@ -14,6 +14,7 @@
         gnumake
         wakeonlan
         openssl
+        herdr
       ];
 
       programs.tmux.enable = true;
