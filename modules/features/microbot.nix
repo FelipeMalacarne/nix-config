@@ -1,8 +1,7 @@
 {
-  flake.nixosModules.microbot =
-    { config, pkgs, ... }:
+  flake.homeModules.microbot =
+    { pkgs, ... }:
     let
-      user = config.my.user.name;
       browser = pkgs.chromium;
       jdk = pkgs.jdk;
 
@@ -27,20 +26,18 @@
       };
     in
     {
-      home-manager.users.${user} = {
-        home.packages = [
-          browser
-          jdk
-          microbotLauncher
-        ];
+      home.packages = [
+        browser
+        jdk
+        microbotLauncher
+      ];
 
-        xdg.desktopEntries.microbot-launcher = {
-          name = "Microbot Launcher";
-          genericName = "Game Launcher";
-          exec = "${microbotLauncher}/bin/microbot-launcher";
-          terminal = false;
-          categories = [ "Game" ];
-        };
+      xdg.desktopEntries.microbot-launcher = {
+        name = "Microbot Launcher";
+        genericName = "Game Launcher";
+        exec = "${microbotLauncher}/bin/microbot-launcher";
+        terminal = false;
+        categories = [ "Game" ];
       };
     };
 }

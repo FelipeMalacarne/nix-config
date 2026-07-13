@@ -17,17 +17,25 @@
         nvidia
         gaming
         rgb
-        microbot
         programming
-        opencode
         ollama
-        office
         virtualization
         flatpak
-        webos-dev-manager
         openssh
         tailscale
         docker
+        k8s
+      ];
+
+      home-manager.users.${user}.imports = with self.homeModules; [
+        linux-base
+        desktop
+        gaming
+        programming
+        opencode
+        microbot
+        office
+        webos-dev-manager
         k8s
         torrent
       ];

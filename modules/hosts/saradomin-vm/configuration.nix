@@ -12,15 +12,14 @@
         self.nixosModules.core
         self.nixosModules.theming
         self.nixosModules.zsh
-        self.nixosModules.git
         self.nixosModules.ssh
-        self.nixosModules.neovim
         self.nixosModules.sops
         self.nixosModules.openssh
         self.nixosModules.tailscale
       ];
 
       networking.hostName = "saradomin-vm";
+      home-manager.users.${user}.imports = [ self.homeModules.linux-base ];
       system.stateVersion = "24.11";
 
       services.qemuGuest.enable = true;

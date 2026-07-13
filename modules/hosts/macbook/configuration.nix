@@ -15,18 +15,12 @@
         self.darwinModules.borders
         self.darwinModules.sketchybar
         self.darwinModules.zsh
-        self.darwinModules.git
         self.darwinModules.sops
         self.darwinModules.ssh
-        self.darwinModules.neovim
-        self.darwinModules.cli
-        self.darwinModules.btop
-        self.darwinModules.alacritty
-        self.darwinModules.firefox
         self.darwinModules.programming
-        self.darwinModules.opencode
-        # self.darwinModules.openclaw
         self.darwinModules.k8s
+        self.darwinModules.firefox
+        # self.darwinModules.openclaw
       ];
 
       networking.hostName = "macbook";
@@ -40,6 +34,16 @@
       home-manager.users.${user} =
         { lib, ... }:
         {
+          imports = with self.homeModules; [
+            base
+            alacritty
+            firefox
+            programming
+            opencode
+            k8s
+            sketchybar
+          ];
+
           home.activation.installZarosAuthorizedKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 700 -d "$HOME/.ssh"
             $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 600 ${../../../keys/zaros.pub} "$HOME/.ssh/authorized_keys"

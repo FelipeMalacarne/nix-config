@@ -1,30 +1,27 @@
 {
-  flake.nixosModules.yazi =
-    { config, pkgs, ... }:
+  flake.homeModules.yazi =
+    { pkgs, ... }:
     let
-      user = config.my.user.name;
       yazi-launcher = pkgs.writeShellScript "yazi-launcher" ''
         exec $TERMINAL -e yazi
       '';
     in
     {
-      home-manager.users.${user} = {
-        programs.yazi = {
-          enable = true;
-          shellWrapperName = "y";
-        };
+      programs.yazi = {
+        enable = true;
+        shellWrapperName = "y";
+      };
 
-        xdg.desktopEntries.yazi = {
-          name = "Yazi";
-          genericName = "File Manager";
-          exec = "${yazi-launcher}";
-          terminal = false;
-          categories = [
-            "System"
-            "FileManager"
-          ];
-          icon = "yazi";
-        };
+      xdg.desktopEntries.yazi = {
+        name = "Yazi";
+        genericName = "File Manager";
+        exec = "${yazi-launcher}";
+        terminal = false;
+        categories = [
+          "System"
+          "FileManager"
+        ];
+        icon = "yazi";
       };
     };
 }

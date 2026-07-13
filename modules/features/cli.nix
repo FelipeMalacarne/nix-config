@@ -1,45 +1,36 @@
-let
-  module =
-    { config, pkgs, ... }:
-    let
-      user = config.my.user.name;
-    in
+{
+  flake.homeModules.cli =
+    { pkgs, ... }:
     {
-      home-manager.users.${user} = {
-        home.packages = with pkgs; [
-          ripgrep
-          fd
-          jq
-          bat
-          fastfetch
-          zip
-          unzip
-          p7zip-rar
-          gnumake
-          wakeonlan
-          openssl
-        ];
+      home.packages = with pkgs; [
+        ripgrep
+        fd
+        jq
+        bat
+        fastfetch
+        zip
+        unzip
+        p7zip-rar
+        gnumake
+        wakeonlan
+        openssl
+      ];
 
-        programs.tmux.enable = true;
+      programs.tmux.enable = true;
 
-        programs.fzf = {
-          enable = true;
-          enableZshIntegration = true;
-        };
+      programs.fzf = {
+        enable = true;
+        enableZshIntegration = true;
+      };
 
-        programs.eza = {
-          enable = true;
-          enableZshIntegration = true;
-        };
+      programs.eza = {
+        enable = true;
+        enableZshIntegration = true;
+      };
 
-        programs.zoxide = {
-          enable = true;
-          enableZshIntegration = true;
-        };
+      programs.zoxide = {
+        enable = true;
+        enableZshIntegration = true;
       };
     };
-in
-{
-  flake.nixosModules.cli = module;
-  flake.darwinModules.cli = module;
 }

@@ -10,9 +10,20 @@
       self.nixosModules.noctalia
       self.nixosModules.firefox
       self.nixosModules.dolphin
-      self.nixosModules.alacritty
       self.nixosModules.kdeconnect
-      self.nixosModules.bitwarden
+    ];
+  };
+
+  flake.homeModules.desktop = {
+    imports = with self.homeModules; [
+      i3
+      hyprland
+      noctalia
+      firefox
+      dolphin
+      alacritty
+      kdeconnect
+      bitwarden
     ];
   };
 }

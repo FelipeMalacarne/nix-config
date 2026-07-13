@@ -1,12 +1,7 @@
 {
-  flake.nixosModules.torrent =
-    { config, pkgs, ... }:
-    let
-      user = config.my.user.name;
-    in
-    {
-      home-manager.users.${user}.home.packages = [
-        pkgs.qbittorrent
-      ];
-    };
+  flake.homeModules.torrent = { pkgs, ... }: {
+    home.packages = [
+      pkgs.qbittorrent
+    ];
+  };
 }

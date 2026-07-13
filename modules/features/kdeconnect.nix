@@ -1,9 +1,11 @@
 {
+  flake.homeModules.kdeconnect = { pkgs, ... }: {
+    services.kdeconnect.enable = true;
+    home.packages = [ pkgs.kdePackages.kdeconnect-kde ];
+  };
+
   flake.nixosModules.kdeconnect =
     {
-      lib,
-      options,
-      pkgs,
       ...
     }:
     {
@@ -17,11 +19,6 @@
           }
         ];
         allowedUDPPortRanges = allowedTCPPortRanges;
-      };
-
-      home-manager.sharedModules = lib.optional (options ? home-manager) {
-        services.kdeconnect.enable = true;
-        home.packages = [ pkgs.kdePackages.kdeconnect-kde ];
       };
     };
 }

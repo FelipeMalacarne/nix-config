@@ -13,47 +13,49 @@ let
 
       settings.config_directory = ./.;
 
-      runtimePkgs = with pkgs; [
-        inotify-tools
-        # LSPs
-        lua-language-server
-        gopls
-        phpantom-lsp-unstable
-        intelephense
-        nixd
-        typescript-go
-        superhtml
-        vscode-css-languageserver
-        tailwindcss-language-server
-        vscode-json-languageserver
-        marksman
-        yaml-language-server
-        tofu-ls
-        sqls
-        docker-language-server
-        helm-ls
+      runtimePkgs =
+        with pkgs;
+        [
+          # LSPs
+          lua-language-server
+          gopls
+          phpantom-lsp-unstable
+          intelephense
+          nixd
+          typescript-go
+          superhtml
+          vscode-css-languageserver
+          tailwindcss-language-server
+          vscode-json-languageserver
+          marksman
+          yaml-language-server
+          tofu-ls
+          sqls
+          docker-language-server
+          helm-ls
 
-        # Formatters
-        stylua
-        nixfmt
-        shfmt
-        prettierd
-        gofumpt
-        sqlfluff
-        dockerfmt
+          # Formatters
+          stylua
+          nixfmt
+          shfmt
+          prettierd
+          gofumpt
+          sqlfluff
+          dockerfmt
 
-        # Misc Tools
-        lazygit
-        lazydocker
-        lazysql
-        tuxedo
+          # Misc Tools
+          lazygit
+          lazydocker
+          lazysql
+          tuxedo
 
-        # latex
-        # texlab
-        # tex-fmt
-        # texlive.combined.scheme-full
-        # zathura
-      ];
+          # latex
+          # texlab
+          # tex-fmt
+          # texlive.combined.scheme-full
+          # zathura
+        ]
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ inotify-tools ];
 
       specs = {
         plugins = {
@@ -89,28 +91,15 @@ let
       };
     };
 
-  module =
-    {
-      pkgs,
-      config,
-      ...
-    }:
-    let
-      user = config.my.user.name;
-    in
-    {
-      home-manager.users.${user} = {
-        home.packages = [
-          (wrapNeovim pkgs)
-        ];
-      };
-    };
 in
 {
   perSystem = { pkgs, ... }: {
     packages.neovim = wrapNeovim pkgs;
   };
 
-  flake.nixosModules.neovim = module;
-  flake.darwinModules.neovim = module;
+  flake.homeModules.neovim = { pkgs, ... }: {
+    home.packages = [
+      (wrapNeovim pkgs)
+    ];
+  };
 }

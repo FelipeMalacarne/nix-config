@@ -1,10 +1,23 @@
 { inputs, ... }:
 {
+  flake.homeModules.gaming = { pkgs, ... }: {
+    home.packages = with pkgs; [
+      lutris
+      heroic
+      mangohud
+      gamescope
+      dxvk
+      cemu
+      prismlauncher
+      ferium
+      bolt-launcher
+      xivlauncher
+      hydralauncher
+    ];
+  };
+
   flake.nixosModules.gaming =
     { config, pkgs, ... }:
-    let
-      user = config.my.user.name;
-    in
     {
       nixpkgs.overlays = [ inputs.millennium.overlays.default ];
 
@@ -22,18 +35,5 @@
         };
       };
 
-      home-manager.users.${user}.home.packages = with pkgs; [
-        lutris
-        heroic
-        mangohud
-        gamescope
-        dxvk
-        cemu
-        prismlauncher
-        ferium
-        bolt-launcher
-        xivlauncher
-        hydralauncher
-      ];
     };
 }

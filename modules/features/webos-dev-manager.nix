@@ -1,9 +1,7 @@
 {
-  flake.nixosModules.webos-dev-manager =
-    { config, pkgs, ... }:
+  flake.homeModules.webos-dev-manager =
+    { pkgs, ... }:
     let
-      user = config.my.user.name;
-
       devManagerAppImage = pkgs.appimageTools.wrapType2 rec {
         pname = "webos-dev-manager";
         version = "1.99.16";
@@ -35,19 +33,17 @@
       };
     in
     {
-      home-manager.users.${user} = {
-        home.packages = [ devManager ];
+      home.packages = [ devManager ];
 
-        xdg.desktopEntries.webos-dev-manager = {
-          name = "WebOS Dev Manager";
-          genericName = "webOS TV Developer Tools";
-          exec = "${devManager}/bin/webos-dev-manager";
-          terminal = false;
-          categories = [
-            "Development"
-            "Utility"
-          ];
-        };
+      xdg.desktopEntries.webos-dev-manager = {
+        name = "WebOS Dev Manager";
+        genericName = "webOS TV Developer Tools";
+        exec = "${devManager}/bin/webos-dev-manager";
+        terminal = false;
+        categories = [
+          "Development"
+          "Utility"
+        ];
       };
     };
 }
