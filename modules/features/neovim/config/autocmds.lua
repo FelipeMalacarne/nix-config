@@ -22,6 +22,15 @@ autocmd("FileType", {
 	end,
 })
 
+-- Keep the current indentation when inserting lines in PHP and Blade files.
+autocmd("FileType", {
+	group = augroup("php_autoindent", { clear = true }),
+	pattern = { "php", "blade" },
+	callback = function()
+		vim.bo.autoindent = true
+	end,
+})
+
 -- Highlight text briefly after yanking
 autocmd("TextYankPost", {
 	group = augroup("yank_highlight", { clear = true }),
