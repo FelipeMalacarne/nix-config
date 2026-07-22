@@ -21,6 +21,11 @@ let
         "$schema" = "https://unpkg.com/oh-my-opencode-slim@latest/oh-my-opencode-slim.schema.json";
         preset = "openai";
 
+        multiplexer = {
+          type = "herdr";
+          layout = "main-vertical";
+        };
+
         presets.openai = {
           orchestrator = {
             model = "openai/gpt-5.6-terra";

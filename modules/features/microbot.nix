@@ -12,7 +12,7 @@
         src = pkgs.fetchurl {
           url = "https://files.microbot.cloud/releases/microbot-launcher/Microbot%20Launcher-${version}.AppImage";
           name = "${pname}-${version}.AppImage";
-          hash = "sha256-uviA/7N/jgYrAjkC6pN02ygOA2QFo+Q/f/xU+qjTWOo=";
+          hash = "sha256-5Vk5mE73pKMZ/4ic4mmJYvmBA2ZXKL7M1JFQ4eiRZls=";
         };
       };
 

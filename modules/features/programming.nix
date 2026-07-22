@@ -42,7 +42,6 @@ let
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           dbeaver-bin
-          mongodb-compass
         ];
 
       programs.zsh.initContent = ''

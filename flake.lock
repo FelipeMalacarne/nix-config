@@ -495,11 +495,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1782959384,
-        "narHash": "sha256-xnJJk+ct+D2+wdRxj1wk36w5zV9RVESwRqcklPdt3fM=",
+        "lastModified": 1784497964,
+        "narHash": "sha256-vlHUuqAcbcH2RKmHbPiuQzbv1pnzzavXnI62RD0bqCU=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "65179426c83bb3f6bc14898b42ea1c6f01d374b0",
+        "rev": "241313f4e8e508cb9b13278c2b0fa25b9ca27163",
         "type": "github"
       },
       "original": {
@@ -681,17 +681,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1783376709,
-        "narHash": "sha256-jBE2Wyf057YorgallCr14pCGVmhTwlZHi33jV8FrrEI=",
+        "lastModified": 1784499499,
+        "narHash": "sha256-euWaFH40VHefZewUcKvsLwwHZP+GwfTN8kfuAkaABB8=",
         "owner": "PHPantom-dev",
         "repo": "phpantom_lsp",
-        "rev": "f946d9ecbd68e0e2aad616e63def6634aad55582",
+        "rev": "a1053bce4a9df104a03f814bda4a8f3d70772f31",
         "type": "github"
       },
       "original": {
         "owner": "PHPantom-dev",
         "repo": "phpantom_lsp",
-        "rev": "f946d9ecbd68e0e2aad616e63def6634aad55582",
+        "rev": "a1053bce4a9df104a03f814bda4a8f3d70772f31",
         "type": "github"
       }
     },
