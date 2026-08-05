@@ -376,11 +376,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785902865,
-        "narHash": "sha256-5fZRioDyAQ1h29iz3AMLhHHCFih4uRfUMh99g8juMsY=",
+        "lastModified": 1785904495,
+        "narHash": "sha256-eZuhiqyZK7+lLS+YC0JnOFzMURLvsjzKHzoQWhinI7Y=",
         "owner": "FelipeMalacarne",
         "repo": "jagex-launcher-nix",
-        "rev": "34a33bd5e8a3a19b3548acc6fac395997b6815ac",
+        "rev": "a92048955c4b0ac6881bf8b039e417e620bacdab",
         "type": "github"
       },
       "original": {
