@@ -67,6 +67,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    jagex-launcher = {
+      url = "github:FelipeMalacarne/jagex-launcher-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+    };
+
   };
 
   outputs =

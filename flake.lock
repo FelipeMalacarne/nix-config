@@ -366,6 +366,29 @@
         "type": "github"
       }
     },
+    "jagex-launcher": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785902865,
+        "narHash": "sha256-5fZRioDyAQ1h29iz3AMLhHHCFih4uRfUMh99g8juMsY=",
+        "owner": "FelipeMalacarne",
+        "repo": "jagex-launcher-nix",
+        "rev": "34a33bd5e8a3a19b3548acc6fac395997b6815ac",
+        "type": "github"
+      },
+      "original": {
+        "owner": "FelipeMalacarne",
+        "repo": "jagex-launcher-nix",
+        "type": "github"
+      }
+    },
     "millennium": {
       "inputs": {
         "millennium-src": "millennium-src",
@@ -728,6 +751,7 @@
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
+        "jagex-launcher": "jagex-launcher",
         "millennium": "millennium",
         "nix-openclaw": "nix-openclaw",
         "nixpkgs": "nixpkgs_3",

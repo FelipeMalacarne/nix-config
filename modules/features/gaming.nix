@@ -13,6 +13,7 @@
       bolt-launcher
       xivlauncher
       hydralauncher
+      inputs.jagex-launcher.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
   };
 
