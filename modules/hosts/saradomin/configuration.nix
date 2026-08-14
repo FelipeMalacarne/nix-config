@@ -13,9 +13,9 @@
         self.nixosModules.base
         self.nixosModules.sops
         self.nixosModules.openssh
-        # self.nixosModules.k3s
+        self.nixosModules.k3s
         self.nixosModules.tailscale
-        self.nixosModules.docker
+        # self.nixosModules.docker
       ];
 
       networking.hostName = "saradomin";
@@ -32,11 +32,11 @@
         ];
       };
 
-      # my.k3s.tlsSans = [
-      #   "100.106.58.87"
-      #   "saradomin"
-      #   "saradomin.tail34cc60.ts.net"
-      # ];
+      my.k3s.tlsSans = [
+        "100.106.58.87"
+        "saradomin"
+        "saradomin.tail34cc60.ts.net"
+      ];
       system.stateVersion = "25.11";
 
       security.pki.certificateFiles = [
