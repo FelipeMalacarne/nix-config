@@ -59,7 +59,7 @@ let
             mcps = [ ];
           };
           designer = {
-            model = "openai/gpt-5.6-luna";
+            model = "openai/gpt-5.6-sol";
             variant = "medium";
             skills = [ ];
             mcps = [ ];

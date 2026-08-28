@@ -31,6 +31,7 @@
         linux-base
         desktop
         gaming
+        scape2011
         programming
         opencode
         microbot
@@ -39,6 +40,11 @@
         k8s
         torrent
       ];
+
+      environment.systemPackages = [
+        pkgs.google-chrome
+      ];
+      programs.chromium.enable = true;
 
       networking.hostName = "zaros";
 
