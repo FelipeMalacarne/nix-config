@@ -1,8 +1,13 @@
+local library = { vim.env.VIMRUNTIME }
+if vim.env.HYPRLAND_LUA_STUBS then
+	table.insert(library, vim.env.HYPRLAND_LUA_STUBS)
+end
+
 ---@type vim.lsp.Config
 return {
 	cmd = { "lua-language-server" },
 	filetypes = { "lua" },
-	rrot_markers = { ".luarc.json", ".luarc.jsonc", ".git" },
+	root_markers = { ".luarc.json", ".luarc.jsonc", ".git" },
 	settings = {
 		Lua = {
 			runtime = {
@@ -10,12 +15,10 @@ return {
 			},
 			workspace = {
 				checkThirdParty = false,
-				library = {
-					vim.env.VIMRUNTIME,
-				},
+				library = library,
 			},
 			diagnostics = {
-				globals = { "vim" },
+				globals = { "vim", "hl" },
 			},
 			hint = {
 				enable = true,

@@ -18,8 +18,8 @@ let
           go
           sqlc
           go-migrate-pg
-          elixir_1_19
-          erlang
+          beamPackages.elixir_1_19
+          beamPackages.erlang
           nodejs
           pnpm
           python3
@@ -40,7 +40,7 @@ let
           zed-editor
           obsidian
         ]
-        ++ lib.optionals pkgs.stdenv.isLinux [
+        ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           dbeaver-bin
         ];
 

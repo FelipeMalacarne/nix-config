@@ -9,7 +9,7 @@ let
     }:
     let
       p = config.lib.stylix.colors;
-      isMac = pkgs.stdenv.isDarwin;
+      isMac = pkgs.stdenv.hostPlatform.isDarwin;
     in
     {
       home.packages = [ pkgs.pywalfox-native ];
@@ -53,6 +53,7 @@ let
       programs.firefox = {
         enable = true;
         package = if isMac then null else pkgs.firefox;
+        configPath = ".mozilla/firefox";
 
         profiles.${config.home.username} = {
           isDefault = true;

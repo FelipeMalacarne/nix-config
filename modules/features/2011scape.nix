@@ -24,7 +24,7 @@
       ];
       libPath = pkgs.lib.makeLibraryPath runtimeLibs;
 
-      extracted = pkgs.appimageTools.extractType2 {
+      extracted = pkgs.appimageTools.extract {
         pname = "2011scape";
         inherit version src;
       };

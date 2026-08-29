@@ -4,10 +4,9 @@
     {
       pkgs,
       lib,
-      system,
       ...
     }:
-    lib.optionalAttrs (lib.hasSuffix "-linux" system) {
+    lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       packages.niri = inputs.wrapper-modules.wrappers.niri.wrap {
         inherit pkgs;
         settings = {

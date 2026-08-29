@@ -55,7 +55,7 @@ let
           # texlive.combined.scheme-full
           # zathura
         ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ inotify-tools ];
+        ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ inotify-tools ];
 
       specs = {
         plugins = {

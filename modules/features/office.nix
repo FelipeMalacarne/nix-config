@@ -1,7 +1,7 @@
 {
   flake.homeModules.office = { pkgs, ... }: {
     home.packages = with pkgs; [
-      libreoffice-fresh
+      libreoffice-stable
       hunspell
       hunspellDicts.pt_BR
       hunspellDicts.en_US
