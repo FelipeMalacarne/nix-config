@@ -5,6 +5,7 @@
       self.nixosModules.audio
       self.nixosModules.network
       self.nixosModules.displayTopology
+      self.nixosModules.desktopSessions
       self.nixosModules.sddm
       self.nixosModules.i3
       self.nixosModules.hyprland

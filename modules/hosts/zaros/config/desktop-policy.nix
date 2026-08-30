@@ -3,35 +3,12 @@
   flake.nixosModules.zarosDesktopPolicy =
     {
       config,
-      lib,
-      pkgs,
       ...
     }:
     let
       user = config.my.user.name;
-      i3Session = pkgs.i3.overrideAttrs (old: {
-        passthru = (old.passthru or { }) // {
-          providedSessions = [ "i3" ];
-        };
-      });
-      hyprlandUwsmSession = pkgs.writeTextFile {
-        name = "hyprland-uwsm";
-        destination = "/share/wayland-sessions/hyprland-uwsm.desktop";
-        text = ''
-          [Desktop Entry]
-          Name=Hyprland (UWSM)
-          Comment=Hyprland compositor managed by UWSM
-          Exec=${lib.getExe pkgs.uwsm} start -F -- ${lib.getExe config.programs.hyprland.package}
-          Type=Application
-        '';
-        passthru.providedSessions = [ "hyprland-uwsm" ];
-      };
     in
     {
-      services.displayManager.sessionPackages = lib.mkForce [
-        i3Session
-        hyprlandUwsmSession
-      ];
       home-manager.users.${user}.my.displayTopology.outputs = config.my.displayTopology.outputs;
       my.displayTopology.outputs = {
         main = {
