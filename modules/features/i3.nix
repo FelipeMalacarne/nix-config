@@ -29,9 +29,6 @@
         error = "#${config.lib.stylix.colors.base08}";
       };
       wallpaper = ../../assets/wallpapers/catppuccin-mocha.png;
-      monitorMain = "DP-1";
-      monitorSide = "HDMI-A-1";
-
       term = lib.getExe pkgs.alacritty;
       menu = "${lib.getExe pkgs.rofi} -show drun";
       feh = lib.getExe pkgs.feh;
@@ -45,6 +42,12 @@
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
       playerctl = lib.getExe pkgs.playerctl;
       brightnessctl = lib.getExe pkgs.brightnessctl;
+      topologyI3 = lib.concatMapStrings (
+        output:
+        lib.concatMapStrings (
+          workspace: "workspace ${workspace} output ${output.xrandrOutput}\n"
+        ) output.workspaces
+      ) (lib.attrValues config.my.displayTopology.outputs);
     in
     {
       xsession.windowManager.i3 =
@@ -195,15 +198,7 @@
           extraConfig = ''
             default_border pixel 2
             default_floating_border pixel 2
-            workspace 1 output ${monitorMain}
-            workspace 2 output ${monitorMain}
-            workspace 3 output ${monitorMain}
-            workspace 4 output ${monitorMain}
-            workspace 5 output ${monitorMain}
-            workspace 6 output ${monitorSide}
-            workspace 7 output ${monitorSide}
-            workspace 8 output ${monitorSide}
-            workspace 9 output ${monitorSide}
+            ${topologyI3}
           '';
         };
 

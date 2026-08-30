@@ -4,6 +4,7 @@
     imports = [
       self.nixosModules.audio
       self.nixosModules.network
+      self.nixosModules.displayTopology
       self.nixosModules.sddm
       self.nixosModules.i3
       self.nixosModules.hyprland
@@ -17,6 +18,7 @@
   flake.homeModules.desktop = {
     imports = with self.homeModules; [
       i3
+      displayTopology
       hyprland
       noctalia
       firefox

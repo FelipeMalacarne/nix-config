@@ -1,5 +1,7 @@
 { self, ... }:
 {
+  imports = [ ./config/desktop-policy.nix ];
+
   flake.nixosModules.zaros =
     { config, pkgs, ... }:
     let
@@ -11,6 +13,7 @@
         identity
         base
         desktop
+        zarosDesktopPolicy
         sops
         restic
         sunshine
