@@ -81,7 +81,7 @@
       topologyLua = lib.concatMapStringsSep "\n" (
         output:
         let
-          waylandOutput = "desc:${output.waylandDescription}";
+          waylandOutput = "desc:${output.match.waylandDescription}";
           mode = "${toString output.mode.width}x${toString output.mode.height}@${toString output.mode.refresh}";
           position = "${toString output.position.x}x${toString output.position.y}";
         in
@@ -92,37 +92,39 @@
             "hl.workspace_rule({ workspace = ${builtins.toJSON workspace}, monitor = ${builtins.toJSON waylandOutput} })"
           ) output.workspaces}
         ''
-      ) (lib.attrValues config.my.displayTopology.outputs);
+      ) (lib.attrValues config.my.desktop.monitors);
     in
     {
       imports = [ idle ];
-      wayland.windowManager.hyprland = {
-        enable = true;
-        configType = "lua";
-        extraLuaFiles.main = {
-          content = topologyLua + "\n" + luaConfig;
-          autoLoad = true;
+      config = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
+        wayland.windowManager.hyprland = {
+          enable = true;
+          configType = "lua";
+          extraLuaFiles.main = {
+            content = topologyLua + "\n" + luaConfig;
+            autoLoad = true;
+          };
         };
-      };
-      home.file = {
-        ".XCompose".text = ''
-          include "%L"
-          <dead_acute> <c> : "ç" ccedilla
-          <dead_acute> <C> : "Ç" Ccedilla
-        '';
-      };
-      dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
-      home.pointerCursor = {
-        package = pkgs.bibata-cursors;
-        name = "Bibata-Modern-Classic";
-        size = 16;
-        gtk.enable = true;
-        x11.enable = true;
-      };
-      systemd.user.sessionVariables = {
-        XCURSOR_THEME = "Bibata-Modern-Classic";
-        XCURSOR_SIZE = "22";
-        XCOMPOSEFILE = "$HOME/.XCompose";
+        home.file = {
+          ".XCompose".text = ''
+            include "%L"
+            <dead_acute> <c> : "ç" ccedilla
+            <dead_acute> <C> : "Ç" Ccedilla
+          '';
+        };
+        dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+        home.pointerCursor = {
+          package = pkgs.bibata-cursors;
+          name = "Bibata-Modern-Classic";
+          size = 16;
+          gtk.enable = true;
+          x11.enable = true;
+        };
+        systemd.user.sessionVariables = {
+          XCURSOR_THEME = "Bibata-Modern-Classic";
+          XCURSOR_SIZE = "22";
+          XCOMPOSEFILE = "$HOME/.XCompose";
+        };
       };
     };
 }

@@ -1,7 +1,5 @@
 { self, ... }:
 {
-  imports = [ ./config/desktop-policy.nix ];
-
   flake.nixosModules.zaros =
     { config, pkgs, ... }:
     let

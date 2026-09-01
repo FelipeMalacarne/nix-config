@@ -20,13 +20,13 @@
           "normal";
       xrandrOutputs = lib.concatMapStringsSep " \\\n           " (
         output:
-        "--output ${output.xrandrOutput}"
+        "--output ${output.match.xrandrOutput}"
         + lib.optionalString (output.role == "primary") " --primary"
         + " --mode ${toString output.mode.width}x${toString output.mode.height}"
         + " --rate ${toString output.mode.refresh}"
         + " --pos ${toString output.position.x}x${toString output.position.y}"
         + " --rotate ${rotation output}"
-      ) (lib.attrValues config.my.displayTopology.outputs);
+      ) (lib.attrValues config.my.desktop.monitors);
     in
     {
       services.xserver.enable = true;
