@@ -32,6 +32,7 @@
         linux-base
         desktop
         gaming
+        ankama-launcher
         scape2011
         programming
         opencode
