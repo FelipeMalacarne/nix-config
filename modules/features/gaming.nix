@@ -24,6 +24,10 @@
 
       hardware.graphics.enable = true;
 
+      # stardew valley port
+      networking.firewall.allowedUDPPorts = [ 24642 ];
+      networking.firewall.allowedTCPPorts = [ 24642 ];
+
       programs = {
         gamemode.enable = true;
         gamescope.enable = true;
