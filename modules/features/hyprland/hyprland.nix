@@ -1,9 +1,30 @@
-{ config, ... }:
+{ ... }:
 {
+  flake.nixosModules.hyprland =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
+      programs.hyprland = {
+        enable = true;
+        withUWSM = true;
+      };
+      home-manager.users.${config.my.user.name}.home.sessionVariables.HYPRLAND_LUA_STUBS =
+        "${pkgs.hyprland}/share/hypr/stubs";
+      xdg.portal = {
+        enable = true;
+        extraPortals = [
+          pkgs.xdg-desktop-portal-hyprland
+          pkgs.xdg-desktop-portal-gtk
+        ];
+        config.common.default = "*";
+      };
+    };
+
   flake.homeModules.hyprland =
-    let
-      idle = config.flake.homeModules.hyprlandIdle;
-    in
     {
       config,
       lib,
@@ -37,36 +58,22 @@
           exec uwsm app -- $TERMINAL
         fi
       '';
+      commandPaths = {
+        "@NOCTALIA@" = noctalia;
+        "@BRIGHTNESSCTL@" = brightnessctl;
+        "@GRIMBLAST@" = grimblast;
+        "@HYPRCTL@" = hyprctl;
+        "@PLAYERCTL@" = playerctl;
+        "@WPCTL@" = wpctl;
+        "@YAZI@" = yazi;
+        "@BTOP@" = btop;
+        "@BASH@" = bash;
+        "@FASTFETCH@" = fastfetch;
+        "@FIREFOX@" = firefox;
+        "@TERM_HERE@" = "${termHere}";
+      };
       luaConfig =
-        builtins.replaceStrings
-          [
-            "@NOCTALIA@"
-            "@BRIGHTNESSCTL@"
-            "@GRIMBLAST@"
-            "@HYPRCTL@"
-            "@PLAYERCTL@"
-            "@WPCTL@"
-            "@YAZI@"
-            "@BTOP@"
-            "@BASH@"
-            "@FASTFETCH@"
-            "@FIREFOX@"
-            "@TERM_HERE@"
-          ]
-          [
-            noctalia
-            brightnessctl
-            grimblast
-            hyprctl
-            playerctl
-            wpctl
-            yazi
-            btop
-            bash
-            fastfetch
-            firefox
-            "${termHere}"
-          ]
+        builtins.replaceStrings (builtins.attrNames commandPaths) (builtins.attrValues commandPaths)
           (builtins.readFile ./hyprland.lua);
       rotationTransform =
         rotation:
@@ -95,8 +102,28 @@
       ) (lib.attrValues config.my.desktop.monitors);
     in
     {
-      imports = [ idle ];
       config = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
+        services.hypridle = {
+          enable = true;
+          settings = {
+            general = {
+              lock_cmd = "${noctalia} ipc call lockScreen lock";
+              before_sleep_cmd = "${noctalia} ipc call lockScreen lock";
+              after_sleep_cmd = "${hyprctl} dispatch dpms on";
+            };
+            listener = [
+              {
+                timeout = 180;
+                on-timeout = "${noctalia} ipc call lockScreen lock";
+              }
+              {
+                timeout = 240;
+                on-timeout = "${hyprctl} dispatch dpms off";
+                on-resume = "${hyprctl} dispatch dpms on";
+              }
+            ];
+          };
+        };
         wayland.windowManager.hyprland = {
           enable = true;
           configType = "lua";
