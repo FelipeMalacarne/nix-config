@@ -22,16 +22,6 @@
             }
             {
               key = "Left";
-              mods = "Control";
-              chars = "\\u001Bb";
-            }
-            {
-              key = "Right";
-              mods = "Control";
-              chars = "\\u001Bf";
-            }
-            {
-              key = "Left";
               mods = "Alt";
               chars = "\\u0001";
             }

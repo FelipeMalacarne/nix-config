@@ -33,12 +33,15 @@ let
           gh
           google-cloud-sdk
           terraform
-          (pkgs.writeShellApplication {
-            name = "codex";
-            text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
-          })
+          # (pkgs.writeShellApplication {
+          #   name = "codex";
+          #   text = ''exec ${pkgs.nodejs}/bin/npx @openai/codex@latest "$@"'';
+          # })
           zed-editor
           obsidian
+
+          codex
+          bubblewrap
         ]
         ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           dbeaver-bin

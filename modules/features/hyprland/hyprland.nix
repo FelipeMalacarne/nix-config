@@ -38,24 +38,25 @@
       hyprctl = "${pkgs.hyprland}/bin/hyprctl";
       playerctl = lib.getExe pkgs.playerctl;
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
-      yazi = lib.getExe pkgs.yazi;
-      btop = lib.getExe pkgs.btop;
-      bash = lib.getExe pkgs.bash;
-      fastfetch = lib.getExe pkgs.fastfetch;
-      firefox = lib.getExe pkgs.firefox;
+      terminalCommand = config.my.desktop.terminalCommand;
+      uwsm = lib.getExe pkgs.uwsm;
+      jq = lib.getExe pkgs.jq;
+      pgrep = "${pkgs.procps}/bin/pgrep";
+      head = "${pkgs.coreutils}/bin/head";
+      readlink = "${pkgs.coreutils}/bin/readlink";
       termHere = pkgs.writeShellScript "term-here" ''
-        pid=$(hyprctl activewindow -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.pid // empty')
+        pid=$(${hyprctl} activewindow -j 2>/dev/null | ${jq} -r '.pid // empty')
         cwd=""
         if [ -n "$pid" ]; then
-          while child=$(pgrep -P "$pid" 2>/dev/null | head -1) && [ -n "$child" ]; do
+          while child=$(${pgrep} -P "$pid" 2>/dev/null | ${head} -1) && [ -n "$child" ]; do
             pid=$child
           done
-          cwd=$(readlink "/proc/$pid/cwd" 2>/dev/null)
+          cwd=$(${readlink} "/proc/$pid/cwd" 2>/dev/null)
         fi
         if [ -n "$cwd" ] && [ -d "$cwd" ]; then
-          exec uwsm app -- $TERMINAL --working-directory="$cwd"
+          exec ${uwsm} app -- ${terminalCommand} --working-directory="$cwd"
         else
-          exec uwsm app -- $TERMINAL
+          exec ${uwsm} app -- ${terminalCommand}
         fi
       '';
       commandPaths = {
@@ -65,11 +66,6 @@
         "@HYPRCTL@" = hyprctl;
         "@PLAYERCTL@" = playerctl;
         "@WPCTL@" = wpctl;
-        "@YAZI@" = yazi;
-        "@BTOP@" = btop;
-        "@BASH@" = bash;
-        "@FASTFETCH@" = fastfetch;
-        "@FIREFOX@" = firefox;
         "@TERM_HERE@" = "${termHere}";
       };
       luaConfig =

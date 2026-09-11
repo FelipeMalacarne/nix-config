@@ -36,7 +36,7 @@
         {
           imports = with self.homeModules; [
             base
-            alacritty
+            ghostty
             firefox
             programming
             opencode

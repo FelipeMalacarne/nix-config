@@ -31,6 +31,12 @@ let
       initContent = ''
         export EDITOR=nvim
         export VISUAL=nvim
+
+        # EDITOR contains "vi", so Zsh otherwise defaults to vi keybindings.
+        bindkey -e
+        bindkey '^[[1;5D' backward-word
+        bindkey '^[[1;5C' forward-word
+
         _osc7_cwd() { printf '\e]7;file://%s%s\e\\' "$HOST" "$PWD"; }
         autoload -Uz add-zsh-hook
         add-zsh-hook chpwd _osc7_cwd

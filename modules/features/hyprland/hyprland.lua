@@ -5,12 +5,7 @@ local grimblast = "@GRIMBLAST@"
 local hyprctl = "@HYPRCTL@"
 local playerctl = "@PLAYERCTL@"
 local wpctl = "@WPCTL@"
-local yazi = "@YAZI@"
-local btop = "@BTOP@"
-local bash = "@BASH@"
-local fastfetch = "@FASTFETCH@"
-local firefox = "@FIREFOX@"
-local term_here = "@TERM_HERE@"
+local termHere = "@TERM_HERE@"
 
 local function bind(keys, action, opts)
 	hl.bind(keys, action, opts)
@@ -41,8 +36,8 @@ hl.config({
 	},
 })
 
-bind(key("RETURN"), exec(term_here))
 bind(key("W"), hl.dsp.window.close())
+bind(key("RETURN"), exec(termHere))
 bind(key("Q"), hl.dsp.window.kill())
 bind(key("F"), hl.dsp.window.fullscreen())
 bind(key("T"), hl.dsp.window.float({ action = "toggle" }))
@@ -70,13 +65,6 @@ bind(key("TAB"), hl.dsp.focus({ workspace = "previous" }))
 bind(key("BRACKETRIGHT"), hl.dsp.focus({ workspace = "e+1" }))
 bind(key("BRACKETLEFT"), hl.dsp.focus({ workspace = "e-1" }))
 bind(key("SHIFT + PERIOD"), exec(hyprctl .. " dispatch movewindow mon:+1"))
-bind(key("SHIFT + F"), exec("uwsm app -- $TERMINAL -e " .. yazi))
-bind(key("SHIFT + T"), exec("uwsm app -- $TERMINAL -e " .. btop))
-bind(
-	key("SHIFT + I"),
-	exec("uwsm app -- $TERMINAL -e " .. bash .. " -c '" .. fastfetch .. '; read -rp \\"Press enter to close...\\"\'')
-)
-bind(key("SHIFT + B"), exec("uwsm app -- " .. firefox))
 for i = 1, 9 do
 	bind(key(tostring(i)), hl.dsp.focus({ workspace = i }))
 	bind(key("SHIFT + " .. i), hl.dsp.window.move({ workspace = i }))

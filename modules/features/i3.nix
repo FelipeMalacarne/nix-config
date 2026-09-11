@@ -36,7 +36,6 @@
         error = "#${config.lib.stylix.colors.base08}";
       };
       wallpaper = ../../assets/wallpapers/catppuccin-mocha.png;
-      term = lib.getExe pkgs.alacritty;
       menu = "${lib.getExe pkgs.rofi} -show drun";
       feh = lib.getExe pkgs.feh;
       picom = lib.getExe pkgs.picom;
@@ -69,7 +68,6 @@
 
             config = {
               modifier = mod;
-              terminal = term;
               menu = menu;
 
               gaps = {
@@ -83,8 +81,8 @@
               floating.modifier = mod;
 
               keybindings = {
-                # Terminal
-                "${mod}+Return" = "exec ${term}";
+                # Terminal is compositor-specific (Hyprland uses termHere).
+                "${mod}+Return" = "exec ${config.my.desktop.terminalCommand}";
 
                 # Window ops (mirrors Hyprland: W=kill, F=fullscreen, T=float, E=split, P=layout)
                 "${mod}+w" = "kill";
@@ -142,11 +140,6 @@
                 "${mod}+Shift+7" = "move container to workspace number 7";
                 "${mod}+Shift+8" = "move container to workspace number 8";
                 "${mod}+Shift+9" = "move container to workspace number 9";
-
-                # Apps (mirrors Hyprland Shift+F=yazi, Shift+T=btop, Shift+B=firefox)
-                "${mod}+Shift+f" = "exec ${term} -e ${lib.getExe pkgs.yazi}";
-                "${mod}+Shift+t" = "exec ${term} -e ${lib.getExe pkgs.btop}";
-                "${mod}+Shift+b" = "exec ${lib.getExe pkgs.firefox}";
 
                 # Screenshots (X11: flameshot replaces Wayland grimblast)
                 "Print" = "exec ${flameshotFull}";
