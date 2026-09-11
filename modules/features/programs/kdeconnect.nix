@@ -1,0 +1,24 @@
+{
+  flake.modules.homeManager.kdeconnect = { pkgs, ... }: {
+    services.kdeconnect.enable = true;
+    home.packages = [ pkgs.kdePackages.kdeconnect-kde ];
+  };
+
+  flake.modules.nixos.kdeconnect =
+    {
+      ...
+    }:
+    {
+      programs.kdeconnect.enable = true;
+
+      networking.firewall = rec {
+        allowedTCPPortRanges = [
+          {
+            from = 1714;
+            to = 1764;
+          }
+        ];
+        allowedUDPPortRanges = allowedTCPPortRanges;
+      };
+    };
+}

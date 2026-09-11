@@ -1,0 +1,23 @@
+name: Flake checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-24.04
+          - name: macos
+            os: macos-14
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v19
+      - run: nix flake check --impure --show-trace path:.
+        env:
+          NIXPKGS_ALLOW_UNFREE: "1"

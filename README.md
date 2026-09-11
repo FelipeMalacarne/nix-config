@@ -1,7 +1,7 @@
 # nix-config
 
-Felipe's personal NixOS/nix-darwin configuration. It is feature-first: host
-files compose reusable features and profiles without duplicating policy.
+Felipe's personal NixOS/nix-darwin configuration. It is feature-first: hosts
+compose reusable profiles and features without duplicating policy.
 
 ## Hosts
 
@@ -12,18 +12,33 @@ files compose reusable features and profiles without duplicating policy.
 | `saradomin-vm` | NixOS, x86_64 | Server VM variant |
 | `macbook` | nix-darwin, Apple Silicon | Development laptop |
 
-## Layout
+## Architecture
 
-`modules/hosts/` contains host composition, `modules/profiles/` contains
-bundles such as `base` and `desktop`, and `modules/features/` contains
-self-registering features. Large features colocate implementation and
-generated configuration, for example `features/core/`, `features/hyprland/`,
-and `features/noctalia/`.
+The dependency direction is **host -> profile -> feature -> upstream module**.
+Hosts own machine facts and activation selections; profiles compose modules and
+policy; features must not depend on profiles or hosts. `hosts/` contains the
+four concrete host directories. `modules/flake/configurations.nix` explicitly
+constructs the NixOS and nix-darwin configuration outputs from those hosts.
+
+Features are grouped into five domains: `system`, `desktop`, `services`,
+`programs`, and `applications`. A feature stays cohesive and cross-platform
+within its domain. Its excluded local `config/` directory is for internal
+implementation files, manually imported by the discovered feature entrypoint.
+
+`modules/profiles/` contains the `base`, `desktop`, `development`, and `server`
+compositions. `base` provides shared policy and the optional-feature catalog;
+`desktop` provides the graphical stack; `development` provides development
+tools; and `server` provides headless base/server policy. `server` does not
+implicitly enable optional services: host `my.<feature>.enable` flags remain the
+activation decisions.
 
 `import-tree` discovers Nix files under `modules/`, except paths matching
 `*/config/*`. Feature entrypoints are discovered automatically and manually
 import their excluded implementation files. A feature registers the relevant
 `flake.nixosModules`, `flake.darwinModules`, and/or `flake.homeModules` entry.
+
+`modules/inventory/infrastructure.nix` is typed personal SSH and Kubernetes
+data. It is inventory only, not generated host composition.
 
 ## Options and composition
 
@@ -75,13 +90,13 @@ darwin-rebuild switch --flake .#macbook
 
 ## Extending it
 
-Add a feature entrypoint under `modules/features/`, register its module, and
-compose it in a host or profile. Add a typed enable option for an optional
-system integration. Put large implementation files in a feature-local
-`config/` directory and import them from the entrypoint. Add a desktop backend
-by implementing the shell command contract and its completeness assertion.
-Add a host under `modules/hosts/`, then add its closure to the appropriate
-checks and Make target if it should be built routinely.
+Add a feature entrypoint under the appropriate `modules/features/<domain>/`,
+register its module, and compose it in a profile or host. Add a typed enable
+option for an optional system integration. Put large implementation files in a
+feature-local `config/` directory and import them from the entrypoint. Add a
+desktop backend by implementing the shell command contract and its completeness
+assertion. Add a host directory under `hosts/`, then update
+`modules/flake/configurations.nix` and the appropriate checks/Make target.
 
 ## Validation and deferred work
 

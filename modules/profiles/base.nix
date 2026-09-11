@@ -1,28 +1,34 @@
-{ self, ... }:
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
-  flake.nixosModules.base = {
+  flake.modules.nixos.base = {
     imports = [
-      self.nixosModules.identity
-      self.nixosModules.core
-      self.nixosModules.theming
-      self.nixosModules.zsh
-      self.nixosModules.ssh
-      self.nixosModules.optional-features
+      registry.nixos.infrastructure
+      registry.nixos.identity
+      registry.nixos.core
+      registry.nixos.theming
+      registry.nixos.zsh
+      registry.nixos.ssh
+      registry.nixos.optional-features
     ];
   };
 
-  flake.darwinModules.base = {
+  flake.modules.darwin.base = {
     imports = [
-      self.darwinModules.identity
-      self.darwinModules.core
-      self.darwinModules.theming
-      self.darwinModules.zsh
-      self.darwinModules.ssh
+      registry.darwin.infrastructure
+      registry.darwin.identity
+      registry.darwin.core
+      registry.darwin.theming
+      registry.darwin.zsh
+      registry.darwin.ssh
     ];
   };
 
-  flake.homeModules.base = {
-    imports = with self.homeModules; [
+  flake.modules.homeManager.base = {
+    imports = with registry.homeManager; [
+      infrastructure
       zsh
       git
       ssh
@@ -32,8 +38,8 @@
     ];
   };
 
-  flake.homeModules.linux-base = {
-    imports = with self.homeModules; [
+  flake.modules.homeManager.linux-base = {
+    imports = with registry.homeManager; [
       base
       yazi
     ];

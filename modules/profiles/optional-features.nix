@@ -1,7 +1,10 @@
-{ self, ... }:
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
-  flake.nixosModules.optional-features = {
-    imports = with self.nixosModules; [
+  flake.modules.nixos.optional-features = {
+    imports = with registry.nixos; [
       docker
       flatpak
       gaming
