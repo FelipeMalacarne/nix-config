@@ -8,17 +8,13 @@
     {
       imports = [
         self.nixosModules.saradominVmHardware
-        self.nixosModules.identity
-        self.nixosModules.core
-        self.nixosModules.theming
-        self.nixosModules.zsh
-        self.nixosModules.ssh
+        self.nixosModules.base
         self.nixosModules.sops
-        self.nixosModules.openssh
-        self.nixosModules.tailscale
       ];
 
       networking.hostName = "saradomin-vm";
+      my.openssh.enable = true;
+      my.tailscale.enable = true;
       home-manager.users.${user}.imports = [ self.homeModules.linux-base ];
       system.stateVersion = "24.11";
 

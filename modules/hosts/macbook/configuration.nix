@@ -7,16 +7,12 @@
     in
     {
       imports = [
-        self.darwinModules.identity
-        self.darwinModules.theming
-        self.darwinModules.core
+        self.darwinModules.base
         self.darwinModules.yabai
         self.darwinModules.skhd
         self.darwinModules.borders
         self.darwinModules.sketchybar
-        self.darwinModules.zsh
         self.darwinModules.sops
-        self.darwinModules.ssh
         self.darwinModules.programming
         self.darwinModules.k8s
         self.darwinModules.firefox

@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, self, ... }:
 {
   flake.nixosModules.core =
     { config, lib, ... }:
@@ -6,7 +6,10 @@
       user = config.my.user.name;
     in
     {
-      imports = [ inputs.home-manager.nixosModules.home-manager ];
+      imports = [
+        inputs.home-manager.nixosModules.home-manager
+        self.nixosModules.home-manager-policy
+      ];
 
       i18n.defaultLocale = "en_US.UTF-8";
       time.timeZone = "America/Sao_Paulo";
@@ -36,12 +39,10 @@
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
 
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.backupFileExtension = "bak";
-
       users.users.${user} = {
         isNormalUser = true;
+        home =
+          if config.my.user.homeDirectory == null then "/home/${user}" else config.my.user.homeDirectory;
         hashedPassword = "$y$j9T$ZqyDJ7iWYtwx7.LZV2SVC.$rOHD5WSlDpCIf7mBvx1Y3SUr5fEatWAiEeKRYMZMKz1";
         extraGroups = [
           "wheel"
@@ -49,10 +50,16 @@
         ];
       };
 
-      home-manager.users.${user}.home = {
-        username = user;
-        homeDirectory = lib.mkDefault "/home/${user}";
-        stateVersion = lib.mkDefault "24.11";
+      home-manager.users.${user} = {
+        imports = [ self.homeModules.identity ];
+        my.user = config.my.user;
+        home = {
+          username = user;
+          homeDirectory = lib.mkDefault (
+            if config.my.user.homeDirectory == null then "/home/${user}" else config.my.user.homeDirectory
+          );
+          stateVersion = lib.mkDefault "24.11";
+        };
       };
     };
 }

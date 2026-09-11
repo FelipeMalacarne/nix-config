@@ -8,30 +8,17 @@
     {
       imports = with self.nixosModules; [
         zarosHardware
-        identity
         base
         desktop
         zarosDesktopPolicy
         sops
-        restic
-        sunshine
-        nvidia
-        gaming
-        rgb
         programming
-        ollama
-        virtualization
-        flatpak
-        openssh
-        tailscale
-        docker
         k8s
       ];
 
       home-manager.users.${user}.imports = with self.homeModules; [
         linux-base
         desktop
-        gaming
         ankama-launcher
         scape2011
         programming
@@ -67,7 +54,7 @@
         color = config.my.colors.secondary;
       };
 
-      myConfig.restic = {
+      my.restic = {
         enable = true;
         paths = [
           "/home/${user}/Documents"
@@ -76,6 +63,15 @@
 
         ];
       };
+      my.docker.enable = true;
+      my.virtualization.enable = true;
+      my.ollama.enable = true;
+      my.sunshine.enable = true;
+      my.flatpak.enable = true;
+      my.openssh.enable = true;
+      my.tailscale.enable = true;
+      my.nvidia.enable = true;
+      my.gaming.enable = true;
       system.stateVersion = "24.11";
 
       security.pki.certificateFiles = [

@@ -2,11 +2,11 @@
   flake.nixosModules.restic =
     { config, lib, ... }:
     let
-      cfg = config.myConfig.restic;
+      cfg = config.my.restic;
       hostName = config.networking.hostName;
     in
     {
-      options.myConfig.restic = {
+      options.my.restic = {
         enable = lib.mkEnableOption "Restic backups";
 
         paths = lib.mkOption {
@@ -42,7 +42,7 @@
         assertions = [
           {
             assertion = cfg.paths != [ ];
-            message = "myConfig.restic.paths must not be empty when Restic backups are enabled.";
+            message = "my.restic.paths must not be empty when Restic backups are enabled.";
           }
         ];
 

@@ -41,9 +41,9 @@ let
           obsidian
 
           codex
-          bubblewrap
         ]
         ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+          bubblewrap
           dbeaver-bin
         ];
 

@@ -1,5 +1,9 @@
 local mod = "SUPER"
-local noctalia = "@NOCTALIA@"
+local launcher = @LAUNCHER@
+local dashboard = @DASHBOARD@
+local settings = @SETTINGS@
+local session = @SESSION@
+local lock = @LOCK@
 local brightnessctl = "@BRIGHTNESSCTL@"
 local grimblast = "@GRIMBLAST@"
 local hyprctl = "@HYPRCTL@"
@@ -46,11 +50,10 @@ bind(key("P"), hl.dsp.window.pseudo())
 bind(key("SHIFT + P"), hl.dsp.window.pin())
 bind(key("SHIFT + R"), exec(hyprctl .. " reload"))
 bind(key("SHIFT + Q"), hl.dsp.exit())
-bind(key("SPACE"), exec(noctalia .. " ipc call launcher toggle"))
-bind(key("PERIOD"), exec(noctalia .. " ipc call controlCenter toggle"))
-bind(key("COMMA"), exec(noctalia .. " ipc call settings toggle"))
-bind(key("DELETE"), exec(noctalia .. " ipc call sessionMenu toggle"))
--- bind(key("CONTROL + L"), exec(noctalia .. " ipc call lockScreen lock"))
+bind(key("SPACE"), exec(launcher))
+bind(key("PERIOD"), exec(dashboard))
+bind(key("COMMA"), exec(settings))
+bind(key("DELETE"), exec(session))
 bind(key("S"), hl.dsp.workspace.toggle_special("scratch"))
 bind(key("SHIFT + S"), hl.dsp.window.move({ workspace = "special:scratch" }))
 bind("PRINT", exec(grimblast .. " copy output"))
@@ -74,11 +77,11 @@ for _, pair in ipairs({ { "H", "-80 0" }, { "L", "80 0" }, { "K", "0 -80" }, { "
 end
 bind(key("mouse:272"), hl.dsp.window.drag(), { mouse = true })
 bind(key("mouse:273"), hl.dsp.window.resize(), { mouse = true })
-bind("XF86AudioRaiseVolume", exec(noctalia .. " ipc call volume increase"), { repeating = true })
-bind("XF86AudioLowerVolume", exec(noctalia .. " ipc call volume decrease"), { repeating = true })
+bind("XF86AudioRaiseVolume", exec(wpctl .. " set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), { repeating = true })
+bind("XF86AudioLowerVolume", exec(wpctl .. " set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { repeating = true })
 bind("XF86MonBrightnessUp", exec(brightnessctl .. " set +5%"), { repeating = true })
 bind("XF86MonBrightnessDown", exec(brightnessctl .. " set 5%-"), { repeating = true })
-bind("XF86AudioMute", exec(noctalia .. " ipc call volume muteOutput"), { locked = true })
+bind("XF86AudioMute", exec(wpctl .. " set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
 bind("XF86AudioMicMute", exec(wpctl .. " set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
 bind("XF86AudioPlay", exec(playerctl .. " play-pause"), { locked = true })
 bind("XF86AudioNext", exec(playerctl .. " next"), { locked = true })
@@ -102,12 +105,3 @@ hl.animation({ leaf = "windowsOut", enabled = true, speed = 7, bezier = "default
 hl.animation({ leaf = "border", enabled = true, speed = 10, bezier = "default" })
 hl.animation({ leaf = "fade", enabled = true, speed = 7, bezier = "default" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 6, bezier = "default" })
-hl.layer_rule({ name = "noctalia", match = { namespace = "noctalia-background-.*" }, blur = true, ignore_alpha = 0.5 })
-hl.layer_rule({
-	name = "noctalia-shell-region",
-	match = { namespace = "noctalia-shell:regionSelector" },
-	no_anim = true,
-})
-hl.on("hyprland.start", function()
-	hl.exec_cmd("uwsm app -- " .. noctalia)
-end)

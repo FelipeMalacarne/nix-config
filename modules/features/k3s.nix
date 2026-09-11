@@ -10,8 +10,9 @@
         default = [ ];
         description = "Additional TLS SANs to include in the k3s API server certificate.";
       };
+      options.my.k3s.enable = lib.mkEnableOption "k3s";
 
-      config = {
+      config = lib.mkIf config.my.k3s.enable {
         services.k3s = {
           enable = true;
           role = "server";

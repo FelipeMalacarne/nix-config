@@ -25,10 +25,14 @@ help:
 		'  boot               Activate the selected config on next boot' \
 		'  rollback           Roll back the current system generation' \
 		'  check              Validate the flake without activating anything' \
+		'  eval-check         Fast evaluation-only flake check' \
+		'  fmt-check          Check formatting in CI mode' \
+		'  build-all          Build all NixOS closures (Linux only)' \
+		'  build-darwin       Build the MacBook closure' \
 		'  (activation is local-host-only by default)' \
 		'  (dangerous cross-host use: make switch HOST=other-host DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1)' \
 		'  (on Darwin, use darwin-rebuild switch --flake path:.#macbook; these are NixOS-only targets)' \
-		'  fmt                Format tracked Nix files' \
+		'  fmt                Format the flake with the pinned formatter' \
 		'  secrets            Edit SOPS secrets' \
 		'' \
 		'Restic repository:' \
@@ -39,7 +43,7 @@ help:
 		'  restic-restore       Restore SNAPSHOT to RESTORE_TARGET' \
 		'  restic-restore-item  Restore ITEM=... from SNAPSHOT to RESTORE_TARGET'
 
-.PHONY: build switch test boot rollback check host-validation host-safety local-host-safety platform-safety fmt secrets
+.PHONY: build build-all build-darwin switch test boot rollback check eval-check fmt fmt-check host-validation host-safety local-host-safety platform-safety secrets
 build: host-validation platform-safety
 	nix build "path:.#nixosConfigurations.$${HOST}.config.system.build.toplevel"
 
@@ -84,8 +88,22 @@ rollback: local-host-safety platform-safety
 check:
 	NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure 'path:.'
 
+eval-check:
+	NIXPKGS_ALLOW_UNFREE=1 nix flake check --no-build --impure 'path:.'
+
+build-all: platform-safety
+	NIXPKGS_ALLOW_UNFREE=1 nix build --impure 'path:.#nixosConfigurations.zaros.config.system.build.toplevel' 'path:.#nixosConfigurations.saradomin.config.system.build.toplevel' 'path:.#nixosConfigurations.saradomin-vm.config.system.build.toplevel' --no-link
+
+build-darwin:
+	nix build 'path:.#darwinConfigurations.macbook.config.system.build.toplevel' --no-link
+
 fmt:
-	nix run nixpkgs#nixfmt -- $$(git ls-files '*.nix')
+	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
+	NIXPKGS_ALLOW_UNFREE=1 nix run --impure "path:.#formatter.$${system}"
+
+fmt-check:
+	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
+	NIXPKGS_ALLOW_UNFREE=1 nix run --impure "path:.#formatter.$${system}" -- --ci
 
 secrets:
 	sops secrets/secrets.yaml

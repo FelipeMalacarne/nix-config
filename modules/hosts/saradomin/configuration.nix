@@ -9,13 +9,8 @@
       imports = [
         self.nixosModules.saradominDisk
         self.nixosModules.saradominHardware
-        self.nixosModules.identity
         self.nixosModules.base
         self.nixosModules.sops
-        self.nixosModules.openssh
-        self.nixosModules.k3s
-        self.nixosModules.tailscale
-        # self.nixosModules.docker
       ];
 
       networking.hostName = "saradomin";
@@ -37,6 +32,9 @@
         "saradomin"
         "saradomin.tail34cc60.ts.net"
       ];
+      my.openssh.enable = true;
+      my.tailscale.enable = true;
+      my.k3s.enable = true;
       system.stateVersion = "25.11";
 
       security.pki.certificateFiles = [

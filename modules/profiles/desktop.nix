@@ -27,6 +27,15 @@ let
         description = "Desktop sessions made available on this system.";
       };
 
+      options.my.desktop.shell = lib.mkOption {
+        type = lib.types.enum [
+          "noctalia"
+          "none"
+        ];
+        default = "noctalia";
+        description = "Desktop shell variant selected for this profile.";
+      };
+
       options.my.desktop.monitors = lib.mkOption {
         default = { };
         type = lib.types.attrsOf (
@@ -109,6 +118,56 @@ let
         {
           assertion = lib.all (monitor: monitor.scale == 1) monitorList;
           message = "my.desktop monitor scale must be 1 for i3/XRandR-compatible topology";
+        }
+        {
+          assertion =
+            config.my.desktop.shell != "noctalia" || builtins.elem "hyprland" config.my.desktop.sessions;
+          message = "my.desktop.shell = noctalia requires my.desktop.sessions to include hyprland; select shell = none or add hyprland";
+        }
+      ];
+    };
+
+  desktopShellCommands =
+    { config, ... }:
+    {
+      options.my.desktop.shellCommands = lib.mkOption {
+        type = lib.types.submodule {
+          options = {
+            launcher = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            dashboard = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            settings = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            session = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            lock = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+          };
+        };
+        default = { };
+        internal = true;
+        description = "Internal commands exposed by the selected desktop shell.";
+      };
+
+      config.assertions = [
+        {
+          assertion =
+            config.my.desktop.shell == "none"
+            || lib.all (command: command != null && command != "") (
+              lib.attrValues config.my.desktop.shellCommands
+            );
+          message = "my.desktop.shell must provide non-empty launcher, dashboard, settings, session, and lock commands unless shell = none";
         }
       ];
     };
@@ -223,15 +282,22 @@ in
         self.nixosModules.kdeconnect
         desktopOptions
       ];
-      config.home-manager.users.${config.my.user.name} = {
-        my.desktop.sessions = config.my.desktop.sessions;
-        my.desktop.monitors = config.my.desktop.monitors;
+      config = {
+        home-manager.users.${config.my.user.name} = {
+          my.desktop.sessions = config.my.desktop.sessions;
+          my.desktop.shell = config.my.desktop.shell;
+          my.desktop.monitors = config.my.desktop.monitors;
+        };
+        hardware.bluetooth.enable = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) true;
+        services.power-profiles-daemon.enable = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) true;
+        services.upower.enable = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) true;
       };
     };
 
   flake.homeModules.desktop = {
     imports = with self.homeModules; [
       desktopOptions
+      desktopShellCommands
       desktopKeybindings
       i3
       hyprland
