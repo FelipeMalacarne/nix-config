@@ -22,6 +22,7 @@ local function exec(command)
 end
 
 hl.env("GDK_SCALE", "1")
+hl.env("GTK_IM_MODULE", "simple")
 hl.env("LC_CTYPE", "pt_BR.UTF-8")
 hl.env("XCOMPOSEFILE", "$HOME/.XCompose")
 hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")

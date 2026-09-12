@@ -152,6 +152,7 @@
           x11.enable = true;
         };
         systemd.user.sessionVariables = {
+          GTK_IM_MODULE = "simple";
           XCURSOR_THEME = "Bibata-Modern-Classic";
           XCURSOR_SIZE = "22";
           XCOMPOSEFILE = "$HOME/.XCompose";
