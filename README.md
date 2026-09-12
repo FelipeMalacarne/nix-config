@@ -35,7 +35,10 @@ activation decisions.
 `import-tree` discovers Nix files under `modules/`, except paths matching
 `*/config/*`. Feature entrypoints are discovered automatically and manually
 import their excluded implementation files. A feature registers the relevant
-`flake.nixosModules`, `flake.darwinModules`, and/or `flake.homeModules` entry.
+`flake.modules.nixos.<aspect>`, `flake.modules.darwin.<aspect>`, and/or
+`flake.modules.homeManager.<aspect>` entry. Flake-parts composition uses
+`config.flake.modules`; plain hosts consume the final `self.modules`. Discovery
+is automatic, but registration and activation/composition remain explicit.
 
 `modules/inventory/infrastructure.nix` is typed personal SSH and Kubernetes
 data. It is inventory only, not generated host composition.
@@ -49,9 +52,17 @@ flags are the single activation decision. `desktop` owns the graphical stack.
 Optional system integrations use typed options such as `my.docker.enable` and
 `my.gaming.enable`.
 
-Desktop sessions are selected with `my.desktop.sessions`. The shell contract is
-`my.desktop.shell = "noctalia"` or `"none"`; Hyprland consumes its typed command
-contract and does not contain Noctalia-specific implementation knowledge.
+Desktop sessions are selected with `my.desktop.sessions`. The shell selector
+supports registered providers `noctalia`, `caelestia`, or `none`; Zaros selects
+Noctalia. Each provider owns its commands and all provider-specific packages,
+settings, and startup behavior. Caelestia uses its official HM systemd unit;
+Noctalia owns its current Lua startup. Hyprland consumes the typed command
+contract and remains provider-neutral.
+
+The desktop profile exposes both Noctalia and Caelestia capabilities, but only
+the selected provider is activated on Zaros. Adding a provider requires a
+provider aspect, a command registry entry, an explicit desktop profile import,
+and variant checks.
 
 ## Setup and secrets
 
@@ -94,8 +105,8 @@ Add a feature entrypoint under the appropriate `modules/features/<domain>/`,
 register its module, and compose it in a profile or host. Add a typed enable
 option for an optional system integration. Put large implementation files in a
 feature-local `config/` directory and import them from the entrypoint. Add a
-desktop backend by implementing the shell command contract and its completeness
-assertion. Add a host directory under `hosts/`, then update
+desktop provider by implementing its aspect, shell command registry entry, and
+completeness assertion. Add a host directory under `hosts/`, then update
 `modules/flake/configurations.nix` and the appropriate checks/Make target.
 
 ## Validation and deferred work

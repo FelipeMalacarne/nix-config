@@ -24,6 +24,7 @@
             programs.caelestia = {
               enable = true;
               systemd.enable = true;
+              systemd.target = "wayland-session@hyprland.desktop.target";
               cli.enable = true;
             };
           }

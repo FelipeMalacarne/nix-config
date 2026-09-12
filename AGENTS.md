@@ -43,9 +43,12 @@ paths matching `.*/config/.*`. Features live at
 entrypoints are discovered automatically and import internal `config/` files
 manually.
 
-Each feature registers itself as `flake.nixosModules.<name>`,
-`flake.darwinModules.<name>`, and/or `flake.homeModules.<name>`. Use only the
-platform registrations the implementation supports.
+Each feature registers itself as `flake.modules.nixos.<aspect>`,
+`flake.modules.darwin.<aspect>`, and/or `flake.modules.homeManager.<aspect>`.
+Flake-parts modules compose through `config.flake.modules`; plain hosts consume
+the final `self.modules`. Registration is auto-discovered, but activation and
+composition stay explicit. Use only the platform registrations the
+implementation supports.
 
 Optional system integrations conventionally expose a typed, default-disabled
 `my.<feature>.enable` option. Hosts explicitly enable selected integrations.
@@ -61,8 +64,8 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi,
   plus a default-disabled optional-feature catalog. Importing `base` exposes
   those options; host `my.<feature>.enable` flags alone activate them.
-- `desktop` — audio, network, Hyprland, Noctalia, Firefox, Dolphin,
-  Ghostty, KDE Connect and Bitwarden.
+- `desktop` — audio, network, Hyprland, Noctalia and Caelestia capabilities,
+  Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden.
 - `development` — programming and Kubernetes tooling.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Host `my.<feature>.enable` flags remain activation decisions.
@@ -70,10 +73,16 @@ SSH/Kubernetes data only; it is not generated host composition.
 Core and shared Home Manager policy live under
 `modules/features/system/core/` (with internals in its `config/`). Noctalia's
 registration, settings and startup live under
-`modules/features/desktop/noctalia/`; Hyprland implementation and Lua live
+`modules/features/desktop/noctalia/`; Caelestia's provider lives under
+`modules/features/desktop/caelestia/`; Hyprland implementation and Lua live
 under `modules/features/desktop/hyprland/`. Desktop sessions use
-`my.desktop.sessions`, and the shell contract is `my.desktop.shell = "noctalia"`
-or `"none"` with typed commands.
+`my.desktop.sessions`, and the shell selector is `my.desktop.shell =
+"noctalia"`, `"caelestia"`, or `"none"` with typed commands. Zaros selects
+Noctalia. Providers own their commands and all provider-specific package,
+settings, and startup behavior. Caelestia uses its official HM systemd unit;
+Noctalia owns its current Lua startup, while Hyprland stays provider-neutral.
+Adding a provider requires an aspect, registry entry, explicit desktop-profile
+import, and variant checks.
 
 ## Hosts
 
