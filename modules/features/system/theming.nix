@@ -95,6 +95,7 @@ in
               name = "Fira Code Nerd Font Mono";
               package = pkgs.nerd-fonts.fira-code;
             };
+            sizes.terminal = 11;
             sansSerif = {
               name = "Noto Sans";
               package = pkgs.noto-fonts;

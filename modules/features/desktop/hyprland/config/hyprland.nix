@@ -37,6 +37,7 @@
       hyprctl = "${pkgs.hyprland}/bin/hyprctl";
       playerctl = lib.getExe pkgs.playerctl;
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
+      dpms = action: "${hyprctl} dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
       shellCommands = config.my.desktop.shellCommands;
       shellCommand =
         name:
@@ -113,7 +114,7 @@
             general = {
               lock_cmd = shellCommand "lock";
               before_sleep_cmd = shellCommand "lock";
-              after_sleep_cmd = "${hyprctl} dispatch dpms on";
+              after_sleep_cmd = dpms "enable";
             };
             listener = [
               {
@@ -122,8 +123,8 @@
               }
               {
                 timeout = 240;
-                on-timeout = "${hyprctl} dispatch dpms off";
-                on-resume = "${hyprctl} dispatch dpms on";
+                on-timeout = dpms "disable";
+                on-resume = dpms "enable";
               }
             ];
           };

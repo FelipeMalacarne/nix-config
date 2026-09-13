@@ -36,6 +36,11 @@ in
 
   networking.hostName = "zaros";
 
+  console = {
+    font = "ter-v24b";
+    packages = [ pkgs.terminus_font ];
+  };
+
   systemd.services.enable-wol = {
     description = "Enable Wake-on-LAN on enp12s0";
     wantedBy = [ "multi-user.target" ];
