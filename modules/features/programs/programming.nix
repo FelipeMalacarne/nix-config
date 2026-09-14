@@ -73,7 +73,6 @@ let
 in
 {
   flake.modules.homeManager.programming = homeModule;
-
   flake.modules.nixos.programming = { config, ... }: {
     sops.secrets."linear-api-key".owner = config.my.user.name;
   };

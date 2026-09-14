@@ -76,6 +76,7 @@ in
   my.tailscale.enable = true;
   my.nvidia.enable = true;
   my.gaming.enable = true;
+  my.hermes-agent.enable = true;
   system.stateVersion = "24.11";
 
   security.pki.certificateFiles = [

@@ -80,6 +80,12 @@
       inputs.flake-parts.follows = "flake-parts";
     };
 
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      # Keep upstream's Electron version paired with its fixed header checksum.
+      # Following our nixpkgs changes Electron without updating that checksum.
+    };
+
   };
 
   outputs =

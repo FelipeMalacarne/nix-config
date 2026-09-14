@@ -8,6 +8,7 @@ in
       docker
       flatpak
       gaming
+      hermes-agent
       k3s
       nvidia
       ollama

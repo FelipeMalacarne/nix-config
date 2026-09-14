@@ -15,6 +15,70 @@
       zaros = self.nixosConfigurations.zaros.config;
       zarosUser = zaros.my.user.name;
       zarosHome = zaros.home-manager.users.${zarosUser};
+      zarosWithoutHermes =
+        (inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit self inputs; };
+          modules = [
+            ../hosts/zaros
+            { my.hermes-agent.enable = lib.mkForce false; }
+          ];
+        }).config;
+      hermesInactive =
+        host:
+        let
+          home = host.home-manager.users.${host.my.user.name};
+        in
+        !host.my.hermes-agent.enable
+        && !home.programs.hermes-agent.enable
+        && !home.programs.hermes-agent.desktop.enable
+        && !home.services.hermes-agent.enable
+        && !builtins.hasAttr "HERMES_HOME" home.home.sessionVariables
+        && !builtins.hasAttr "hermesAgentSetup" home.home.activation
+        && !builtins.hasAttr "hermes-backend" home.systemd.user.services
+        && !builtins.hasAttr "hermes-agent" home.systemd.user.services;
+      hermesAgentCheck =
+        assert lib.assertMsg (
+          inputs.hermes-agent.inputs.nixpkgs.rev
+          == (builtins.fromJSON (builtins.readFile "${inputs.hermes-agent}/flake.lock"))
+          .nodes.nixpkgs.locked.rev
+        ) "Hermes must retain upstream's nixpkgs pin for the Electron header checksum";
+        assert lib.assertMsg zarosHome.programs.hermes-agent.enable "Hermes CLI must be enabled on zaros";
+        assert lib.assertMsg zarosHome.programs.hermes-agent.desktop.enable
+          "Hermes desktop must be enabled on zaros";
+        assert lib.assertMsg zarosHome.services.hermes-agent.enable
+          "Hermes state must be managed by Home Manager";
+        assert lib.assertMsg (
+          zarosHome.services.hermes-agent.backend.mode == "dashboard"
+          && zarosHome.services.hermes-agent.backend.host == "127.0.0.1"
+        ) "Hermes dashboard must bind to loopback";
+        assert lib.assertMsg (
+          zarosHome.home.sessionVariables.HERMES_HOME == "${zarosHome.home.homeDirectory}/.hermes"
+        ) "Hermes CLI must use the existing personal state directory";
+        assert lib.assertMsg (builtins.hasAttr "hermes-backend" zarosHome.systemd.user.services)
+          "Hermes dashboard must have a systemd user service";
+        assert lib.assertMsg (
+          zarosHome.systemd.user.services.hermes-backend.Service.ExecStart == [
+            "${zarosHome.programs.hermes-agent.package}/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open"
+          ]
+        ) "Hermes service and CLI must use the same runtime";
+        assert lib.assertMsg (
+          zarosHome.services.hermes-agent.environmentFiles == [ ]
+          && zarosHome.services.hermes-agent.environment == { }
+          && zarosHome.services.hermes-agent.authFile == null
+        ) "Hermes must preserve existing runtime credentials";
+        assert lib.assertMsg (
+          !builtins.hasAttr "hermes-agent" zaros.systemd.services
+          && !builtins.hasAttr "hermes-backend" zaros.systemd.services
+        ) "Hermes must not run a second system-wide instance";
+        assert lib.assertMsg zaros.users.users.${zarosUser}.linger
+          "Hermes user service must survive logout";
+        assert lib.assertMsg (lib.all hermesInactive [
+          zarosWithoutHermes
+          self.nixosConfigurations.saradomin.config
+          self.nixosConfigurations.saradomin-vm.config
+        ]) "Disabled Hermes must install no applications, start no services, and manage no state";
+        pkgs.runCommand "hermes-agent-integration" { } "touch $out";
       mkZarosShell =
         shell:
         (inputs.nixpkgs.lib.nixosSystem {
@@ -179,6 +243,7 @@
         saradomin-vm = self.nixosConfigurations."saradomin-vm".config.system.build.toplevel;
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;
+        hermes-agent = hermesAgentCheck;
       })
       // (lib.optionalAttrs darwin {
         macbook = self.darwinConfigurations.macbook.config.system.build.toplevel;
