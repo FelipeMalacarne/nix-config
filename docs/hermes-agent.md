@@ -25,6 +25,134 @@ repository. Empty, symlinked, or non-regular token files fail setup rather than
 being silently replaced. An explicitly configured alternative token path (for
 example SOPS) is caller-managed; this feature does not create or change it.
 
+## Private web access over Tailscale
+
+Zaros also enables `my.hermes-agent.web`. The implementation is in
+`modules/features/programs/hermes-agent/config/web.nix` and is disabled by
+default on other hosts. Its host declaration is:
+
+```nix
+my.hermes-agent.web = {
+  enable = true;
+  publicUrl = "https://zaros.osiris-fish.ts.net";
+  environmentFile = config.sops.secrets.hermes-web.path;
+  restartTriggers = [ ../../secrets/hermes-web.yaml ];
+};
+```
+
+The host's actual secret declarations are conditional on both Hermes and web
+access being enabled. The public URL must match the device's real Tailscale DNS
+name; the proxy checks it rather than silently serving a different machine URL.
+
+### Ports and ownership
+
+- The existing **user** `hermes-backend.service` stays on `127.0.0.1:9119`, with
+  the same shared token and desktop launcher.
+- A second **user** `hermes-web.service` runs the same Nix-built Hermes package
+  against the same writable `~/.hermes`, on `127.0.0.1:9120` by default. It has
+  password authentication. `my.hermes-agent.web.port` changes this internal port.
+- The **system** `hermes-tailnet.service` runs Tailscale Serve in the foreground.
+  It forwards tailnet-only HTTPS to the authenticated web listener. It does not
+  run another agent account, open a LAN/public firewall port, or enable Funnel.
+
+The URL and login environment are scoped to the web service. They are not
+written into the shared `config.yaml` or `.env`: a shared non-loopback
+`dashboard.public_url` would engage the auth gate on the private Desktop
+backend and break its token-based connection. Both listeners share persisted
+configuration, skills, memory and session history, not in-flight process state.
+Avoid operating the same conversation concurrently through both listeners.
+
+An omitted URL port means HTTPS port 443. To leave 443 available for another
+application, change only:
+
+```nix
+my.hermes-agent.web.publicUrl = "https://zaros.osiris-fish.ts.net:8443";
+```
+
+This configures HTTPS on 8443 while the internal listener remains on 9120.
+Other applications can use other HTTPS ports on the same machine. Paths such
+as `/hermes/` and named Tailscale Services are intentionally outside this feature.
+Hermes session cookies are scoped to the hostname with `Path=/`, so other HTTPS
+ports on that hostname must be equally trusted. Port separation is not a
+credential-isolation boundary.
+
+The proxy refuses to replace an existing route on its selected HTTPS port,
+including routes owned by another foreground process. It leaves other ports
+alone. It checks Tailscale login, the expected DNS name and the dashboard's
+active auth gate before publishing. Failed readiness checks retry after five
+seconds; a user service cannot be ordered after a system service directly.
+
+No persistent `--bg` route or global `serve reset` is used. Stopping/removing
+this service interrupts its foreground Serve process, which removes its route.
+The unit restarts even after a clean foreground Serve exit because Tailscale can
+report watcher EOF as success while the daemon continues running. Explicit
+manager stops still suppress restarts. The unit also follows Tailscale daemon
+restarts. Setting
+`my.hermes-agent.web.enable = false` and activating removes both web units and
+Zaros's decrypted web secret, while preserving the desktop backend and encrypted
+credential source. Actual HTTPS access requires the machine to be awake.
+
+### Login and encrypted credentials
+
+The login username is `my.user.name` (`felipe` on Zaros). The generated password
+is encrypted in `secrets/hermes-web.yaml` using the repository's existing SOPS
+recipient. View it **in your own trusted terminal**, not in agent/chat output:
+
+```sh
+SOPS_AGE_KEY_FILE=/var/lib/sops-age/keys.txt \
+  sops decrypt --extract '["password"]' secrets/hermes-web.yaml
+```
+
+The encrypted `environment` field contains the scrypt password hash and a stable
+session-signing secret. SOPS delivers only that field to `/run/secrets/hermes-web`,
+owned by the account with mode `0400`. Systemd reads it as an `EnvironmentFile`;
+it is not an upstream `services.hermes-agent.environmentFiles` input and never
+reconstructs the existing `.env`. The plaintext password is not deployed.
+
+Only non-secret or encrypted inputs belong in `restartTriggers`; changes make
+Home Manager restart the web unit on activation, so rotated credentials take
+effect. A caller using another secret manager must arrange equivalent restart
+triggers. When rotating the password, update its encrypted recovery value and
+corresponding hash together. Keep the signing secret stable to preserve login
+sessions, or rotate it deliberately to invalidate them.
+
+This is an administrator dashboard, not a read-only chat share. Restrict the
+chosen port with tailnet access rules and protect the login accordingly.
+
+### Activation and checks
+
+After review and explicit approval, activate normally with
+`make switch HOST=zaros`. The device must already be enrolled in Tailscale, and HTTPS must be
+enabled for the tailnet. Those account-level settings are not changed by this
+module. Do not manually start a second persistent Serve route for the same port.
+
+Check after activation:
+
+```sh
+systemctl --user status hermes-backend.service hermes-web.service
+systemctl status hermes-tailnet.service
+tailscale serve status
+```
+
+Open the configured HTTPS URL from another authorized Tailscale-connected device
+and sign in. If it does not start, inspect `journalctl -u hermes-tailnet.service`
+and `journalctl --user -u hermes-web.service`. A mismatched DNS name, occupied
+HTTPS port, missing secret, logged-out device or missing HTTPS permission must
+be resolved rather than bypassing the guards.
+
+`checks.x86_64-linux.hermes-web` evaluates enabled/disabled hosts, alternative
+HTTPS ports, private credential delivery, unchanged firewall policy and rejected
+invalid configurations. `checks.x86_64-linux.hermes-web-runtime` launches the
+actual Nix-built private and web backends with disposable state. It checks
+password login, HTTPS cookies, unauthenticated rejection, authenticated chat
+WebSockets, ticket replay, host/origin guards, restart-surviving sessions and
+Desktop token compatibility, for both default and non-default HTTPS origins.
+The proxy preflight is exercised with explicit stub CLI/HTTP fixtures; these
+checks do not publish anything to the live tailnet or prove remote TLS access.
+
+The `hermes-agent` integration check also verifies the repository's declared
+approval policy; the web feature does not alter it.
+
 ## Configuration and credentials
 
 The feature preserves the selected model, `openai/gpt-5.6-sol`. Home Manager
@@ -34,8 +162,9 @@ configuration commands refuse changes, so change Nix-managed settings here and
 rebuild.
 
 The declared baseline enables memory and user-profile learning, secret redaction,
-verification-on-stop and filesystem checkpoints. `approvals.mode = "manual"`
-requires human approval for flagged commands rather than smart auto-approval.
+verification-on-stop and filesystem checkpoints. `approvals.mode = "smart"`
+assesses flagged commands automatically and prompts when uncertain; it does not
+require a human decision for every flagged command.
 `skills.write_approval = true` stages agent skill changes for review; use
 `/skills pending` and `/skills diff <id>` before approving a proposed lesson.
 These safeguards are not a sandbox, a backup, or a substitute for Git and Nix

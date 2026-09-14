@@ -98,7 +98,7 @@
               "enabled"
             ]
           ]
-          && (hermesSettings.approvals.mode or "") == "manual"
+          && (hermesSettings.approvals.mode or "") == "smart"
         ) "Hermes must explicitly enable learning, reviewed skill writes, and infrastructure safeguards";
         assert lib.assertMsg (
           builtins.hasAttr "hermesAgentWorkflow" zarosHome.home.activation
@@ -168,6 +168,141 @@
           self.nixosConfigurations.saradomin-vm.config
         ]) "Disabled Hermes must install no applications, start no services, and manage no state";
         pkgs.runCommand "hermes-agent-integration" { } "touch $out";
+      mkZarosWeb =
+        web:
+        (inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit self inputs; };
+          modules = [
+            ../hosts/zaros
+            { my.hermes-agent.web = lib.mapAttrs (_: value: lib.mkForce value) web; }
+          ];
+        }).config;
+      hermesWebOtherPort = mkZarosWeb { publicUrl = "https://zaros.osiris-fish.ts.net:8443"; };
+      hermesWebDisabled = mkZarosWeb { enable = false; };
+      hermesWebAbsent =
+        host:
+        !(host.systemd.services ? hermes-tailnet)
+        && !(host.home-manager.users.${host.my.user.name}.systemd.user.services ? hermes-web)
+        && !((lib.attrByPath [ "sops" "secrets" ] { } host) ? hermes-web);
+      hermesWebInvalid =
+        web:
+        let
+          evaluated = builtins.tryEval (
+            let
+              candidate = mkZarosWeb web;
+              assertions =
+                candidate.assertions ++ candidate.home-manager.users.${candidate.my.user.name}.assertions;
+            in
+            builtins.deepSeq candidate.my.hermes-agent.web.port (
+              builtins.deepSeq assertions (lib.all (a: a.assertion) assertions)
+            )
+          );
+        in
+        !evaluated.success || !evaluated.value;
+      hermesWebCheck =
+        assert lib.assertMsg (lib.attrByPath [
+          "my"
+          "hermes-agent"
+          "web"
+          "enable"
+        ] false zaros) "Zaros must explicitly select private Hermes web access";
+        assert lib.assertMsg (
+          zarosHome.systemd.user.services ? hermes-web
+        ) "Private web access must have a separate authenticated user dashboard, preserving Desktop";
+        assert lib.assertMsg (
+          builtins.elem "HERMES_DASHBOARD_PUBLIC_URL=https://zaros.osiris-fish.ts.net" zarosHome.systemd.user.services.hermes-web.Service.Environment
+          &&
+            zarosHome.systemd.user.services.hermes-web.Service.EnvironmentFile
+            == [ zaros.sops.secrets.hermes-web.path ]
+          && zarosHome.services.hermes-agent.environmentFiles == [ ]
+          && zarosHome.services.hermes-agent.environment == { }
+          && !((zarosHome.services.hermes-agent.settings.dashboard or { }) ? public_url)
+        ) "Web URL and SOPS credentials must be scoped to the web service, not shared Desktop state";
+        assert lib.assertMsg (
+          zaros.systemd.services ? hermes-tailnet
+        ) "Hermes web must have a managed Tailscale proxy";
+        assert lib.assertMsg (
+          lib.hasInfix "serve --yes --https=443 http://127.0.0.1:9120" zaros.systemd.services.hermes-tailnet.serviceConfig.ExecStart
+          && !(lib.hasInfix "--bg" zaros.systemd.services.hermes-tailnet.serviceConfig.ExecStart)
+          && zaros.systemd.services.hermes-tailnet.serviceConfig.Restart == "always"
+          && zaros.systemd.services.hermes-tailnet.serviceConfig.KillSignal == "SIGINT"
+          && builtins.elem "tailscaled.service" zaros.systemd.services.hermes-tailnet.partOf
+          && lib.hasInfix ".auth_required == true" zaros.systemd.services.hermes-tailnet.preStart
+        ) "The proxy must own and recover a foreground route, and wait for authenticated Hermes";
+        assert lib.assertMsg (
+          lib.hasInfix "serve --yes --https=8443 http://127.0.0.1:9120" hermesWebOtherPort.systemd.services.hermes-tailnet.serviceConfig.ExecStart
+          && lib.hasInfix "zaros.osiris-fish.ts.net." hermesWebOtherPort.systemd.services.hermes-tailnet.preStart
+          && lib.all (a: a.assertion) hermesWebOtherPort.assertions
+        ) "A port in publicUrl must configure HTTPS independently of the loopback backend port";
+        assert lib.assertMsg (lib.all hermesWebAbsent [
+          hermesWebDisabled
+          zarosWithoutHermes
+          self.nixosConfigurations.saradomin.config
+          self.nixosConfigurations.saradomin-vm.config
+        ]) "Disabling web access or Hermes must remove both web units and its decrypted secret";
+        assert lib.assertMsg (
+          zaros.networking.firewall.allowedTCPPorts == hermesWebDisabled.networking.firewall.allowedTCPPorts
+          &&
+            zaros.networking.firewall.trustedInterfaces
+            == hermesWebDisabled.networking.firewall.trustedInterfaces
+        ) "Hermes web must not widen firewall access or change Tailscale trust";
+        assert lib.assertMsg (lib.all hermesWebInvalid [
+          { publicUrl = "http://zaros.osiris-fish.ts.net"; }
+          { publicUrl = "https://zaros.osiris-fish.ts.net/path"; }
+          { publicUrl = "https://zaros.osiris-fish.ts.net:0"; }
+          { publicUrl = "https://zaros.osiris-fish.ts.net:65536"; }
+          { environmentFile = null; }
+          { environmentFile = "/nix/store/unsafe-secret"; }
+          { port = 0; }
+          { port = zarosHome.services.hermes-agent.backend.port; }
+        ]) "Unsafe origins, credentials paths and colliding listener ports must fail evaluation";
+        assert lib.assertMsg (
+          (zarosHome.systemd.user.services.hermes-web.Unit."X-Restart-Triggers" or [ ]) != [ ]
+          && zaros.sops.secrets.hermes-web.owner == zarosUser
+          && zaros.sops.secrets.hermes-web.mode == "0400"
+        ) "Encrypted credential updates must restart the web listener, with private user-owned delivery";
+        pkgs.runCommand "hermes-web-integration" { } "touch $out";
+      mkHermesWebManifest =
+        host:
+        let
+          home = host.home-manager.users.${host.my.user.name};
+        in
+        pkgs.writeText "hermes-web-runtime.json" (
+          builtins.toJSON {
+            private = home.systemd.user.services.hermes-backend.Service;
+            web = home.systemd.user.services.hermes-web.Service;
+            tokenFile = home.services.hermes-agent.backend.sessionTokenFile;
+            privatePort = home.services.hermes-agent.backend.port;
+            stateDirectories =
+              (import "${inputs.hermes-agent}/nix/moduleCommon.nix" { inherit lib; }).stateSubdirs;
+            publicUrl = host.my.hermes-agent.web.publicUrl;
+            preStart = host.systemd.services.hermes-tailnet.preStart;
+            tailscale = lib.getExe host.services.tailscale.package;
+            curl = lib.getExe pkgs.curl;
+            bash = lib.getExe pkgs.bash;
+          }
+        );
+      hermesWebRuntimeCheck = pkgs.runCommand "hermes-web-runtime" { } (
+        lib.concatMapStringsSep "\n"
+          (
+            host:
+            let
+              manifest = mkHermesWebManifest host;
+            in
+            ''
+              ${pkgs.python3.withPackages (ps: [ ps.websockets ])}/bin/python3 \
+                ${./features/programs/hermes-agent/config/test_web_runtime.py} ${manifest}
+              ${pkgs.python3}/bin/python3 \
+                ${./features/programs/hermes-agent/config/test_web_preflight.py} ${manifest}
+            ''
+          )
+          [
+            zaros
+            hermesWebOtherPort
+          ]
+        + "\ntouch $out\n"
+      );
       hermesDesktop = lib.findFirst (
         package: lib.getName package == "hermes-desktop"
       ) null zarosHome.home.packages;
@@ -350,6 +485,8 @@
         shell-providers = shellProvidersCheck;
         hermes-agent = hermesAgentCheck;
         hermes-runtime-state = hermesRuntimeCheck;
+        hermes-web = hermesWebCheck;
+        hermes-web-runtime = hermesWebRuntimeCheck;
       })
       // (lib.optionalAttrs darwin {
         macbook = self.darwinConfigurations.macbook.config.system.build.toplevel;

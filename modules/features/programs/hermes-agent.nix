@@ -53,8 +53,8 @@ let
               user_profile_enabled = true;
             };
             skills.write_approval = true;
-            # Prompt for flagged commands instead of auto-approving infrastructure changes.
-            # approvals.mode = "manual";
+            # Assess flagged commands automatically; prompt when uncertain.
+            approvals.mode = "smart";
             security.redact_secrets = true;
             agent.verify_on_stop = true;
             checkpoints.enabled = true;
@@ -87,6 +87,8 @@ in
   flake.modules.nixos.hermes-agent =
     { config, lib, ... }:
     {
+      imports = [ ./hermes-agent/config/web.nix ];
+
       options.my.hermes-agent.enable = lib.mkEnableOption "personal Hermes Agent";
 
       config = {

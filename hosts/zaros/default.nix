@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   self,
   ...
@@ -77,6 +78,22 @@ in
   my.nvidia.enable = true;
   my.gaming.enable = true;
   my.hermes-agent.enable = true;
+  my.hermes-agent.web = {
+    enable = true;
+    publicUrl = "https://zaros.osiris-fish.ts.net";
+    restartTriggers = [ ../../secrets/hermes-web.yaml ];
+    environmentFile = lib.mkIf (
+      config.my.hermes-agent.enable && config.my.hermes-agent.web.enable
+    ) config.sops.secrets.hermes-web.path;
+  };
+  sops.secrets.hermes-web =
+    lib.mkIf (config.my.hermes-agent.enable && config.my.hermes-agent.web.enable)
+      {
+        sopsFile = ../../secrets/hermes-web.yaml;
+        key = "environment";
+        owner = user;
+        mode = "0400";
+      };
   system.stateVersion = "24.11";
 
   security.pki.certificateFiles = [
