@@ -15,6 +15,27 @@
       zaros = self.nixosConfigurations.zaros.config;
       zarosUser = zaros.my.user.name;
       zarosHome = zaros.home-manager.users.${zarosUser};
+      hermesSettings = zarosHome.services.hermes-agent.settings;
+      mkHermesHome =
+        services:
+        (inputs.home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [
+            self.modules.homeManager.hermes-agent
+            {
+              home = {
+                username = "hermes-check";
+                homeDirectory = "/home/hermes-check";
+                stateVersion = "24.11";
+              };
+              my.hermes-agent.enable = true;
+              services.hermes-agent = services;
+            }
+          ];
+        }).config;
+      hermesExternalToken = mkHermesHome { backend.sessionTokenFile = "/run/hermes-check/token"; };
+      hermesWithoutBackend = mkHermesHome { backend.mode = "none"; };
+      hermesWithoutService = mkHermesHome { enable = lib.mkForce false; };
       zarosWithoutHermes =
         (inputs.nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
@@ -35,6 +56,8 @@
         && !home.services.hermes-agent.enable
         && !builtins.hasAttr "HERMES_HOME" home.home.sessionVariables
         && !builtins.hasAttr "hermesAgentSetup" home.home.activation
+        && !builtins.hasAttr "hermesAgentWorkflow" home.home.activation
+        && !builtins.hasAttr "hermesAgentSessionToken" home.home.activation
         && !builtins.hasAttr "hermes-backend" home.systemd.user.services
         && !builtins.hasAttr "hermes-agent" home.systemd.user.services;
       hermesAgentCheck =
@@ -49,6 +72,64 @@
         assert lib.assertMsg zarosHome.services.hermes-agent.enable
           "Hermes state must be managed by Home Manager";
         assert lib.assertMsg (
+          lib.all (path: lib.attrByPath path false hermesSettings) [
+            [
+              "memory"
+              "memory_enabled"
+            ]
+            [
+              "memory"
+              "user_profile_enabled"
+            ]
+            [
+              "skills"
+              "write_approval"
+            ]
+            [
+              "security"
+              "redact_secrets"
+            ]
+            [
+              "agent"
+              "verify_on_stop"
+            ]
+            [
+              "checkpoints"
+              "enabled"
+            ]
+          ]
+          && (hermesSettings.approvals.mode or "") == "manual"
+        ) "Hermes must explicitly enable learning, reviewed skill writes, and infrastructure safeguards";
+        assert lib.assertMsg (
+          builtins.hasAttr "hermesAgentWorkflow" zarosHome.home.activation
+          && builtins.elem "hermesAgentSetup" zarosHome.home.activation.hermesAgentWorkflow.after
+          && zarosHome.services.hermes-agent.hermesHomeFiles == { }
+        ) "Hermes must seed a writable workflow after state setup without replacing learned files";
+        assert lib.assertMsg (lib.all
+          (
+            package:
+            builtins.elem package zarosHome.services.hermes-agent.extraPackages
+            && lib.hasInfix (builtins.unsafeDiscardStringContext "${package}/bin") (
+              lib.concatStringsSep "\n" zarosHome.systemd.user.services.hermes-backend.Service.Environment
+            )
+          )
+          (
+            with pkgs;
+            [
+              nix
+              nixfmt
+              gnumake
+              git
+              jq
+              ripgrep
+              fd
+              uv
+              curl
+              systemd
+            ]
+          )
+        ) "Hermes backend must receive its Nix workflow tools without relying on an interactive shell";
+        assert lib.assertMsg (
           zarosHome.services.hermes-agent.backend.mode == "dashboard"
           && zarosHome.services.hermes-agent.backend.host == "127.0.0.1"
         ) "Hermes dashboard must bind to loopback";
@@ -58,10 +139,18 @@
         assert lib.assertMsg (builtins.hasAttr "hermes-backend" zarosHome.systemd.user.services)
           "Hermes dashboard must have a systemd user service";
         assert lib.assertMsg (
-          zarosHome.systemd.user.services.hermes-backend.Service.ExecStart == [
-            "${zarosHome.programs.hermes-agent.package}/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open"
-          ]
-        ) "Hermes service and CLI must use the same runtime";
+          zarosHome.services.hermes-agent.backend.sessionTokenFile
+          == "${zarosHome.services.hermes-agent.hermesHome}/.backend-session-token"
+          && builtins.hasAttr "hermesAgentSessionToken" zarosHome.home.activation
+          && builtins.elem "hermesAgentSetup" zarosHome.home.activation.hermesAgentSessionToken.after
+          && builtins.elem "reloadSystemd" zarosHome.home.activation.hermesAgentSessionToken.before
+        ) "Hermes desktop and backend must share a token initialized after state setup";
+        assert lib.assertMsg (
+          !(hermesExternalToken.home.activation ? hermesAgentSessionToken)
+          && !(hermesWithoutBackend.home.activation ? hermesAgentSessionToken)
+          && !(hermesWithoutService.home.activation ? hermesAgentSessionToken)
+          && !(hermesWithoutService.home.activation ? hermesAgentWorkflow)
+        ) "Hermes must not provision caller-managed tokens or state for disabled services";
         assert lib.assertMsg (
           zarosHome.services.hermes-agent.environmentFiles == [ ]
           && zarosHome.services.hermes-agent.environment == { }
@@ -79,6 +168,22 @@
           self.nixosConfigurations.saradomin-vm.config
         ]) "Disabled Hermes must install no applications, start no services, and manage no state";
         pkgs.runCommand "hermes-agent-integration" { } "touch $out";
+      hermesDesktop = lib.findFirst (
+        package: lib.getName package == "hermes-desktop"
+      ) null zarosHome.home.packages;
+      hermesBackendLauncher = builtins.head zarosHome.systemd.user.services.hermes-backend.Service.ExecStart;
+      hermesRuntimeCheck = pkgs.runCommand "hermes-runtime-state" { } ''
+        ${pkgs.python3}/bin/python3 ${./features/programs/hermes-agent/config}/test_runtime_state.py -v
+
+        # Inspect the actual upstream-generated launchers, not copies of them.
+        grep -Fq 'HERMES_DASHBOARD_SESSION_TOKEN' ${hermesBackendLauncher}
+        grep -Fq '${zarosHome.services.hermes-agent.backend.sessionTokenFile}' ${hermesBackendLauncher}
+        grep -Fq '${zarosHome.programs.hermes-agent.package}/bin/hermes' ${hermesBackendLauncher}
+        grep -Fq 'HERMES_DESKTOP_REMOTE_TOKEN' ${hermesDesktop}/bin/hermes-desktop
+        grep -Fq 'http://127.0.0.1:9119' ${hermesDesktop}/bin/hermes-desktop
+        grep -Fq '${zarosHome.services.hermes-agent.backend.sessionTokenFile}' ${hermesDesktop}/bin/hermes-desktop
+        touch $out
+      '';
       mkZarosShell =
         shell:
         (inputs.nixpkgs.lib.nixosSystem {
@@ -244,6 +349,7 @@
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;
         hermes-agent = hermesAgentCheck;
+        hermes-runtime-state = hermesRuntimeCheck;
       })
       // (lib.optionalAttrs darwin {
         macbook = self.darwinConfigurations.macbook.config.system.build.toplevel;

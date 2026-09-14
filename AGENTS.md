@@ -115,6 +115,15 @@ cross-host activation requires `DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1`. Rollback
 never accepts cross-host overrides. CI runs `nix flake check --impure` on native
 Linux and Apple-Silicon macOS and does not deploy or decrypt secrets.
 
+Agents must finish formatting, evaluation and affected-closure builds before
+claiming a configuration is ready. Activation (`switch`, `test`, `boot`), rollback,
+reboot, remote deployment and session-interrupting service restarts require
+explicit user approval; a request to edit or build is not approval to deploy.
+Use project Nix development shells for dependencies, temporary `nix shell`
+environments for one-off tools, and private venvs/uv for scratch Python. Never
+install into system Python or modify the Nix store. Save reusable verified
+lessons as reviewed skills rather than adding task history to global memory.
+
 Native graphical-session smoke tests, backup/restore, and hardening remain
 deferred. In particular, do not change password-hash ownership, SSH/firewall
 policy, Tailscale trust, Disko device safety, Darwin SOPS bootstrap, or backup
