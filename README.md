@@ -12,6 +12,9 @@ compose reusable profiles and features without duplicating policy.
 | `saradomin-vm` | NixOS, x86_64 | Server VM variant |
 | `macbook` | nix-darwin, Apple Silicon | Development laptop |
 
+Saradomin's DNS architecture and router setup are documented in
+[`docs/adguard-home.md`](docs/adguard-home.md).
+
 ## Architecture
 
 The dependency direction is **host -> profile -> feature -> upstream module**.

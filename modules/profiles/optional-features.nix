@@ -5,6 +5,7 @@ in
 {
   flake.modules.nixos.optional-features = {
     imports = with registry.nixos; [
+      adguard-home
       docker
       flatpak
       gaming

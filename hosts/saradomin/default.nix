@@ -32,6 +32,28 @@ in
     "saradomin"
     "saradomin.tail34cc60.ts.net"
   ];
+  my.adguard-home = {
+    enable = true;
+    listenAddresses = [
+      "10.10.0.10"
+      "100.106.58.87"
+    ];
+    lanCidrs = [ "10.10.0.0/22" ];
+    zones = [
+      "saradomin.ftm.dev.br"
+      "saradomin"
+    ];
+    views = [
+      {
+        clientCidr = "10.10.0.0/22";
+        answer = "10.10.0.10";
+      }
+      {
+        clientCidr = "100.64.0.0/10";
+        answer = "100.95.138.31";
+      }
+    ];
+  };
   my.openssh.enable = true;
   my.tailscale.enable = true;
   my.k3s.enable = true;

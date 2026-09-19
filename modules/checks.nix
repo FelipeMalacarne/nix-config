@@ -13,6 +13,7 @@
       linux = system == "x86_64-linux";
       darwin = system == "aarch64-darwin";
       zaros = self.nixosConfigurations.zaros.config;
+      saradomin = self.nixosConfigurations.saradomin.config;
       zarosUser = zaros.my.user.name;
       zarosHome = zaros.home-manager.users.${zarosUser};
       sopsEnvironmentCheck =
@@ -20,6 +21,60 @@
           (zarosHome.home.sessionVariables.SOPS_AGE_KEY_FILE or null) == "/var/lib/sops-age/keys.txt"
         ) "Interactive shells must discover the configured SOPS age identity";
         pkgs.runCommand "sops-environment" { } "touch $out";
+      saradominLanDnsCheck =
+        assert lib.assertMsg (
+          lib.hasInfix "-s 10.10.0.0/22 -p udp --dport 53 -j nixos-fw-accept" saradomin.networking.firewall.extraCommands
+          && lib.hasInfix "-s 10.10.0.0/22 -p tcp --dport 53 -j nixos-fw-accept" saradomin.networking.firewall.extraCommands
+        ) "Saradomin DNS must be reachable from the home LAN over UDP and TCP only";
+        pkgs.runCommand "saradomin-lan-dns" { } "touch $out";
+      saradominAdGuardHomeCheck =
+        let
+          settings = saradomin.services.adguardhome.settings;
+        in
+        assert lib.assertMsg saradomin.services.adguardhome.enable
+          "Saradomin must run AdGuard Home outside Kubernetes";
+        assert lib.assertMsg (
+          !saradomin.services.adguardhome.mutableSettings
+        ) "Saradomin AdGuard Home configuration must remain declarative";
+        assert lib.assertMsg (
+          saradomin.services.adguardhome.settings.dns.bind_hosts == [
+            "10.10.0.10"
+            "100.106.58.87"
+          ]
+          && saradomin.services.adguardhome.settings.dns.port == 53
+        ) "AdGuard Home must serve DNS on the Saradomin LAN and Tailscale addresses";
+        assert lib.assertMsg (
+          settings.dns.upstream_dns == [
+            "https://cloudflare-dns.com/dns-query"
+            "https://dns.quad9.net/dns-query"
+          ]
+          && settings.dns.dnssec_enabled
+          && settings.filtering.protection_enabled
+          && settings.filtering.filtering_enabled
+          &&
+            settings.filters == [
+              {
+                enabled = true;
+                id = 1;
+                name = "AdGuard DNS filter";
+                url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt";
+              }
+            ]
+        ) "AdGuard Home must use encrypted upstreams and enable DNS filtering";
+        assert lib.assertMsg (
+          settings.user_rules == [
+            "||saradomin.ftm.dev.br^$client=10.10.0.0/22,dnstype=A,dnsrewrite=NOERROR;A;10.10.0.10"
+            "||saradomin.ftm.dev.br^$client=100.64.0.0/10,dnstype=A,dnsrewrite=NOERROR;A;100.95.138.31"
+            "||saradomin.ftm.dev.br^$dnstype=AAAA,dnsrewrite=NOERROR;;"
+            "||saradomin^$client=10.10.0.0/22,dnstype=A,dnsrewrite=NOERROR;A;10.10.0.10"
+            "||saradomin^$client=100.64.0.0/10,dnstype=A,dnsrewrite=NOERROR;A;100.95.138.31"
+            "||saradomin^$dnstype=AAAA,dnsrewrite=NOERROR;;"
+          ]
+        ) "AdGuard Home must provide client-aware split DNS and empty AAAA responses";
+        assert lib.assertMsg (
+          saradomin.services.adguardhome.host == "127.0.0.1" && saradomin.services.adguardhome.port == 3000
+        ) "The unauthenticated AdGuard Home UI must remain loopback-only";
+        pkgs.runCommand "saradomin-adguard-home" { } "touch $out";
       hermesSettings = zarosHome.services.hermes-agent.settings;
       mkHermesHome =
         services:
@@ -487,6 +542,8 @@
         zaros = self.nixosConfigurations.zaros.config.system.build.toplevel;
         saradomin = self.nixosConfigurations.saradomin.config.system.build.toplevel;
         saradomin-vm = self.nixosConfigurations."saradomin-vm".config.system.build.toplevel;
+        saradomin-lan-dns = saradominLanDnsCheck;
+        saradomin-adguard-home = saradominAdGuardHomeCheck;
         sops-environment = sopsEnvironmentCheck;
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;
