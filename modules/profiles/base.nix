@@ -29,6 +29,7 @@ in
   flake.modules.homeManager.base = {
     imports = with registry.homeManager; [
       infrastructure
+      sops
       zsh
       git
       ssh

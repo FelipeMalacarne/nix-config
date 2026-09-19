@@ -24,6 +24,7 @@
         unzip
         zip
         zstd
+        libmtp
       ];
       xdg.configFile."kdeglobals".text = ''
         [General]
@@ -90,6 +91,11 @@
       user = config.my.user.name;
     in
     {
+
+      services.gvfs.enable = true;
+
+      users.users.${user}.extraGroups = [ "dialout" ];
+
       nixpkgs.overlays = [
         (final: prev: {
           kdePackages = prev.kdePackages.overrideScope (

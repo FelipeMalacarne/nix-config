@@ -15,6 +15,11 @@
       zaros = self.nixosConfigurations.zaros.config;
       zarosUser = zaros.my.user.name;
       zarosHome = zaros.home-manager.users.${zarosUser};
+      sopsEnvironmentCheck =
+        assert lib.assertMsg (
+          (zarosHome.home.sessionVariables.SOPS_AGE_KEY_FILE or null) == "/var/lib/sops-age/keys.txt"
+        ) "Interactive shells must discover the configured SOPS age identity";
+        pkgs.runCommand "sops-environment" { } "touch $out";
       hermesSettings = zarosHome.services.hermes-agent.settings;
       mkHermesHome =
         services:
@@ -193,9 +198,10 @@
               candidate = mkZarosWeb web;
               assertions =
                 candidate.assertions ++ candidate.home-manager.users.${candidate.my.user.name}.assertions;
+              assertionResults = map (assertion: assertion.assertion) assertions;
             in
             builtins.deepSeq candidate.my.hermes-agent.web.port (
-              builtins.deepSeq assertions (lib.all (a: a.assertion) assertions)
+              builtins.deepSeq assertionResults (lib.all lib.id assertionResults)
             )
           );
         in
@@ -481,6 +487,7 @@
         zaros = self.nixosConfigurations.zaros.config.system.build.toplevel;
         saradomin = self.nixosConfigurations.saradomin.config.system.build.toplevel;
         saradomin-vm = self.nixosConfigurations."saradomin-vm".config.system.build.toplevel;
+        sops-environment = sopsEnvironmentCheck;
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;
         hermes-agent = hermesAgentCheck;
