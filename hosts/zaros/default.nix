@@ -54,38 +54,43 @@ in
     };
   };
 
-  my.rgb = {
-    enable = true;
-    color = config.my.colors.secondary;
+  my = {
+    rgb = {
+      enable = true;
+      color = config.my.colors.secondary;
+    };
+    restic = {
+      enable = true;
+      paths = [
+        "/home/${user}/Documents"
+        "/home/${user}/.local/share/PrismLauncher/instances/ProjectOzone 3/minecraft/saves"
+        "/home/${user}/.runelite/screenshots"
+
+      ];
+    };
+    docker.enable = true;
+    virtualization.enable = true;
+    ollama.enable = true;
+    sunshine.enable = false;
+    flatpak.enable = true;
+    openssh.enable = true;
+    tailscale.enable = true;
+    nvidia.enable = true;
+    gaming.enable = true;
+
+    hermes-agent = {
+      enable = true;
+      web = {
+        enable = true;
+        publicUrl = "https://zaros.osiris-fish.ts.net";
+        restartTriggers = [ ../../secrets/hermes-web.yaml ];
+        environmentFile = lib.mkIf (
+          config.my.hermes-agent.enable && config.my.hermes-agent.web.enable
+        ) config.sops.secrets.hermes-web.path;
+      };
+    };
   };
 
-  my.restic = {
-    enable = true;
-    paths = [
-      "/home/${user}/Documents"
-      "/home/${user}/.local/share/PrismLauncher/instances/ProjectOzone 3/minecraft/saves"
-      "/home/${user}/.runelite/screenshots"
-
-    ];
-  };
-  my.docker.enable = true;
-  my.virtualization.enable = true;
-  my.ollama.enable = true;
-  my.sunshine.enable = true;
-  my.flatpak.enable = true;
-  my.openssh.enable = true;
-  my.tailscale.enable = true;
-  my.nvidia.enable = true;
-  my.gaming.enable = true;
-  my.hermes-agent.enable = true;
-  my.hermes-agent.web = {
-    enable = true;
-    publicUrl = "https://zaros.osiris-fish.ts.net";
-    restartTriggers = [ ../../secrets/hermes-web.yaml ];
-    environmentFile = lib.mkIf (
-      config.my.hermes-agent.enable && config.my.hermes-agent.web.enable
-    ) config.sops.secrets.hermes-web.path;
-  };
   sops.secrets.hermes-web =
     lib.mkIf (config.my.hermes-agent.enable && config.my.hermes-agent.web.enable)
       {
