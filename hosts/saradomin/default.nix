@@ -38,6 +38,8 @@ in
       "10.10.0.10"
       "100.106.58.87"
     ];
+    webAddress = "10.10.0.10";
+    webProxyCidrs = [ "10.42.0.0/16" ];
     lanCidrs = [ "10.10.0.0/22" ];
     zones = [
       "saradomin.ftm.dev.br"

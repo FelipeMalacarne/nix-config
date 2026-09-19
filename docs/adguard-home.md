@@ -26,14 +26,18 @@ on restart.
 
 ## Web interface
 
-Open an SSH tunnel from a trusted workstation:
+Use the internal HTTPS name from the home network:
 
-```sh
-ssh -L 3000:127.0.0.1:3000 saradomin
-```
+`https://adguard.saradomin.ftm.dev.br`
 
-Then open `http://127.0.0.1:3000`. Do not expose this interface directly until
-an authenticated access path is configured.
+Traefik proxies this name to the AdGuard Home listener on `10.10.0.10:3000`.
+The host firewall permits that port only from the K3s pod network, so LAN
+clients cannot bypass HTTPS by connecting to port 3000 directly. The dashboard
+is not exposed through the public Cloudflare Tunnel.
+
+AdGuard Home currently has no application-level login. Treat the home LAN and
+tailnet as the administrative trust boundary; add dashboard authentication if
+untrusted clients are later allowed onto those networks.
 
 ## TP-Link Deco
 
@@ -59,5 +63,5 @@ Deploy the Gielinor change first and wait for Argo CD to prune
 `coredns-saradomin`. Then activate the Saradomin NixOS configuration. Confirm
 that TCP and UDP port 53 are free before activation.
 
-DNS and routing do not provide a browser-trusted TLS certificate. Certificate
-issuance for `*.saradomin.ftm.dev.br` remains separate work.
+Traefik serves the Let's Encrypt wildcard certificate for
+`*.saradomin.ftm.dev.br`, managed by cert-manager in the Gielinor repository.

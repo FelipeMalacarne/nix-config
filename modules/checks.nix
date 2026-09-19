@@ -72,8 +72,12 @@
           ]
         ) "AdGuard Home must provide client-aware split DNS and empty AAAA responses";
         assert lib.assertMsg (
-          saradomin.services.adguardhome.host == "127.0.0.1" && saradomin.services.adguardhome.port == 3000
-        ) "The unauthenticated AdGuard Home UI must remain loopback-only";
+          saradomin.services.adguardhome.host == "10.10.0.10"
+          && saradomin.services.adguardhome.port == 3000
+          && lib.hasInfix "-s 10.42.0.0/16 -p tcp --dport 3000 -j nixos-fw-accept" saradomin.networking.firewall.extraCommands
+          && !(builtins.elem 3000 saradomin.networking.firewall.allowedTCPPorts)
+          && !(saradomin.systemd.services ? adguard-home-tailnet)
+        ) "The AdGuard Home UI must be reachable only through the in-cluster reverse proxy";
         pkgs.runCommand "saradomin-adguard-home" { } "touch $out";
       hermesSettings = zarosHome.services.hermes-agent.settings;
       mkHermesHome =

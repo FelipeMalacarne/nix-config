@@ -21,6 +21,18 @@
           description = "IP addresses on which AdGuard Home serves DNS.";
         };
 
+        webAddress = lib.mkOption {
+          type = lib.types.str;
+          default = "127.0.0.1";
+          description = "IP address on which the AdGuard Home web interface listens.";
+        };
+
+        webProxyCidrs = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = "Source CIDRs allowed to reach the AdGuard Home web interface.";
+        };
+
         lanCidrs = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [ ];
@@ -71,12 +83,16 @@
             assertion = cfg.views != [ ];
             message = "my.adguard-home.views must contain at least one client mapping.";
           }
+          {
+            assertion = cfg.webAddress == "127.0.0.1" || cfg.webProxyCidrs != [ ];
+            message = "A non-loopback AdGuard Home webAddress requires at least one webProxyCidrs entry.";
+          }
         ];
 
         services.adguardhome = {
           enable = true;
           mutableSettings = false;
-          host = "127.0.0.1";
+          host = cfg.webAddress;
           port = 3000;
           settings = {
             users = [ ];
@@ -117,10 +133,15 @@
           };
         };
 
-        networking.firewall.extraCommands = lib.concatMapStringsSep "\n" (cidr: ''
-          iptables -A nixos-fw -s ${cidr} -p udp --dport 53 -j nixos-fw-accept
-          iptables -A nixos-fw -s ${cidr} -p tcp --dport 53 -j nixos-fw-accept
-        '') cfg.lanCidrs;
+        networking.firewall.extraCommands = lib.concatStringsSep "\n" [
+          (lib.concatMapStringsSep "\n" (cidr: ''
+            iptables -A nixos-fw -s ${cidr} -p udp --dport 53 -j nixos-fw-accept
+            iptables -A nixos-fw -s ${cidr} -p tcp --dport 53 -j nixos-fw-accept
+          '') cfg.lanCidrs)
+          (lib.concatMapStringsSep "\n" (cidr: ''
+            iptables -A nixos-fw -s ${cidr} -p tcp --dport 3000 -j nixos-fw-accept
+          '') cfg.webProxyCidrs)
+        ];
       };
     };
 }
