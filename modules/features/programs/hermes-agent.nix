@@ -58,6 +58,9 @@ let
             security.redact_secrets = true;
             agent.verify_on_stop = true;
             checkpoints.enabled = true;
+            # Forward the Home Manager-managed multi-cluster kubeconfig to
+            # Hermes terminal tools without exposing its contents in config.
+            terminal.env_passthrough = [ "KUBECONFIG" ];
           };
           # Leave environmentFiles/authFile unset to preserve existing credentials.
         };
