@@ -164,6 +164,9 @@
           ]
           && (hermesSettings.approvals.mode or "") == "smart"
         ) "Hermes must explicitly enable learning, reviewed skill writes, and infrastructure safeguards";
+        assert lib.assertMsg (builtins.elem "KUBECONFIG" (
+          lib.attrByPath [ "terminal" "env_passthrough" ] [ ] hermesSettings
+        )) "Hermes terminal tools must receive the Home Manager-managed Kubernetes config path";
         assert lib.assertMsg (
           builtins.hasAttr "hermesAgentWorkflow" zarosHome.home.activation
           && builtins.elem "hermesAgentSetup" zarosHome.home.activation.hermesAgentWorkflow.after

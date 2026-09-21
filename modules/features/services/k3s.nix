@@ -19,13 +19,16 @@
           extraFlags = toString ([ "--disable=traefik" ] ++ map (san: "--tls-san=${san}") cfg.tlsSans);
         };
 
-        # host paths that k3s pods mount via hostPath / local-path PVCs
+        # Media containers use PUID/PGID 1001 and need to create library and
+        # download entries in these hostPath directories.
         systemd.tmpfiles.rules = [
-          "d /data/media/movies  0755 root root -"
-          "d /data/media/tv      0755 root root -"
-          "d /data/media/music   0755 root root -"
-          "d /data/media/books   0755 root root -"
-          "d /data/downloads     0755 root root -"
+          "d /data/media/movies          0775 1001 1001 -"
+          "d /data/media/tv              0775 1001 1001 -"
+          "d /data/media/music           0775 1001 1001 -"
+          "d /data/media/books           0775 1001 1001 -"
+          "d /data/downloads             0775 1001 1001 -"
+          "d /data/downloads/complete    0775 1001 1001 -"
+          "d /data/downloads/incomplete  0775 1001 1001 -"
         ];
 
         # open k3s api port within tailscale interface only
