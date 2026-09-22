@@ -47,7 +47,7 @@ let
             sessionTokenFile = lib.mkDefault tokenFile;
           };
           settings = {
-            model.default = "openai/gpt-5.6-sol";
+            model.default = "openai/gpt-5.6-luna";
             memory = {
               memory_enabled = true;
               user_profile_enabled = true;
