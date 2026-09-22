@@ -20,15 +20,28 @@
         };
 
         # Media containers use PUID/PGID 1001 and need to create library and
-        # download entries in these hostPath directories.
+        # download entries in these hostPath directories. Keep the `e` rules
+        # alongside `d`: `d` covers a fresh host, while `e` repairs ownership
+        # and mode on directories that already existed before this config.
         systemd.tmpfiles.rules = [
-          "d /data/media/movies          0775 1001 1001 -"
-          "d /data/media/tv              0775 1001 1001 -"
-          "d /data/media/music           0775 1001 1001 -"
-          "d /data/media/books           0775 1001 1001 -"
-          "d /data/downloads             0775 1001 1001 -"
-          "d /data/downloads/complete    0775 1001 1001 -"
-          "d /data/downloads/incomplete  0775 1001 1001 -"
+          "d /data 0775 1001 1001 -"
+          "d /data/media 0775 1001 1001 -"
+          "d /data/media/movies 0775 1001 1001 -"
+          "d /data/media/tv 0775 1001 1001 -"
+          "d /data/media/music 0775 1001 1001 -"
+          "d /data/media/books 0775 1001 1001 -"
+          "d /data/downloads 0775 1001 1001 -"
+          "d /data/downloads/complete 0775 1001 1001 -"
+          "d /data/downloads/incomplete 0775 1001 1001 -"
+          "e /data 0775 1001 1001 -"
+          "e /data/media 0775 1001 1001 -"
+          "e /data/media/movies 0775 1001 1001 -"
+          "e /data/media/tv 0775 1001 1001 -"
+          "e /data/media/music 0775 1001 1001 -"
+          "e /data/media/books 0775 1001 1001 -"
+          "e /data/downloads 0775 1001 1001 -"
+          "e /data/downloads/complete 0775 1001 1001 -"
+          "e /data/downloads/incomplete 0775 1001 1001 -"
         ];
 
         # open k3s api port within tailscale interface only

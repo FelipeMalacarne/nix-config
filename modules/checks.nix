@@ -79,6 +79,26 @@
           && !(saradomin.systemd.services ? adguard-home-tailnet)
         ) "The AdGuard Home UI must be reachable only through the in-cluster reverse proxy";
         pkgs.runCommand "saradomin-adguard-home" { } "touch $out";
+      saradominMediaPermissionsCheck =
+        let
+          rules = lib.concatStringsSep "\n" saradomin.systemd.tmpfiles.rules;
+          paths = [
+            "/data"
+            "/data/media"
+            "/data/media/movies"
+            "/data/media/tv"
+            "/data/media/music"
+            "/data/media/books"
+            "/data/downloads"
+            "/data/downloads/complete"
+            "/data/downloads/incomplete"
+          ];
+        in
+        assert lib.assertMsg (
+          lib.all (path: lib.hasInfix "d ${path} 0775 1001 1001 -" rules) paths
+          && lib.all (path: lib.hasInfix "e ${path} 0775 1001 1001 -" rules) paths
+        ) "Saradomin media host paths must create and repair UID/GID 1001 ownership";
+        pkgs.runCommand "saradomin-media-permissions" { } "touch $out";
       hermesSettings = zarosHome.services.hermes-agent.settings;
       mkHermesHome =
         services:
@@ -551,6 +571,7 @@
         saradomin-vm = self.nixosConfigurations."saradomin-vm".config.system.build.toplevel;
         saradomin-lan-dns = saradominLanDnsCheck;
         saradomin-adguard-home = saradominAdGuardHomeCheck;
+        saradomin-media-permissions = saradominMediaPermissionsCheck;
         sops-environment = sopsEnvironmentCheck;
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;
