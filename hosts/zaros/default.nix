@@ -28,6 +28,7 @@ in
     office
     webos-dev-manager
     torrent
+    signal
   ];
 
   environment.systemPackages = [
