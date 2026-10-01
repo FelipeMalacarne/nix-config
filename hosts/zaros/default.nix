@@ -18,22 +18,26 @@ in
     self.modules.nixos.development
   ];
 
-  home-manager.users.${user}.imports = with self.modules.homeManager; [
-    linux-base
-    desktop
-    ankama-launcher
-    scape2011
-    development
-    microbot
-    office
-    webos-dev-manager
-    torrent
-    signal
-  ];
+  home-manager.users.${user} = {
+    imports = with self.modules.homeManager; [
+      linux-base
+      desktop
+      ankama-launcher
+      scape2011
+      development
+      microbot
+      office
+      webos-dev-manager
+      torrent
+      signal
+    ];
 
-  environment.systemPackages = [
-    pkgs.google-chrome
-  ];
+    home.packages = with pkgs; [
+      google-chrome
+    ];
+
+  };
+
   programs.chromium.enable = true;
 
   networking.hostName = "zaros";
@@ -43,19 +47,11 @@ in
     packages = [ pkgs.terminus_font ];
   };
 
-  systemd.services.enable-wol = {
-    description = "Enable Wake-on-LAN on enp12s0";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-pre.target" ];
-    before = [ "network.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.ethtool}/bin/ethtool -s enp12s0 wol g";
-      RemainAfterExit = "yes";
-    };
-  };
-
   my = {
+    wol = {
+      enable = true;
+      interface = "enp12s0";
+    };
     rgb = {
       enable = true;
       color = config.my.colors.secondary;

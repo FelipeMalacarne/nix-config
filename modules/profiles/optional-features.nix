@@ -19,6 +19,7 @@ in
       sunshine
       tailscale
       virtualization
+      wol
     ];
   };
 }
