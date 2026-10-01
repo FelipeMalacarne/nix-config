@@ -7,7 +7,6 @@
 let
   cfg = config.my.hermes-agent.web;
   user = config.my.user.name;
-  enabled = config.my.hermes-agent.enable && cfg.enable;
   origin = builtins.match "https://([a-z0-9-]+\\.[a-z0-9-]+\\.ts\\.net)(:([1-9][0-9]*))?" cfg.publicUrl;
   hostname = if origin == null then "" else builtins.elemAt origin 0;
   httpsPort =
@@ -48,7 +47,7 @@ in
     };
   };
 
-  config = lib.mkIf enabled {
+  config = lib.mkIf cfg.enable {
     assertions = [
       {
         assertion = config.services.tailscale.enable;

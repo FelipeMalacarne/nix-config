@@ -10,17 +10,13 @@
       cfg = config.my.wol;
     in
     {
-      options.my.wol = {
-        enable = lib.mkEnableOption "Wake-on-LAN";
-
-        interface = lib.mkOption {
-          type = lib.types.str;
-          example = "enp12s0";
-          description = "Network interface on which to enable Wake-on-LAN.";
-        };
+      options.my.wol.interface = lib.mkOption {
+        type = lib.types.str;
+        example = "enp12s0";
+        description = "Network interface on which to enable Wake-on-LAN.";
       };
 
-      config = lib.mkIf cfg.enable {
+      config = {
         systemd.services.enable-wol = {
           description = "Enable Wake-on-LAN on ${cfg.interface}";
           wantedBy = [ "multi-user.target" ];

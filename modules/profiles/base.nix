@@ -11,7 +11,6 @@ in
       registry.nixos.theming
       registry.nixos.zsh
       registry.nixos.ssh
-      registry.nixos.optional-features
     ];
   };
 

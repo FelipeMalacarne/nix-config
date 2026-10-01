@@ -41,6 +41,8 @@ let
           obsidian
 
           codex
+          dig
+          github-copilot-cli
         ]
         ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           bubblewrap

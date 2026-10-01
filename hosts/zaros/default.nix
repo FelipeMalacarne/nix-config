@@ -9,13 +9,25 @@ let
   user = config.my.user.name;
 in
 {
-  imports = [
+  imports = with self.modules.nixos; [
     ./hardware.nix
-    self.modules.nixos.base
-    self.modules.nixos.desktop
+    base
+    desktop
     ./desktop.nix
-    self.modules.nixos.sops
-    self.modules.nixos.development
+    sops
+    development
+    docker
+    flatpak
+    gaming
+    hermes-agent
+    nvidia
+    ollama
+    openssh
+    restic
+    rgb
+    tailscale
+    virtualization
+    wol
   ];
 
   home-manager.users.${user} = {
@@ -48,16 +60,9 @@ in
   };
 
   my = {
-    wol = {
-      enable = true;
-      interface = "enp12s0";
-    };
-    rgb = {
-      enable = true;
-      color = config.my.colors.secondary;
-    };
+    wol.interface = "enp12s0";
+    rgb.color = config.my.colors.secondary;
     restic = {
-      enable = true;
       paths = [
         "/home/${user}/Documents"
         "/home/${user}/.local/share/PrismLauncher/instances/ProjectOzone 3/minecraft/saves"
@@ -65,37 +70,20 @@ in
 
       ];
     };
-    docker.enable = true;
-    virtualization.enable = true;
-    ollama.enable = true;
-    sunshine.enable = false;
-    flatpak.enable = true;
-    openssh.enable = true;
-    tailscale.enable = true;
-    nvidia.enable = true;
-    gaming.enable = true;
-
-    hermes-agent = {
+    hermes-agent.web = {
       enable = true;
-      web = {
-        enable = true;
-        publicUrl = "https://zaros.osiris-fish.ts.net";
-        restartTriggers = [ ../../secrets/hermes-web.yaml ];
-        environmentFile = lib.mkIf (
-          config.my.hermes-agent.enable && config.my.hermes-agent.web.enable
-        ) config.sops.secrets.hermes-web.path;
-      };
+      publicUrl = "https://zaros.osiris-fish.ts.net";
+      restartTriggers = [ ../../secrets/hermes-web.yaml ];
+      environmentFile = lib.mkIf config.my.hermes-agent.web.enable config.sops.secrets.hermes-web.path;
     };
   };
 
-  sops.secrets.hermes-web =
-    lib.mkIf (config.my.hermes-agent.enable && config.my.hermes-agent.web.enable)
-      {
-        sopsFile = ../../secrets/hermes-web.yaml;
-        key = "environment";
-        owner = user;
-        mode = "0400";
-      };
+  sops.secrets.hermes-web = lib.mkIf config.my.hermes-agent.web.enable {
+    sopsFile = ../../secrets/hermes-web.yaml;
+    key = "environment";
+    owner = user;
+    mode = "0400";
+  };
   system.stateVersion = "24.11";
 
   security.pki.certificateFiles = [

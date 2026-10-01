@@ -18,10 +18,11 @@ Saradomin's DNS architecture and router setup are documented in
 ## Architecture
 
 The dependency direction is **host -> profile -> feature -> upstream module**.
-Hosts own machine facts and activation selections; profiles compose modules and
-policy; features must not depend on profiles or hosts. `hosts/` contains the
-four concrete host directories. `modules/flake/configurations.nix` explicitly
-constructs the NixOS and nix-darwin configuration outputs from those hosts.
+Hosts own machine facts and explicitly import profiles and selected features;
+profiles compose features and policy; features must not depend on profiles or
+hosts. `hosts/` contains the four concrete host directories.
+`modules/flake/configurations.nix` explicitly constructs the NixOS and
+nix-darwin configuration outputs from those hosts.
 
 Features are grouped into five domains: `system`, `desktop`, `services`,
 `programs`, and `applications`. A feature stays cohesive and cross-platform
@@ -29,11 +30,10 @@ within its domain. Its excluded local `config/` directory is for internal
 implementation files, manually imported by the discovered feature entrypoint.
 
 `modules/profiles/` contains the `base`, `desktop`, `development`, and `server`
-compositions. `base` provides shared policy and the optional-feature catalog;
+compositions. `base` provides shared policy without optional system integrations;
 `desktop` provides the graphical stack; `development` provides development
 tools; and `server` provides headless base/server policy. `server` does not
-implicitly enable optional services: host `my.<feature>.enable` flags remain the
-activation decisions.
+implicitly enable optional services: hosts select them through feature imports.
 
 `import-tree` discovers Nix files under `modules/`, except paths matching
 `*/config/*`. Feature entrypoints are discovered automatically and manually
@@ -49,11 +49,24 @@ data. It is inventory only, not generated host composition.
 ## Options and composition
 
 `base` owns identity, core policy, theming, shell, Git, SSH, editor and CLI
-defaults, and imports a default-disabled optional-feature catalog. Importing
-`base` makes optional feature options available; host `my.<feature>.enable`
-flags are the single activation decision. `desktop` owns the graphical stack.
-Optional system integrations use typed options such as `my.docker.enable` and
-`my.gaming.enable`.
+defaults. `desktop` owns the graphical stack. Importing a registered feature
+module activates it; automatic registration alone does not. Hosts opt into
+optional integrations directly, while profiles compose shared selections:
+
+```nix
+imports = [
+  self.modules.nixos.docker
+  self.modules.nixos.wol
+];
+
+my.wol.interface = "enp12s0";
+```
+
+Typed options configure imported features, such as `my.wol.interface` and
+`my.restic.paths`. Feature-specific options are available only when the module
+is imported; removing a feature also means removing its settings. There is no
+additional `my.<feature>.enable` selector. Enable flags remain appropriate for
+optional subfeatures such as `my.hermes-agent.web.enable`.
 
 Desktop sessions are selected with `my.desktop.sessions`. The shell selector
 supports registered providers `noctalia`, `caelestia`, or `none`; Zaros selects
@@ -105,8 +118,9 @@ darwin-rebuild switch --flake .#macbook
 ## Extending it
 
 Add a feature entrypoint under the appropriate `modules/features/<domain>/`,
-register its module, and compose it in a profile or host. Add a typed enable
-option for an optional system integration. Put large implementation files in a
+register its module, and compose it in a profile or host. Its import should
+activate the feature; add typed options for configurable settings rather than
+a second activation selector. Put large implementation files in a
 feature-local `config/` directory and import them from the entrypoint. Add a
 desktop provider by implementing its aspect, shell command registry entry, and
 completeness assertion. Add a host directory under `hosts/`, then update

@@ -23,14 +23,16 @@ and nix-darwin.
 
 ## Key services
 
-- Sunshine (game streaming server) runs on **zaros** only (needs NVENC).
+- Sunshine (game streaming server) is supported on **zaros** only (needs NVENC),
+  but is currently not selected.
 - Games and GPU-accelerated workloads run on **zaros** only.
 
 ## Architecture and module system
 
 The dependency direction is **host -> profile -> feature -> upstream module**.
-Hosts own machine facts and activation selections. Profiles compose modules and
-policy. Features must not depend on profiles or hosts.
+Hosts own machine facts and explicitly import profiles and selected features.
+Profiles compose features and policy. Features must not depend on profiles or
+hosts.
 
 Features live in the five domains `system`, `desktop`, `services`, `programs`,
 and `applications`; each remains cohesive and cross-platform within its domain.
@@ -50,9 +52,12 @@ the final `self.modules`. Registration is auto-discovered, but activation and
 composition stay explicit. Use only the platform registrations the
 implementation supports.
 
-Optional system integrations conventionally expose a typed, default-disabled
-`my.<feature>.enable` option. Hosts explicitly enable selected integrations.
-The restic option is `my.restic` (not `myConfig.restic`).
+Importing a registered feature module activates that feature. Do not add a
+redundant `my.<feature>.enable` selector or default-import optional features into
+`base`. Keep typed options for settings such as `my.wol.interface` and
+`my.restic.paths`; feature-specific settings require the corresponding import.
+Enable flags remain appropriate for optional subfeatures such as
+`my.hermes-agent.web.enable`. The restic namespace is `my.restic`.
 
 `hosts/` contains concrete machines. `modules/flake/configurations.nix`
 explicitly constructs all NixOS and nix-darwin outputs from those host
@@ -61,14 +66,13 @@ SSH/Kubernetes data only; it is not generated host composition.
 
 ## Profiles and desktop
 
-- `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi,
-  plus a default-disabled optional-feature catalog. Importing `base` exposes
-  those options; host `my.<feature>.enable` flags alone activate them.
+- `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi.
+  It does not import optional system integrations.
 - `desktop` — audio, network, Hyprland, Noctalia and Caelestia capabilities,
   Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden.
 - `development` — programming and Kubernetes tooling.
 - `server` — headless base/server policy; it does not implicitly enable optional
-  services. Host `my.<feature>.enable` flags remain activation decisions.
+  services. Hosts select those services through explicit feature imports.
 
 Core and shared Home Manager policy live under
 `modules/features/system/core/` (with internals in its `config/`). Noctalia's
@@ -86,15 +90,15 @@ import, and variant checks.
 
 ## Hosts
 
-- `zaros`: NixOS desktop with Hyprland + Noctalia, gaming, Sunshine, NVIDIA,
-  development and server integrations.
+- `zaros`: NixOS desktop with Hyprland + Noctalia, gaming, NVIDIA, development
+  and server integrations; Sunshine is available but not selected.
 - `saradomin`: headless NixOS home server with k3s, Disko, SSH and Tailscale.
-- `saradomin-vm`: NixOS VM variant using the base profile.
+- `saradomin-vm`: NixOS VM variant using the server profile, OpenSSH and Tailscale.
 - `macbook`: nix-darwin development laptop with yabai, skhd and sketchybar.
 
 To extend the repository, put a feature in its domain and keep host-specific
 facts in `hosts/<name>/`. Compose reusable policy in a profile; select optional
-integrations with the host's typed `my.<feature>.enable` option. Update
+integrations by importing their registered modules in a host or profile. Update
 `modules/flake/configurations.nix` when adding a host.
 
 ## Validation and deployment

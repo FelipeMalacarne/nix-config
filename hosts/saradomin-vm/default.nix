@@ -3,14 +3,14 @@ let
   user = config.my.user.name;
 in
 {
-  imports = [
+  imports = with self.modules.nixos; [
     ./hardware.nix
-    self.modules.nixos.server
+    server
+    openssh
+    tailscale
   ];
 
   networking.hostName = "saradomin-vm";
-  my.openssh.enable = true;
-  my.tailscale.enable = true;
   system.stateVersion = "24.11";
 
   services.qemuGuest.enable = true;

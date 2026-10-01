@@ -1,9 +1,10 @@
 # Hermes Agent
 
-Zaros selects `my.hermes-agent.enable = true`. The optional-feature catalog
-exposes the option on NixOS, disabled by default. The implementation lives in
-`modules/features/programs/hermes-agent.nix`, not in the general programming
-package list.
+Zaros imports `self.modules.nixos.hermes-agent`, which activates the feature and
+its Home Manager integration. Other hosts omit the import. The implementation
+lives in `modules/features/programs/hermes-agent.nix`, not in the general
+programming package list. Standalone Home Manager configurations can import
+`self.modules.homeManager.hermes-agent` directly.
 
 ## Ownership
 
@@ -28,8 +29,8 @@ example SOPS) is caller-managed; this feature does not create or change it.
 ## Private web access over Tailscale
 
 Zaros also enables `my.hermes-agent.web`. The implementation is in
-`modules/features/programs/hermes-agent/config/web.nix` and is disabled by
-default on other hosts. Its host declaration is:
+`modules/features/programs/hermes-agent/config/web.nix`. This optional subfeature
+defaults to disabled when Hermes is imported. Its host declaration is:
 
 ```nix
 my.hermes-agent.web = {
@@ -40,8 +41,9 @@ my.hermes-agent.web = {
 };
 ```
 
-The host's actual secret declarations are conditional on both Hermes and web
-access being enabled. The public URL must match the device's real Tailscale DNS
+The host's actual secret declarations are conditional on web access being
+enabled. To remove Hermes entirely, remove its import and associated web settings
+and secret declarations. The public URL must match the device's real Tailscale DNS
 name; the proxy checks it rather than silently serving a different machine URL.
 
 ### Ports and ownership
@@ -140,10 +142,11 @@ and `journalctl --user -u hermes-web.service`. A mismatched DNS name, occupied
 HTTPS port, missing secret, logged-out device or missing HTTPS permission must
 be resolved rather than bypassing the guards.
 
-`checks.x86_64-linux.hermes-web` evaluates enabled/disabled hosts, alternative
-HTTPS ports, private credential delivery, unchanged firewall policy and rejected
-invalid configurations. `checks.x86_64-linux.hermes-web-runtime` launches the
-actual Nix-built private and web backends with disposable state. It checks
+`checks.x86_64-linux.hermes-web` evaluates imported/omitted features, disabled web
+access, alternative HTTPS ports, private credential delivery, unchanged firewall
+policy and rejected invalid configurations.
+`checks.x86_64-linux.hermes-web-runtime` launches the actual Nix-built private and
+web backends with disposable state. It checks
 password login, HTTPS cookies, unauthenticated rejection, authenticated chat
 WebSockets, ticket replay, host/origin guards, restart-surviving sessions and
 Desktop token compatibility, for both default and non-default HTTPS origins.
@@ -233,6 +236,6 @@ not rerouted automatically. No activation or service restart is performed by
 the flake checks.
 
 `checks.x86_64-linux.hermes-agent` checks settings, activation order, package
-availability, credentials preservation and disabled hosts.
+availability, credentials preservation and hosts that omit the feature.
 `checks.x86_64-linux.hermes-runtime-state` exercises disposable token/skill
 initialization and inspects the generated desktop/backend launchers.

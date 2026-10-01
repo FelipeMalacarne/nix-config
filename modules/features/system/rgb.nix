@@ -35,8 +35,6 @@
     in
     {
       options.my.rgb = {
-        enable = lib.mkEnableOption "declarative OpenRGB lighting";
-
         color = lib.mkOption {
           type = hexColor;
           default = config.my.colors.primary;
@@ -67,7 +65,7 @@
         };
       };
 
-      config = lib.mkIf cfg.enable {
+      config = {
         services.hardware.openrgb.enable = true;
 
         systemd.services.openrgb-apply = {

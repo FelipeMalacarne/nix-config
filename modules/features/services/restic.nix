@@ -7,8 +7,6 @@
     in
     {
       options.my.restic = {
-        enable = lib.mkEnableOption "Restic backups";
-
         paths = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [ ];
@@ -38,11 +36,11 @@
         };
       };
 
-      config = lib.mkIf cfg.enable {
+      config = {
         assertions = [
           {
             assertion = cfg.paths != [ ];
-            message = "my.restic.paths must not be empty when Restic backups are enabled.";
+            message = "my.restic.paths must not be empty when importing the Restic feature.";
           }
         ];
 

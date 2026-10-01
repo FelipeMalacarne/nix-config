@@ -16,6 +16,140 @@
       saradomin = self.nixosConfigurations.saradomin.config;
       zarosUser = zaros.my.user.name;
       zarosHome = zaros.home-manager.users.${zarosUser};
+      mkFeatureConfig =
+        modules:
+        (inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit self inputs; };
+          # Base's SSH key integration requires SOPS, including in minimal fixtures.
+          modules = [ self.modules.nixos.sops ] ++ modules ++ [ { system.stateVersion = "24.11"; } ];
+        }).config;
+      baseOnly = mkFeatureConfig [ self.modules.nixos.base ];
+      serverOnly = mkFeatureConfig [ self.modules.nixos.server ];
+      desktopWithoutHermes = mkFeatureConfig [
+        self.modules.nixos.base
+        self.modules.nixos.desktop
+        self.modules.nixos.development
+        ../hosts/zaros/desktop.nix
+        (
+          { config, ... }:
+          {
+            home-manager.users.${config.my.user.name}.imports = with self.modules.homeManager; [
+              linux-base
+              desktop
+              development
+            ];
+          }
+        )
+      ];
+      gamingOnly = mkFeatureConfig [
+        self.modules.nixos.base
+        self.modules.nixos.gaming
+      ];
+      sunshineOnly = mkFeatureConfig [
+        self.modules.nixos.base
+        self.modules.nixos.sunshine
+      ];
+      wolAlternate = mkFeatureConfig [
+        self.modules.nixos.base
+        self.modules.nixos.wol
+        { my.wol.interface = "enp1s0"; }
+      ];
+      wolWithoutInterface = builtins.tryEval (
+        builtins.deepSeq
+          (mkFeatureConfig [
+            self.modules.nixos.base
+            self.modules.nixos.wol
+          ]).systemd.services.enable-wol.serviceConfig.ExecStart
+          true
+      );
+      selectedFeatures =
+        host:
+        builtins.attrNames (
+          lib.filterAttrs (_: enabled: enabled) {
+            adguard-home = host.services.adguardhome.enable;
+            docker = host.virtualisation.docker.enable;
+            flatpak = host.services.flatpak.enable;
+            gaming = host.programs.steam.enable;
+            hermes-agent = host.home-manager.users.${host.my.user.name}.programs.hermes-agent.enable or false;
+            k3s = host.services.k3s.enable;
+            nvidia = builtins.elem "nvidia" host.services.xserver.videoDrivers;
+            ollama = host.services.ollama.enable;
+            openssh = host.services.openssh.enable;
+            restic = host.services.restic.backups ? r2;
+            rgb = host.services.hardware.openrgb.enable;
+            sunshine = host.services.sunshine.enable;
+            tailscale = host.services.tailscale.enable;
+            virtualization = host.virtualisation.libvirtd.enable;
+            wol = host.systemd.services ? enable-wol;
+          }
+        );
+      featureImportsCheck =
+        assert lib.assertMsg (
+          selectedFeatures zaros == [
+            "docker"
+            "flatpak"
+            "gaming"
+            "hermes-agent"
+            "nvidia"
+            "ollama"
+            "openssh"
+            "restic"
+            "rgb"
+            "tailscale"
+            "virtualization"
+            "wol"
+          ]
+        ) "Zaros feature imports must preserve its existing selections, with Sunshine omitted";
+        assert lib.assertMsg (
+          selectedFeatures saradomin == [
+            "adguard-home"
+            "k3s"
+            "openssh"
+            "tailscale"
+          ]
+        ) "Saradomin must select only its headless services";
+        assert lib.assertMsg (
+          selectedFeatures self.nixosConfigurations.saradomin-vm.config == [
+            "openssh"
+            "tailscale"
+          ]
+        ) "The VM must select only OpenSSH and Tailscale";
+        assert lib.assertMsg (
+          selectedFeatures baseOnly == [ ] && selectedFeatures serverOnly == [ ]
+        ) "Base and server profiles must not implicitly activate optional features";
+        assert lib.assertMsg (
+          selectedFeatures desktopWithoutHermes == [ ]
+        ) "Desktop and development profiles must not implicitly activate optional features";
+        assert lib.assertMsg (
+          selectedFeatures gamingOnly == [ "gaming" ]
+          && gamingOnly.programs.gamemode.enable
+          && gamingOnly.programs.gamescope.enable
+          && builtins.elem 24642 gamingOnly.networking.firewall.allowedTCPPorts
+          && builtins.elem 24642 gamingOnly.networking.firewall.allowedUDPPorts
+          &&
+            lib.all
+              (
+                name:
+                lib.any (
+                  package: lib.getName package == name
+                ) gamingOnly.home-manager.users.${gamingOnly.my.user.name}.home.packages
+              )
+              [
+                "lutris"
+                "prismlauncher"
+              ]
+        ) "Importing gaming must activate both system and Home Manager integration";
+        assert lib.assertMsg (
+          selectedFeatures sunshineOnly == [ "sunshine" ]
+        ) "Importing Sunshine must activate it without an extra selector";
+        assert lib.assertMsg (
+          selectedFeatures wolAlternate == [ "wol" ]
+          && lib.hasSuffix "/bin/ethtool -s enp1s0 wol g" wolAlternate.systemd.services.enable-wol.serviceConfig.ExecStart
+          && lib.hasSuffix "/bin/ethtool -s enp12s0 wol g" zaros.systemd.services.enable-wol.serviceConfig.ExecStart
+          && !wolWithoutInterface.success
+        ) "WOL imports must use the required host-specific interface";
+        pkgs.runCommand "feature-imports" { } "touch $out";
       sopsEnvironmentCheck =
         assert lib.assertMsg (
           (zarosHome.home.sessionVariables.SOPS_AGE_KEY_FILE or null) == "/var/lib/sops-age/keys.txt"
@@ -112,7 +246,6 @@
                 homeDirectory = "/home/hermes-check";
                 stateVersion = "24.11";
               };
-              my.hermes-agent.enable = true;
               services.hermes-agent = services;
             }
           ];
@@ -120,24 +253,18 @@
       hermesExternalToken = mkHermesHome { backend.sessionTokenFile = "/run/hermes-check/token"; };
       hermesWithoutBackend = mkHermesHome { backend.mode = "none"; };
       hermesWithoutService = mkHermesHome { enable = lib.mkForce false; };
-      zarosWithoutHermes =
-        (inputs.nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit self inputs; };
-          modules = [
-            ../hosts/zaros
-            { my.hermes-agent.enable = lib.mkForce false; }
-          ];
-        }).config;
       hermesInactive =
         host:
         let
           home = host.home-manager.users.${host.my.user.name};
         in
-        !host.my.hermes-agent.enable
-        && !home.programs.hermes-agent.enable
-        && !home.programs.hermes-agent.desktop.enable
-        && !home.services.hermes-agent.enable
+        !(home.programs.hermes-agent.enable or false)
+        && !(home.programs.hermes-agent.desktop.enable or false)
+        && !(home.services.hermes-agent.enable or false)
+        && lib.all (package: !(builtins.elem package home.home.packages)) [
+          zarosHome.programs.hermes-agent.package
+          hermesDesktop
+        ]
         && !builtins.hasAttr "HERMES_HOME" home.home.sessionVariables
         && !builtins.hasAttr "hermesAgentSetup" home.home.activation
         && !builtins.hasAttr "hermesAgentWorkflow" home.home.activation
@@ -250,10 +377,11 @@
         assert lib.assertMsg zaros.users.users.${zarosUser}.linger
           "Hermes user service must survive logout";
         assert lib.assertMsg (lib.all hermesInactive [
-          zarosWithoutHermes
+          baseOnly
+          desktopWithoutHermes
           self.nixosConfigurations.saradomin.config
           self.nixosConfigurations.saradomin-vm.config
-        ]) "Disabled Hermes must install no applications, start no services, and manage no state";
+        ]) "Omitting Hermes must install no applications, start no services, and manage no state";
         pkgs.runCommand "hermes-agent-integration" { } "touch $out";
       mkZarosWeb =
         web:
@@ -325,10 +453,11 @@
         ) "A port in publicUrl must configure HTTPS independently of the loopback backend port";
         assert lib.assertMsg (lib.all hermesWebAbsent [
           hermesWebDisabled
-          zarosWithoutHermes
+          baseOnly
+          desktopWithoutHermes
           self.nixosConfigurations.saradomin.config
           self.nixosConfigurations.saradomin-vm.config
-        ]) "Disabling web access or Hermes must remove both web units and its decrypted secret";
+        ]) "Disabling web access or omitting Hermes must remove both web units and its decrypted secret";
         assert lib.assertMsg (
           zaros.networking.firewall.allowedTCPPorts == hermesWebDisabled.networking.firewall.allowedTCPPorts
           &&
@@ -572,6 +701,7 @@
         saradomin-lan-dns = saradominLanDnsCheck;
         saradomin-adguard-home = saradominAdGuardHomeCheck;
         saradomin-media-permissions = saradominMediaPermissionsCheck;
+        feature-imports = featureImportsCheck;
         sops-environment = sopsEnvironmentCheck;
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;

@@ -8,10 +8,14 @@ let
   user = config.my.user.name;
 in
 {
-  imports = [
+  imports = with self.modules.nixos; [
     ./disk.nix
     ./hardware.nix
-    self.modules.nixos.server
+    server
+    adguard-home
+    k3s
+    openssh
+    tailscale
   ];
 
   networking.hostName = "saradomin";
@@ -33,7 +37,6 @@ in
     "saradomin.tail34cc60.ts.net"
   ];
   my.adguard-home = {
-    enable = true;
     listenAddresses = [
       "10.10.0.10"
       "100.106.58.87"
@@ -56,9 +59,6 @@ in
       }
     ];
   };
-  my.openssh.enable = true;
-  my.tailscale.enable = true;
-  my.k3s.enable = true;
   system.stateVersion = "25.11";
 
   security.pki.certificateFiles = [

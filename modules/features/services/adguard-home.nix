@@ -13,8 +13,6 @@
     in
     {
       options.my.adguard-home = {
-        enable = lib.mkEnableOption "AdGuard Home DNS resolver";
-
         listenAddresses = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [ ];
@@ -65,7 +63,7 @@
         };
       };
 
-      config = lib.mkIf cfg.enable {
+      config = {
         assertions = [
           {
             assertion = cfg.listenAddresses != [ ];
