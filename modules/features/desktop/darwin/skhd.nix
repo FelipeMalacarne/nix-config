@@ -51,18 +51,27 @@
         ctrl + ${mod} - right : yabai -m window --grid 1:2:1:0:1:1
         ${mod} - e : yabai -m window --toggle split
 
+        # spaces
+        ${mod} - 1 : yabai -m space --focus 1
+        ${mod} - 2 : yabai -m space --focus 2
+        ${mod} - 3 : yabai -m space --focus 3
+        ${mod} - 4 : yabai -m space --focus 4
+        ${mod} - 4 : yabai -m space --focus 4
+        ${mod} - 5 : yabai -m space --focus 5
+        ${mod} - 6 : yabai -m space --focus 6
+        ${mod} - 7 : yabai -m space --focus 7
+
         ${mod} + shift - z : yabai -m window --space next; yabai -m space --focus prev
         ${mod} + shift - x : yabai -m window --space next; yabai -m space --focus next
-        ${mod} + shift - 1 : yabai -m window --space 1
-        ${mod} + shift - 2 : yabai -m window --space 2
-        ${mod} + shift - 3 : yabai -m window --space 3
-        ${mod} + shift - 4 : yabai -m window --space 4
-        ${mod} + shift - 5 : yabai -m window --space 5
-        ${mod} + shift - 6 : yabai -m window --space 6
-        ${mod} + shift - 7 : yabai -m window --space 7
-        ${mod} + shift - 8 : yabai -m window --space 8
-        ${mod} + shift - 9 : yabai -m window --space 9
-        ${mod} + shift - 0 : yabai -m window --space 10
+
+        ${mod} + shift - 1 : yabai -m window --space 1; yabai -m space --focus 1
+        ${mod} + shift - 2 : yabai -m window --space 2; yabai -m space --focus 2
+        ${mod} + shift - 3 : yabai -m window --space 3; yabai -m space --focus 3
+        ${mod} + shift - 4 : yabai -m window --space 4; yabai -m space --focus 4
+        ${mod} + shift - 5 : yabai -m window --space 5; yabai -m space --focus 5
+        ${mod} + shift - 6 : yabai -m window --space 6; yabai -m space --focus 6
+        ${mod} + shift - 7 : yabai -m window --space 7; yabai -m space --focus 7
+
         ctrl + ${mod} - z : yabai -m display --focus prev
         ctrl + ${mod} - x : yabai -m display --focus next
         ctrl + ${mod} - 1 : yabai -m display --focus 1
