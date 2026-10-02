@@ -1,7 +1,7 @@
 {
   flake.modules.darwin.skhd =
     let
-      termCmd = "open -na Alacritty";
+      termCmd = "open -na Ghostty";
     in
     {
       services.skhd.enable = true;
