@@ -12,6 +12,7 @@
         settings = {
           background-opacity = lib.mkForce 0.95;
           window-decoration = "none";
+          quit-after-last-window-closed = true;
         };
       };
     };
