@@ -22,7 +22,7 @@
     nvim-config.url = "github:FelipeMalacarne/nvim";
 
     phpantom-lsp = {
-      url = "github:PHPantom-dev/phpantom_lsp/a1053bce4a9df104a03f814bda4a8f3d70772f31";
+      url = "github:PHPantom-dev/phpantom_lsp";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

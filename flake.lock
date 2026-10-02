@@ -122,11 +122,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781761792,
-        "narHash": "sha256-rCPytmKNjctLloB6UgK5CRrHSwV4b0ygxtJLPPp8R14=",
+        "lastModified": 1786845137,
+        "narHash": "sha256-oQFip+v0luP8NIxJzmiW4Wu8bILsbFWom5l0zonl8hQ=",
         "owner": "LnL7",
         "repo": "nix-darwin",
-        "rev": "a1fa429e945becaf60468600daf649be4ba0350c",
+        "rev": "4cff07de74b50e64bdd68cd4e722ab5b6b35ee48",
         "type": "github"
       },
       "original": {
@@ -892,17 +892,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1784499499,
-        "narHash": "sha256-euWaFH40VHefZewUcKvsLwwHZP+GwfTN8kfuAkaABB8=",
+        "lastModified": 1790608660,
+        "narHash": "sha256-tKcn/I2QROf1nuaQlsJDCtKtN6DZ76rdNRcSZg8uL74=",
         "owner": "PHPantom-dev",
         "repo": "phpantom_lsp",
-        "rev": "a1053bce4a9df104a03f814bda4a8f3d70772f31",
+        "rev": "8623d9b1f831a8bcf841438c6a2266a61cb57427",
         "type": "github"
       },
       "original": {
         "owner": "PHPantom-dev",
         "repo": "phpantom_lsp",
-        "rev": "a1053bce4a9df104a03f814bda4a8f3d70772f31",
         "type": "github"
       }
     },
