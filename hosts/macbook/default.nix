@@ -38,6 +38,14 @@ in
         IdentitiesOnly = "yes";
       };
 
+      "github-zaros" = {
+        HostName = "ssh.github.com";
+        Port = 443;
+        User = "git";
+        IdentityFile = "~/.ssh/zaros";
+        IdentitiesOnly = "yes";
+      };
+
       "zamorak" = {
         Hostname = "137.131.204.251";
         Port = 22;
