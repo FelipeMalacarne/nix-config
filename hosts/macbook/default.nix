@@ -26,7 +26,44 @@ in
 
   services.openssh.enable = true;
 
-  my.user.name = "felipeautentique";
+  my = {
+    user.name = "felipeautentique";
+
+    infrastructure.ssh.hosts = {
+      "github.com" = {
+        HostName = "ssh.github.com";
+        Port = 443;
+        User = "git";
+        IdentityFile = "~/.ssh/bitbaut";
+        IdentitiesOnly = "yes";
+      };
+
+      "zamorak" = {
+        Hostname = "137.131.204.251";
+        Port = 22;
+        User = "ubuntu";
+        IdentityFile = "~/.ssh/zamorak";
+      };
+
+      "saradomin" = {
+        User = "felipe";
+        IdentityFile = "~/.ssh/zaros";
+        IdentitiesOnly = "yes";
+      };
+
+      "macbook" = {
+        User = "felipeautentique";
+        IdentityFile = "~/.ssh/zaros";
+        IdentitiesOnly = "yes";
+      };
+
+      "zaros" = {
+        User = "felipe";
+        IdentityFile = "~/.ssh/zaros";
+        IdentitiesOnly = "yes";
+      };
+    };
+  };
 
   home-manager.users.${user} =
     { lib, ... }:
