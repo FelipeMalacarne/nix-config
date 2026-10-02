@@ -76,6 +76,8 @@ in
         sketchybar
       ];
 
+      my.infrastructure.ssh.hosts = config.my.infrastructure.ssh.hosts;
+
       home.activation.installZarosAuthorizedKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 700 -d "$HOME/.ssh"
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 600 ${../../keys/zaros.pub} "$HOME/.ssh/authorized_keys"
