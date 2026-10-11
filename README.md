@@ -80,6 +80,52 @@ the selected provider is activated on Zaros. Adding a provider requires a
 provider aspect, a command registry entry, an explicit desktop profile import,
 and variant checks.
 
+Noctalia uses the native v5 package and `programs.noctalia` Home Manager module.
+Reusable UI preferences live in
+`modules/features/desktop/noctalia/config/settings.toml`. Nix reads that baseline
+and supplies a Stylix-derived palette, dynamic fonts, opacity, home-directory
+paths, and initial wallpaper to produce `~/.config/noctalia/config.toml`. Startup
+and keybindings use the same configured package and the `noctalia msg` interface.
+Hypridle still owns idle timeouts.
+
+The old v4 JSON settings and QML plugins are not compatible with v5. The built-in
+screenshot widget replaces the old screenshot plugin, but recording, model usage,
+KDE Connect, Docker, and Tailscale widgets need separately selected native plugins.
+The old JSON export helper `scripts/noctalia2nix.go` is v4-only; use
+`noctalia config export` for the merged v5 TOML settings. GUI changes are stored
+in `~/.local/state/noctalia/settings.toml` and override the declarative settings.
+The feature uses `bar.default` to merge with existing GUI bar settings rather
+than create a second bar. Saved wallpaper paths also take precedence, including
+per-monitor paths; an old path to a missing file must be updated in the UI or with
+`noctalia msg wallpaper-set <path>`.
+Do not reuse the old JSON export as v5 configuration.
+
+### Noctalia UI workflow
+
+Edit preferences in Noctalia's settings UI; changes apply immediately and persist
+across rebuilds in the writable settings override. No rebuild or export is needed
+just to keep using those changes. To capture them as the repository's baseline:
+
+```sh
+make noctalia-export
+git diff -- modules/features/desktop/noctalia/config/settings.toml
+make check
+```
+
+The exporter uses the pinned shell's `config export merged`, not the full defaults
+dump. It validates a cleaned temporary file before atomically replacing the TOML
+baseline. It never activates the system, reloads Noctalia, or changes the live
+settings override. Subsequent builds use the new baseline; existing GUI overrides
+still win until you reset those preferences in the UI.
+
+The shared export excludes Nix-managed values, monitor/device identifiers,
+desktop/lock-screen widget placements, wallpaper paths, calendar accounts, and
+plugin-specific configuration. Those local settings stay on the machine; enabled
+plugin IDs and reusable core preferences are retained. Known obsolete native
+settings are cleaned, and a `main`/`default` duplicate bar is rejected rather than
+silently exported. Review the diff before committing: custom commands, labels,
+and retained widget/provider settings can still contain private information.
+
 ## Setup and secrets
 
 The encrypted file is `secrets/secrets.yaml`, managed by SOPS and age. Bootstrap

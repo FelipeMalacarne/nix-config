@@ -33,6 +33,7 @@ help:
 		'  (dangerous cross-host use: make switch HOST=other-host DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1)' \
 		'  (on Darwin, use darwin-rebuild switch --flake path:.#macbook; these are NixOS-only targets)' \
 		'  fmt                Format the flake with the pinned formatter' \
+		'  noctalia-export    Capture portable Noctalia UI preferences into the TOML baseline' \
 		'  secrets            Edit SOPS secrets' \
 		'' \
 		'Restic repository:' \
@@ -104,6 +105,10 @@ fmt:
 fmt-check:
 	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
 	NIXPKGS_ALLOW_UNFREE=1 nix run --impure "path:.#formatter.$${system}" -- --ci
+
+.PHONY: noctalia-export
+noctalia-export: platform-safety
+	nix run 'path:.#noctalia-export' -- modules/features/desktop/noctalia/config/settings.toml
 
 secrets:
 	sops secrets/secrets.yaml

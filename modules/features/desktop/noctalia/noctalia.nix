@@ -1,5 +1,27 @@
 { inputs, ... }:
 {
+  perSystem =
+    {
+      pkgs,
+      lib,
+      system,
+      ...
+    }:
+    {
+      packages = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+        noctalia-export = pkgs.writeShellApplication {
+          name = "noctalia-export";
+          runtimeInputs = [
+            inputs.noctalia.packages.${system}.default
+            (pkgs.python3.withPackages (ps: [ ps.tomli-w ]))
+          ];
+          text = ''
+            exec python3 ${./config/export.py} "$@"
+          '';
+        };
+      };
+    };
+
   flake.modules.nixos.noctalia =
     { config, lib, ... }:
     lib.mkIf
@@ -21,7 +43,7 @@
       ...
     }:
     let
-      noctalia = lib.getExe pkgs.noctalia-shell;
+      noctalia = lib.getExe config.programs.noctalia.package;
     in
     {
       imports = [
@@ -32,11 +54,11 @@
       config = lib.mkMerge [
         {
           my.desktop.shellProviders.noctalia.commands = {
-            launcher = "${noctalia} ipc call launcher toggle";
-            dashboard = "${noctalia} ipc call controlCenter toggle";
-            settings = "${noctalia} ipc call settings toggle";
-            session = "${noctalia} ipc call sessionMenu toggle";
-            lock = "${noctalia} ipc call lockScreen lock";
+            launcher = "${noctalia} msg panel-toggle launcher";
+            dashboard = "${noctalia} msg panel-toggle control-center";
+            settings = "${noctalia} msg settings-toggle";
+            session = "${noctalia} msg panel-toggle session";
+            lock = "${noctalia} msg session lock";
           };
         }
         (lib.mkIf
@@ -55,10 +77,8 @@
             stylix.targets.hyprpaper.enable = lib.mkForce false;
             services.hyprpaper.enable = lib.mkForce false;
 
-            programs.noctalia-shell = {
+            programs.noctalia = {
               enable = true;
-              # Colors, fonts, and opacity are managed by noctalia's native stylix
-              # integration (mkTarget in noctalia-qs hm.nix). No need to set them here.
             };
             wayland.windowManager.hyprland.extraLuaFiles.noctalia = {
               content = builtins.replaceStrings [ "@NOCTALIA@" ] [ (builtins.toJSON noctalia) ] (

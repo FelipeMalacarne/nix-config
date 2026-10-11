@@ -553,8 +553,20 @@
       invalidShell = builtins.tryEval (
         builtins.deepSeq (mkZarosShell "invalid-shell").system.build.toplevel.drvPath true
       );
+      noctaliaBarNames = builtins.attrNames (
+        lib.filterAttrs (_: bar: builtins.isAttrs bar) (zarosHome.programs.noctalia.settings.bar or { })
+      );
+      noctaliaTestBar = if noctaliaBarNames == [ ] then "default" else builtins.head noctaliaBarNames;
+      noctaliaGuiSpacing =
+        if (zarosHome.programs.noctalia.settings.bar.${noctaliaTestBar}.widget_spacing or 6) == 8 then
+          9
+        else
+          8;
       shellProvidersCheck =
-        assert lib.assertMsg zarosHome.programs.noctalia-shell.enable "Noctalia must be enabled";
+        assert lib.assertMsg zarosHome.programs.noctalia.enable "Noctalia must be enabled";
+        assert lib.assertMsg (
+          !zarosHome.programs.noctalia.systemd.enable
+        ) "Noctalia startup must remain Lua-owned";
         assert lib.assertMsg (!zarosHome.programs.caelestia.enable) "Noctalia must disable Caelestia";
         assert lib.assertMsg
           (builtins.hasAttr "noctalia" zarosHome.wayland.windowManager.hyprland.extraLuaFiles)
@@ -562,9 +574,23 @@
         assert lib.assertMsg (
           !builtins.hasAttr "caelestia" zarosHome.systemd.user.services
         ) "Noctalia must not define Caelestia service";
-        assert lib.assertMsg
-          (builtins.elem zarosHome.programs.noctalia-shell.package zarosHome.home.packages)
+        assert lib.assertMsg (builtins.elem zarosHome.programs.noctalia.package zarosHome.home.packages)
           "Noctalia package must be directly installed";
+        assert lib.assertMsg (
+          zarosHome.programs.noctalia.package == inputs.noctalia.packages.${system}.default
+          && lib.hasPrefix "local noctalia = ${builtins.toJSON (lib.getExe zarosHome.programs.noctalia.package)}" zarosHome.wayland.windowManager.hyprland.extraLuaFiles.noctalia.content
+        ) "Noctalia startup must use the configured native package";
+        assert lib.assertMsg (
+          zarosHome.my.desktop.shellCommands == {
+            launcher = "${lib.getExe zarosHome.programs.noctalia.package} msg panel-toggle launcher";
+            dashboard = "${lib.getExe zarosHome.programs.noctalia.package} msg panel-toggle control-center";
+            settings = "${lib.getExe zarosHome.programs.noctalia.package} msg settings-toggle";
+            session = "${lib.getExe zarosHome.programs.noctalia.package} msg panel-toggle session";
+            lock = "${lib.getExe zarosHome.programs.noctalia.package} msg session lock";
+          }
+        ) "Noctalia commands must use the native IPC interface";
+        assert lib.assertMsg zarosHome.programs.noctalia.checkConfig
+          "Noctalia config validation must be enabled";
         assert lib.assertMsg (
           !builtins.elem zarosHome.programs.caelestia.package zarosHome.home.packages
           && !builtins.elem zarosHome.programs.caelestia.cli.package zarosHome.home.packages
@@ -578,7 +604,7 @@
           zarosCaelestiaHome.programs.caelestia.systemd.target == "wayland-session@hyprland.desktop.target"
         ) "Caelestia must target the UWSM Hyprland session";
         assert lib.assertMsg (
-          !zarosCaelestiaHome.programs.noctalia-shell.enable
+          !zarosCaelestiaHome.programs.noctalia.enable
         ) "Caelestia must disable Noctalia";
         assert lib.assertMsg (
           !builtins.hasAttr "noctalia" zarosCaelestiaHome.wayland.windowManager.hyprland.extraLuaFiles
@@ -606,13 +632,13 @@
           && builtins.elem zarosCaelestiaHome.programs.caelestia.cli.package zarosCaelestiaHome.home.packages
         ) "Caelestia packages must be directly installed";
         assert lib.assertMsg (
-          !builtins.elem zarosCaelestiaHome.programs.noctalia-shell.package zarosCaelestiaHome.home.packages
+          !builtins.elem zarosCaelestiaHome.programs.noctalia.package zarosCaelestiaHome.home.packages
         ) "Caelestia must not install Noctalia";
         assert lib.assertMsg (
-          !zarosNoneHome.programs.noctalia-shell.enable && !zarosNoneHome.programs.caelestia.enable
+          !zarosNoneHome.programs.noctalia.enable && !zarosNoneHome.programs.caelestia.enable
         ) "none must disable both providers";
         assert lib.assertMsg (
-          !builtins.elem zarosNoneHome.programs.noctalia-shell.package zarosNoneHome.home.packages
+          !builtins.elem zarosNoneHome.programs.noctalia.package zarosNoneHome.home.packages
           && !builtins.elem zarosNoneHome.programs.caelestia.package zarosNoneHome.home.packages
           && !builtins.elem zarosNoneHome.programs.caelestia.cli.package zarosNoneHome.home.packages
         ) "none must install neither provider";
@@ -631,7 +657,59 @@
           == zarosCaelestiaHome.my.desktop.shellProviders.caelestia.commands
         ) "Caelestia command registry mismatch";
         assert lib.assertMsg (!invalidShell.success) "Invalid shell selector must fail evaluation";
-        pkgs.runCommand "shell-providers" { } "touch $out";
+        pkgs.runCommand "shell-providers" { } ''
+          validation="$(${lib.getExe zarosHome.programs.noctalia.package} config validate \
+            ${zarosHome.xdg.configFile."noctalia/config.toml".source})"
+          printf '%s\n' "$validation"
+          case "$validation" in
+            *WARN*) exit 1 ;;
+          esac
+          ${lib.getExe pkgs.jq} -e '
+            .dark.terminal |
+            (.normal | length == 8) and (.bright | length == 8) and
+            ([.background, .foreground, .cursor, .cursorText, .selectionBg, .selectionFg] |
+              all(test("^#[0-9a-fA-F]{6}$")))
+          ' ${zarosHome.xdg.configFile."noctalia/palettes/stylix.json".source} > /dev/null
+          export XDG_CONFIG_HOME="$TMPDIR/config"
+          export XDG_STATE_HOME="$TMPDIR/state"
+          export XDG_CACHE_HOME="$TMPDIR/cache"
+          mkdir -p "$XDG_CONFIG_HOME/noctalia" "$XDG_STATE_HOME/noctalia"
+          cp ${zarosHome.xdg.configFile."noctalia/config.toml".source} "$XDG_CONFIG_HOME/noctalia/config.toml"
+          cp ${pkgs.writeText "noctalia-saved-settings.toml" ''
+            [bar.${builtins.toJSON noctaliaTestBar}]
+            widget_spacing = ${toString noctaliaGuiSpacing}
+          ''} "$XDG_STATE_HOME/noctalia/settings.toml"
+          ${lib.getExe zarosHome.programs.noctalia.package} config export | ${pkgs.python3}/bin/python3 -c ${lib.escapeShellArg ''
+            import pathlib, sys, tomllib
+            config = tomllib.loads(sys.stdin.read())
+            bars = {name: bar for name, bar in config["bar"].items() if isinstance(bar, dict)}
+            assert sorted(bars) == ${
+              builtins.toJSON (lib.unique (noctaliaBarNames ++ [ noctaliaTestBar ]))
+            }, "Saved settings must not create another bar"
+            assert bars[${builtins.toJSON noctaliaTestBar}]["widget_spacing"] == ${toString noctaliaGuiSpacing}, "GUI overrides must remain effective"
+            assert pathlib.Path(config["wallpaper"]["default"]["path"]).is_file(), "Default wallpaper must exist"
+          ''}
+          touch $out
+        '';
+      noctaliaExportCheck =
+        pkgs.runCommand "noctalia-export"
+          {
+            nativeBuildInputs = [
+              (pkgs.python3.withPackages (ps: [ ps.tomli-w ]))
+              self.packages.${system}.noctalia-export
+            ];
+          }
+          ''
+            python3 -B ${./features/desktop/noctalia/config}/test_export.py -v
+            noctalia-export "$TMPDIR/settings.toml" \
+              --input ${zarosHome.xdg.configFile."noctalia/config.toml".source}
+            python3 - ${./features/desktop/noctalia/config/settings.toml} "$TMPDIR/settings.toml" <<'PY'
+            import pathlib, sys, tomllib
+            expected, exported = (tomllib.loads(pathlib.Path(path).read_text()) for path in sys.argv[1:])
+            assert exported == expected, "Generated config must export back to the portable TOML baseline"
+            PY
+            touch $out
+          '';
       writeLuaFiles =
         variant: home:
         lib.mapAttrs' (
@@ -705,6 +783,7 @@
         sops-environment = sopsEnvironmentCheck;
         generated-lua = luaCheck;
         shell-providers = shellProvidersCheck;
+        noctalia-export = noctaliaExportCheck;
         hermes-agent = hermesAgentCheck;
         hermes-runtime-state = hermesRuntimeCheck;
         hermes-web = hermesWebCheck;
