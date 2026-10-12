@@ -7,7 +7,6 @@ border_width = 0
 capsule = true
 center = [
     "weather",
-    "clock",
     "group:g1",
 ]
 contact_shadow = true
@@ -21,9 +20,10 @@ end = [
     "brightness",
     "control-center",
     "session",
+    "clock",
 ]
-margin_edge = 5
-margin_ends = 10
+margin_edge = 0
+margin_ends = 0
 padding = 2
 position = "top"
 start = [
@@ -37,6 +37,10 @@ widget_spacing = 8
 right = "panel-toggle control-center"
 
 [[bar.default.capsule_group]]
+accordion = false
+accordion_direction = "end"
+border_width = 1.0
+enabled = true
 fill = "surface_variant"
 id = "g1"
 members = [
@@ -44,7 +48,7 @@ members = [
     "cpu",
     "temp",
 ]
-opacity = 1.0
+opacity = 0.9300000071525574
 padding = 6.0
 
 [brightness]
@@ -154,7 +158,11 @@ launcher_placement = "floating"
 launcher_position = "center"
 open_near_click_control_center = true
 session_placement = "floating"
-session_position = "center"
+session_position = "center_right"
+
+[shell.session]
+grid = true
+grid_columns = 1
 
 [[shell.session.actions]]
 action = "lock"
@@ -241,7 +249,7 @@ show_label = false
 
 [widget.clock]
 anchor = true
-format = "%H:%M %a, %b %d"
+format = "%d/%m/%y %H:%M"
 tooltip_format = "%H:%M %a, %b %d"
 vertical_format = "%H %M - %d %m"
 
@@ -249,9 +257,10 @@ vertical_format = "%H %M - %d %m"
 glyph = "noctalia"
 
 [widget.cpu]
+show_value = false
 stat = "cpu_usage"
 type = "sysmon"
-visualization = "none"
+visualization = "gauge"
 
 [widget.cpu_temp]
 stat = "cpu_temp"
@@ -276,9 +285,10 @@ show_label = false
 hide_when_no_unread = false
 
 [widget.ram]
+show_value = false
 stat = "ram_used"
 type = "sysmon"
-visualization = "none"
+visualization = "gauge"
 
 [widget.sysmon]
 capsule = true
@@ -300,6 +310,7 @@ middle = "exec pwvucontrol || pavucontrol"
 
 [widget.weather]
 capsule = true
+show_condition = false
 
 [widget.workspaces]
 empty_color = "secondary"
@@ -310,5 +321,5 @@ label_source = "id"
 labels_only_when_occupied = true
 max_label_chars = 2
 occupied_color = "secondary"
-pill_scale = 0.6
+pill_scale = 0.9
 show_all_outputs = false
