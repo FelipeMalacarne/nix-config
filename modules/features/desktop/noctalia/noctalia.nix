@@ -74,6 +74,8 @@
               wf-recorder
             ];
 
+            home.file."Pictures/nixos.svg".source = ../../../../assets/nixos.svg;
+
             stylix.targets.hyprpaper.enable = lib.mkForce false;
             services.hyprpaper.enable = lib.mkForce false;
 
