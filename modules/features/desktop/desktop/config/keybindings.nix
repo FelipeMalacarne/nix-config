@@ -80,8 +80,35 @@ in
     internal = true;
     description = "Terminal executable used by desktop application bindings.";
   };
+  options.my.desktop.applicationBindings = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.submodule {
+        options = {
+          command = lib.mkOption { type = lib.types.str; };
+          key = lib.mkOption { type = lib.types.str; };
+          modifiers = lib.mkOption {
+            type = lib.types.listOf (
+              lib.types.enum [
+                "shift"
+                "control"
+                "alt"
+              ]
+            );
+          };
+        };
+      }
+    );
+    internal = true;
+    readOnly = true;
+    description = "Shared application bindings with terminal wrapping but no session-manager prefix; the compositor supplies Mod.";
+  };
   config = {
     my.desktop.terminalCommand = lib.mkDefault terminal;
+    my.desktop.applicationBindings = lib.mapAttrs (_: binding: {
+      inherit (binding) key modifiers;
+      command =
+        if binding.inTerminal or false then "${terminal} -e ${binding.command}" else binding.command;
+    }) bindings;
     xsession.windowManager.i3.config = lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
       keybindings = i3Bindings;
       terminal = terminal;

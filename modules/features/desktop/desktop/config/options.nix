@@ -1,5 +1,10 @@
 { config, lib, ... }:
 let
+  sessionType = lib.types.enum [
+    "i3"
+    "hyprland"
+    "umbriel"
+  ];
   monitors = config.my.desktop.monitors;
   monitorList = lib.attrValues monitors;
   roles = map (monitor: monitor.role) monitorList;
@@ -11,17 +16,25 @@ let
 in
 {
   options.my.desktop.sessions = lib.mkOption {
-    type = lib.types.listOf (
-      lib.types.enum [
-        "i3"
-        "hyprland"
-      ]
-    );
+    type = lib.types.listOf sessionType;
     default = [
       "i3"
       "hyprland"
     ];
     description = "Desktop sessions made available on this system.";
+  };
+
+  options.my.desktop.defaultSession = lib.mkOption {
+    type = sessionType;
+    default =
+      if builtins.elem "hyprland" config.my.desktop.sessions then
+        "hyprland"
+      else if config.my.desktop.sessions != [ ] then
+        builtins.head config.my.desktop.sessions
+      else
+        "hyprland";
+    defaultText = lib.literalExpression "Hyprland when available, otherwise the first selected session";
+    description = "Default desktop session; must be one of my.desktop.sessions.";
   };
 
   options.my.desktop.shell = lib.mkOption {
@@ -44,7 +57,10 @@ in
           match = lib.mkOption {
             type = lib.types.submodule {
               options = {
-                waylandDescription = lib.mkOption { type = lib.types.str; };
+                waylandDescription = lib.mkOption {
+                  type = lib.types.str;
+                  description = "Wayland monitor identity; Umbriel requires the full make, model, and serial, not a description prefix.";
+                };
                 xrandrOutput = lib.mkOption { type = lib.types.str; };
               };
             };
@@ -98,6 +114,10 @@ in
       message = "my.desktop.sessions must contain unique values";
     }
     {
+      assertion = builtins.elem config.my.desktop.defaultSession config.my.desktop.sessions;
+      message = "my.desktop.defaultSession must be a member of my.desktop.sessions";
+    }
+    {
       assertion = monitorList == [ ] || lib.length (lib.filter (role: role == "primary") roles) == 1;
       message = "my.desktop.monitors must define exactly one primary monitor";
     }
@@ -115,8 +135,12 @@ in
     }
     {
       assertion =
-        config.my.desktop.shell == "none" || builtins.elem "hyprland" config.my.desktop.sessions;
-      message = "A selected desktop shell requires my.desktop.sessions to include hyprland; select shell = none or add hyprland";
+        config.my.desktop.shell == "none"
+        || lib.any (session: builtins.elem session config.my.desktop.sessions) [
+          "hyprland"
+          "umbriel"
+        ];
+      message = "A selected desktop shell requires an available Wayland session (hyprland or umbriel); select shell = none for an X11-only desktop";
     }
   ];
 }

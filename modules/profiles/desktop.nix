@@ -7,9 +7,9 @@ in
     imports = [
       registry.nixos.audio
       registry.nixos.network
-      registry.nixos.sddm
       registry.nixos.i3
       registry.nixos.hyprland
+      registry.nixos.umbriel
       registry.nixos.noctalia
       registry.nixos.firefox
       registry.nixos.dolphin
@@ -23,6 +23,7 @@ in
       desktop-foundation
       i3
       hyprland
+      umbriel
       noctalia
       caelestia
       firefox

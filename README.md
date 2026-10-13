@@ -12,6 +12,9 @@ compose reusable profiles and features without duplicating policy.
 | `saradomin-vm` | NixOS, x86_64 | Server VM variant |
 | `macbook` | nix-darwin, Apple Silicon | Development laptop |
 
+Zaros defaults to **Umbriel + Noctalia**, with **Noctalia Greeter** for login.
+Hyprland (UWSM-managed) and i3/Xorg remain selectable alternatives.
+
 Saradomin's DNS architecture and router setup are documented in
 [`docs/adguard-home.md`](docs/adguard-home.md).
 
@@ -31,8 +34,10 @@ implementation files, manually imported by the discovered feature entrypoint.
 
 `modules/profiles/` contains the `base`, `desktop`, `development`, and `server`
 compositions. `base` provides shared policy without optional system integrations;
-`desktop` provides the graphical stack; `development` provides development
-tools; and `server` provides headless base/server policy. `server` does not
+`desktop` exposes i3, Hyprland, Umbriel, Noctalia and Caelestia capabilities plus
+shared graphical applications, but does not select a login manager;
+`development` provides development tools; and `server` provides headless
+base/server policy. `server` does not
 implicitly enable optional services: hosts select them through feature imports.
 
 `import-tree` discovers Nix files under `modules/`, except paths matching
@@ -68,12 +73,35 @@ is imported; removing a feature also means removing its settings. There is no
 additional `my.<feature>.enable` selector. Enable flags remain appropriate for
 optional subfeatures such as `my.hermes-agent.web.enable`.
 
-Desktop sessions are selected with `my.desktop.sessions`. The shell selector
-supports registered providers `noctalia`, `caelestia`, or `none`; Zaros selects
-Noctalia. Each provider owns its commands and all provider-specific packages,
-settings, and startup behavior. Caelestia uses its official HM systemd unit;
-Noctalia owns its current Lua startup. Hyprland consumes the typed command
-contract and remains provider-neutral.
+Desktop sessions are selected with `my.desktop.sessions`; `my.desktop.defaultSession`
+must be a member of that list. Zaros selects `[ "umbriel" "hyprland" "i3" ]`
+with default `"umbriel"`. Each compositor maps that default to its native login
+identifier: `umbriel`, `hyprland-uwsm`, or `none+i3`.
+
+`my.desktop.shell` selects `noctalia`, `caelestia`, or `none`, independently of the
+login manager. Providers own their commands, packages, settings and startup.
+Noctalia supports both Wayland compositors: Hyprland's startup Lua launches the
+configured binary once through `uwsm app`; Umbriel's native autostart launches
+the same binary once directly. There is no shared Noctalia systemd startup unit.
+Caelestia uses its official HM unit scoped to the Hyprland UWSM target and is not
+supported with Umbriel. X11-only selections require `shell = "none"`.
+
+Umbriel's `start-umbriel` owns `umbriel.service` and `umbriel-session.target`;
+do not wrap it in UWSM. Hyprland retains its UWSM lifecycle. Hypridle is scoped to
+`wayland-session@hyprland.desktop.target`; Swayidle is scoped to
+`umbriel-session.target`. Each locks after 180 seconds and turns displays off
+after 240 seconds using its compositor's DPMS commands. Noctalia's own idle
+behavior is disabled. Portals route per desktop (`umbriel;gtk`, `hyprland;gtk`)
+with GTK as the common fallback.
+
+Monitor facts live in `hosts/zaros/desktop.nix`. Umbriel matches the exact
+make/model/serial in `match.waylandDescription`, not connector names. The main
+identity is `Samsung Electric Company Odyssey G61SD HNBYB00003` (live Wayland
+probe on DP-4); the portrait secondary is
+`Samsung Electric Company LS27A600U HNMW900149` (historically confirmed,
+currently disconnected). Its 90-degree rotation and workspaces 6-9 remain
+declared. The original XRandR outputs DP-1 and HDMI-A-1 stay separate, with
+existing modes, refresh rates and positions preserved.
 
 The desktop profile exposes both Noctalia and Caelestia capabilities, but only
 the selected provider is activated on Zaros. Adding a provider requires a
@@ -86,7 +114,7 @@ Reusable UI preferences live in
 and supplies a Stylix-derived palette, dynamic fonts, opacity, home-directory
 paths, and initial wallpaper to produce `~/.config/noctalia/config.toml`. Startup
 and keybindings use the same configured package and the `noctalia msg` interface.
-Hypridle still owns idle timeouts.
+Session-scoped Hypridle/Swayidle own idle timeouts.
 
 The old v4 JSON settings and QML plugins are not compatible with v5. The built-in
 screenshot widget replaces the old screenshot plugin, but recording, model usage,
@@ -125,6 +153,27 @@ plugin IDs and reusable core preferences are retained. Known obsolete native
 settings are cleaned, and a `main`/`default` duplicate bar is rejected rather than
 silently exported. Review the diff before committing: custom commands, labels,
 and retained widget/provider settings can still contain private information.
+
+### Login manager
+
+Zaros explicitly imports `self.modules.nixos.noctalia-greeter`; the desktop
+profile imports neither Greeter nor SDDM. Greeter forwards the native default
+session and discovers all retained sessions. i3 uses a scoped X11 helper that
+passes the generated NixOS `xserverrc` explicitly to installed `startx`; its
+projected session entry wraps the original legacy WM argument with `sessionData.wrapper` and
+`DESKTOP_SESSION=none+i3`, preserving Home Manager and NixOS session setup.
+i3 owns its XRandR topology, so it does not depend on SDDM's setup script.
+
+Login requires authentication: no autologin or greetd `initial_session` is
+configured. Appearance sync from Noctalia's UI also requires administrator
+authentication through the packaged Polkit policy and `secure-sync-v1` helper.
+`passwordless-sync-users` stays empty. Greeter theme, palette and wallpaper are
+intentionally left sync-controlled rather than pinned by Nix; keyboard and
+monitor facts remain declarative. Selecting another shell does not remove Greeter.
+
+To revert to SDDM, replace Zaros's explicit `noctalia-greeter` import with
+`self.modules.nixos.sddm` and choose the desired sessions/default. Do not enable
+both login managers. This is a configuration change, not permission to deploy.
 
 ## Setup and secrets
 
@@ -181,3 +230,17 @@ session, backup/restore, deployment and security-runtime checks remain
 operational follow-ups. Password-hash ownership, SSH/firewall policy, broad
 Tailscale trust, Disko device safety, Darwin SOPS bootstrap and backup/restore
 verification are deliberately deferred.
+
+Linux CI includes `desktop-sessions` (supported/rejected composition variants),
+`umbriel-config` (generated TOML validated by the native CLI), and
+`greeter-sessions` (actual upstream discovery/argv/environment code and installed
+`startx` server selection with mocked xinit/Xorg, including declarative server
+arguments, seat/VT, Xauth and client routing). These checks do not launch a
+compositor, Xorg, or a physical login session. Existing shell-provider, Lua and TOML-export checks
+remain in place.
+
+Real NVIDIA rendering, login, both physical monitors, suspend/resume, gaming,
+Xwayland and portal capture remain deferred pending explicit approval. A future
+activation should be a controlled next-boot trial with a known-good generation
+and TTY recovery available, not a live greeter restart. Building does not authorize
+`boot`, reboot, logout, activation or any service restart.

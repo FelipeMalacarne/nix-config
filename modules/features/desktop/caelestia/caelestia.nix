@@ -10,12 +10,16 @@
 
       config = lib.mkMerge [
         {
-          my.desktop.shellProviders.caelestia.commands = {
-            launcher = "${caelestia} shell drawers toggle launcher";
-            dashboard = "${caelestia} shell drawers toggle dashboard";
-            settings = "${caelestia} shell nexus open";
-            session = "${caelestia} shell drawers toggle session";
-            lock = "${caelestia} shell lock lock";
+          my.desktop.shellProviders.caelestia = {
+            supportedSessions = [ "hyprland" ];
+            startupCommand = null;
+            commands = {
+              launcher = "${caelestia} shell drawers toggle launcher";
+              dashboard = "${caelestia} shell drawers toggle dashboard";
+              settings = "${caelestia} shell nexus open";
+              session = "${caelestia} shell drawers toggle session";
+              lock = "${caelestia} shell lock lock";
+            };
           };
         }
         (lib.mkIf

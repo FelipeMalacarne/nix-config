@@ -25,7 +25,13 @@
   flake.modules.nixos.noctalia =
     { config, lib, ... }:
     lib.mkIf
-      (config.my.desktop.shell == "noctalia" && builtins.elem "hyprland" config.my.desktop.sessions)
+      (
+        config.my.desktop.shell == "noctalia"
+        && lib.any (session: builtins.elem session config.my.desktop.sessions) [
+          "hyprland"
+          "umbriel"
+        ]
+      )
       {
         nix.settings = {
           extra-substituters = [ "https://noctalia.cachix.org" ];
@@ -44,6 +50,10 @@
     }:
     let
       noctalia = lib.getExe config.programs.noctalia.package;
+      supportedSessions = [
+        "hyprland"
+        "umbriel"
+      ];
     in
     {
       imports = [
@@ -53,16 +63,23 @@
 
       config = lib.mkMerge [
         {
-          my.desktop.shellProviders.noctalia.commands = {
-            launcher = "${noctalia} msg panel-toggle launcher";
-            dashboard = "${noctalia} msg panel-toggle control-center";
-            settings = "${noctalia} msg settings-toggle";
-            session = "${noctalia} msg panel-toggle session";
-            lock = "${noctalia} msg session lock";
+          my.desktop.shellProviders.noctalia = {
+            inherit supportedSessions;
+            startupCommand = noctalia;
+            commands = {
+              launcher = "${noctalia} msg panel-toggle launcher";
+              dashboard = "${noctalia} msg panel-toggle control-center";
+              settings = "${noctalia} msg settings-toggle";
+              session = "${noctalia} msg panel-toggle session";
+              lock = "${noctalia} msg session lock";
+            };
           };
         }
         (lib.mkIf
-          (config.my.desktop.shell == "noctalia" && builtins.elem "hyprland" config.my.desktop.sessions)
+          (
+            config.my.desktop.shell == "noctalia"
+            && lib.any (session: builtins.elem session config.my.desktop.sessions) supportedSessions
+          )
           {
             home.packages = with pkgs; [
               grim
@@ -76,12 +93,17 @@
 
             home.file."Pictures/nixos.svg".source = ../../../../assets/nixos.svg;
 
-            stylix.targets.hyprpaper.enable = lib.mkForce false;
-            services.hyprpaper.enable = lib.mkForce false;
-
             programs.noctalia = {
               enable = true;
             };
+          }
+        )
+        (lib.mkIf
+          (config.my.desktop.shell == "noctalia" && builtins.elem "hyprland" config.my.desktop.sessions)
+          {
+            stylix.targets.hyprpaper.enable = lib.mkForce false;
+            services.hyprpaper.enable = lib.mkForce false;
+
             wayland.windowManager.hyprland.extraLuaFiles.noctalia = {
               content = builtins.replaceStrings [ "@NOCTALIA@" ] [ (builtins.toJSON noctalia) ] (
                 builtins.readFile ./config/startup.lua

@@ -68,8 +68,9 @@ SSH/Kubernetes data only; it is not generated host composition.
 
 - `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi.
   It does not import optional system integrations.
-- `desktop` — audio, network, Hyprland, Noctalia and Caelestia capabilities,
-  Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden.
+- `desktop` — audio, network, i3, Hyprland, Umbriel, Noctalia and Caelestia
+  capabilities, Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
+  explicitly select the login manager; the profile imports neither Greeter nor SDDM.
 - `development` — programming and Kubernetes tooling.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
@@ -79,19 +80,47 @@ Core and shared Home Manager policy live under
 registration, settings and startup live under
 `modules/features/desktop/noctalia/`; Caelestia's provider lives under
 `modules/features/desktop/caelestia/`; Hyprland implementation and Lua live
-under `modules/features/desktop/hyprland/`. Desktop sessions use
-`my.desktop.sessions`, and the shell selector is `my.desktop.shell =
+under `modules/features/desktop/hyprland/`; Umbriel lives under
+`modules/features/desktop/umbriel/`. Desktop sessions use
+`my.desktop.sessions` and `my.desktop.defaultSession` (must be selected), forwarded
+to HM and mapped to native IDs `umbriel`, `hyprland-uwsm`, and `none+i3`.
+The shell selector is `my.desktop.shell =
 "noctalia"`, `"caelestia"`, or `"none"` with typed commands. Zaros selects
 Noctalia. Providers own their commands and all provider-specific package,
-settings, and startup behavior. Caelestia uses its official HM systemd unit;
-Noctalia owns its current Lua startup, while Hyprland stays provider-neutral.
+settings, and startup behavior. Caelestia uses its official HM systemd unit and
+supports Hyprland only. Noctalia starts the same configured binary once through
+Hyprland's Lua/UWSM app startup or Umbriel's direct native autostart, with no
+shared Noctalia systemd unit. Both compositors stay provider-neutral. X11-only
+selections require shell `none`. Umbriel's `start-umbriel` owns its native
+`umbriel.service`/`umbriel-session.target`; never wrap it in UWSM. Hypridle targets
+`wayland-session@hyprland.desktop.target`; Swayidle targets `umbriel-session.target`,
+both with 180-second lock and 240-second DPMS timeouts. Portals route per desktop
+with a GTK fallback.
 Adding a provider requires an aspect, registry entry, explicit desktop-profile
 import, and variant checks.
 
+Noctalia Greeter is independent of shell/compositor selection. Zaros explicitly
+imports `noctalia-greeter`; login has no autologin/`initial_session`, and appearance
+sync requires administrator authentication (`auth_admin`, `secure-sync-v1`, empty
+`passwordless-sync-users`). Keep theme/palette/wallpaper sync-controlled. The i3
+fallback owns Xorg/topology; Greeter's scoped X11 helper passes the generated
+xserverrc explicitly to installed startx and uses a projected
+entry calling NixOS `sessionData.wrapper` with the original legacy WM argument and
+`DESKTOP_SESSION=none+i3`. To revert, replace the host's Greeter import with the
+explicit `sddm` feature; never enable both login managers.
+
+Zaros's exact Wayland monitor identities include serials: main
+`Samsung Electric Company Odyssey G61SD HNBYB00003` (live DP-4 probe) and portrait
+secondary `Samsung Electric Company LS27A600U HNMW900149` (historically confirmed,
+currently disconnected). Preserve separate XRandR outputs DP-1/HDMI-A-1 and the
+existing modes, positions, rotations and workspace assignments; do not substitute
+connector names for Umbriel identities.
+
 ## Hosts
 
-- `zaros`: NixOS desktop with Hyprland + Noctalia, gaming, NVIDIA, development
-  and server integrations; Sunshine is available but not selected.
+- `zaros`: NixOS desktop defaulting to Umbriel + Noctalia and Noctalia Greeter,
+  with Hyprland/UWSM and i3 alternatives, gaming, NVIDIA, development and server
+  integrations; Sunshine is available but not selected.
 - `saradomin`: headless NixOS home server with k3s, Disko, SSH and Tailscale.
 - `saradomin-vm`: NixOS VM variant using the server profile, OpenSSH and Tailscale.
 - `macbook`: nix-darwin development laptop with yabai, skhd and sketchybar.
@@ -118,6 +147,10 @@ make secrets                   # edit SOPS secrets
 cross-host activation requires `DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1`. Rollback
 never accepts cross-host overrides. CI runs `nix flake check --impure` on native
 Linux and Apple-Silicon macOS and does not deploy or decrypt secrets.
+Linux checks `desktop-sessions`, `umbriel-config`, and `greeter-sessions` cover
+composition, native CLI config validation, upstream session discovery and the
+installed startx parser with mocked xinit/Xorg, verifying configured server
+arguments, seat/VT, Xauth and client routing. They never launch physical sessions.
 
 Agents must finish formatting, evaluation and affected-closure builds before
 claiming a configuration is ready. Activation (`switch`, `test`, `boot`), rollback,
@@ -128,7 +161,10 @@ environments for one-off tools, and private venvs/uv for scratch Python. Never
 install into system Python or modify the Nix store. Save reusable verified
 lessons as reviewed skills rather than adding task history to global memory.
 
-Native graphical-session smoke tests, backup/restore, and hardening remain
-deferred. In particular, do not change password-hash ownership, SSH/firewall
-policy, Tailscale trust, Disko device safety, Darwin SOPS bootstrap, or backup
+Native NVIDIA/login/monitor/suspend/gaming/Xwayland/portal smoke tests remain
+deferred pending approval, as do backup/restore and hardening. Any future desktop
+activation should use a controlled next-boot trial with a known-good generation
+and TTY recovery, not a live greeter restart; do not execute boot/reboot/logout
+without explicit approval. In particular, do not change password-hash ownership,
+SSH/firewall policy, Tailscale trust, Disko device safety, Darwin SOPS bootstrap, or backup
 verification as part of routine refactors.

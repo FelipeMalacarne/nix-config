@@ -16,6 +16,8 @@ let
     lib.findFirst (s: lib.hasPrefix "Exec=" s) "" (lib.splitString "\n" rawI3.text)
   );
   startx = lib.findFirst (p: p.pname or "" == "xinit") null zaros.environment.systemPackages;
+  xsessionFor =
+    c: lib.findFirst (p: p.name == "noctalia-greeter-xsession") null c.environment.systemPackages;
   projectedSessions =
     c:
     lib.removeSuffix "/share" (
@@ -23,36 +25,41 @@ let
         builtins.elemAt (lib.splitString " " c.services.greetd.settings.default_session.command) 1
       )
     );
-  mock = mkDesktop {
+  mockXinit = pkgs.writeShellScriptBin "xinit" ''
+    exec ${lib.getExe pkgs.python3} ${./test_greeter_xinit.py} xinit "$@"
+  '';
+  mockXorg = pkgs.writeShellScriptBin "X" ''
+    exec ${lib.getExe pkgs.python3} ${./test_greeter_xinit.py} Xorg "$@"
+  '';
+  mockTty = pkgs.writeShellScriptBin "tty" ''
+    printf '/dev/tty9\n'
+  '';
+  mockBase = mkDesktop {
+    services.xserver.displayManager.xserverArgs = lib.mkAfter [ "-audit 4" ];
     services.displayManager.sessionData = lib.mkForce (
       zaros.services.displayManager.sessionData
       // {
         wrapper = pkgs.writeShellScript "mock-nixos-xsession-wrapper" ''
-          set -eu
-          test "$#" -eq 1
-          test "$1" = ${lib.escapeShellArg rawExec}
-          test "$DESKTOP_SESSION" = none+i3
-          test "$XDG_SESSION_TYPE" = x11
-          test "$XDG_CURRENT_DESKTOP" = none+i3
-          test "$XDG_SESSION_DESKTOP" = none+i3
-          test "$DISPLAY" = :97
-          test "$XAUTHORITY" = "$TMPDIR/mock-xauthority"
-          touch "$TMPDIR/wrapped-i3-called"
+          exec ${lib.getExe pkgs.python3} ${./test_greeter_xinit.py} client "$@"
         '';
       }
     );
   };
-  mockStartx = pkgs.writeShellScriptBin "startx" ''
-    set -eu
-    test "$#" -eq 6
-    test "$2" = --
-    test "$3" = -seat
-    test "$4" = seat-test
-    test "$5" = -keeptty
-    test "$6" = vt8
-    # Only the mock session wrapper executes; never Xorg or a physical session.
-    exec "$1"
-  '';
+  nativeXorg = "${pkgs.xorg-server}/bin/X";
+  serverText = mockBase.environment.etc."X11/xinit/xserverrc".source.text;
+  # Replace only the Xorg executable in a new fixture, not the generated arguments or store source.
+  mockServer = pkgs.writeScript "mock-xserverrc" (
+    lib.replaceStrings [ nativeXorg ] [ "${mockXorg}/bin/X" ] serverText
+  );
+  mock = mkDesktop {
+    services.xserver.displayManager.xserverArgs = lib.mkAfter [ "-audit 4" ];
+    services.displayManager.sessionData = lib.mkForce mockBase.services.displayManager.sessionData;
+    environment.etc."X11/xinit/xserverrc".source = lib.mkForce mockServer;
+  };
+  waylandOnly = mkDesktop {
+    my.desktop.sessions = lib.mkForce [ "umbriel" ];
+    my.desktop.defaultSession = lib.mkForce "umbriel";
+  };
   overridden = mkDesktop {
     services.displayManager.noctalia-greeter.settings.session.default = "hyprland-uwsm";
   };
@@ -90,13 +97,26 @@ assert lib.assertMsg (
     (builtins.unsafeDiscardStringContext zaros.services.xserver.displayManager.sessionCommands)
   ]
 ) "The i3 fallback must retain configured Xorg/startx, HM and NixOS session setup";
+assert lib.assertMsg (
+  xsessionFor zaros != null
+  && xsessionFor mock != null
+  && xsessionFor waylandOnly == null
+  && !waylandOnly.services.xserver.displayManager.startx.enable
+  && lib.hasInfix (builtins.unsafeDiscardStringContext nativeXorg) serverText
+) "X11 server routing must be scoped to i3 and the fixture must mock the native Xorg executable";
 pkgs.runCommandCC "greeter-sessions"
   {
     nativeBuildInputs = [
-      mockStartx
       greeter.package
       pkgs.python3
+      pkgs.xauth
+      pkgs.unixtools.hexdump
     ];
+    GREETER_EXPECTED_SERVER = "${mockServer}";
+    GREETER_EXPECTED_CLIENT = "${projectedSessions mock}/bin/noctalia-greeter-i3-session";
+    GREETER_ORIGINAL_CLIENT = rawExec;
+    GREETER_NATIVE_XORG = nativeXorg;
+    GREETER_DECLARED_SERVER_ARGS = builtins.toJSON mockBase.services.xserver.displayManager.xserverArgs;
   }
   ''
     export HOME="$TMPDIR/home" XDG_CONFIG_HOME="$TMPDIR/config"
@@ -122,16 +142,36 @@ pkgs.runCommandCC "greeter-sessions"
     grep -x Umbriel discovered-sessions
     grep -x 'Hyprland (uwsm-managed)' discovered-sessions
     XDG_DATA_DIRS=${projectedSessions zaros}/share ./native-session-check ${projectedSessions zaros} inspect
-    export XDG_SEAT=seat-test XDG_VTNR=8 DISPLAY=:97 XAUTHORITY="$TMPDIR/mock-xauthority"
+    test "$(readlink -f ${zaros.system.path}/bin/noctalia-greeter-xsession)" = ${xsessionFor zaros}/bin/noctalia-greeter-xsession
+    export PATH=${xsessionFor mock}/bin:${mockXinit}/bin:${startx}/bin:$PATH
+    export GREETER_PROBE_DIR="$TMPDIR/with-vt" GREETER_EXPECTED_SEAT=seat-test GREETER_EXPECTED_VT=8
+    export GREETER_EXPECTED_AUTHORITY="$TMPDIR/mock-xauthority" GREETER_EXPECTED_CLIENT_ARGS='[]'
+    export XDG_SEAT=seat-test XDG_VTNR=8 XAUTHORITY="$GREETER_EXPECTED_AUTHORITY"
     XDG_DATA_DIRS=${projectedSessions mock}/share ./native-session-check ${projectedSessions mock} launch
-    test -e "$TMPDIR/wrapped-i3-called"
-    # Inspect installed NixOS Xorg scripts and packaged privileged policy without running them.
-    grep -F '${zaros.services.xserver.displayManager.xserverBin}' ${
-      zaros.environment.etc."X11/xinit/xserverrc".source
-    }
-    grep -F -- '-nolisten tcp' ${zaros.environment.etc."X11/xinit/xserverrc".source}
-    grep -F '/etc/X11/xinit' ${startx}/bin/startx
-    grep -F 'xserverrc' ${startx}/bin/startx
+    test -e "$GREETER_PROBE_DIR/client.json"
+    unset XDG_SEAT XDG_VTNR XAUTHORITY
+    export GREETER_PROBE_DIR="$TMPDIR/without-vt" GREETER_EXPECTED_SEAT=seat0 GREETER_EXPECTED_VT=""
+    export GREETER_EXPECTED_AUTHORITY="$HOME/.Xauthority"
+    XDG_DATA_DIRS=${projectedSessions mock}/share ./native-session-check ${projectedSessions mock} launch
+    test -e "$GREETER_PROBE_DIR/client.json"
+    export GREETER_PROBE_DIR="$TMPDIR/tty-fallback" GREETER_EXPECTED_VT=9
+    PATH=${mockTty}/bin:$PATH XDG_DATA_DIRS=${projectedSessions mock}/share ./native-session-check ${projectedSessions mock} launch
+    test -e "$GREETER_PROBE_DIR/client.json"
+    export GREETER_EXPECTED_VT=""
+    export GREETER_PROBE_DIR="$TMPDIR/client-args" GREETER_EXPECTED_CLIENT_ARGS='["client-marker"]'
+    export XDG_SESSION_TYPE=x11 XDG_CURRENT_DESKTOP=none+i3 XDG_SESSION_DESKTOP=none+i3
+    noctalia-greeter-xsession "$GREETER_EXPECTED_CLIENT" client-marker
+    test -e "$GREETER_PROBE_DIR/client.json"
+    # The old package helper must fail this same real-parser test before executing any server/client.
+    export GREETER_PROBE_DIR="$TMPDIR/old-routing" GREETER_EXPECTED_CLIENT_ARGS='[]'
+    if ${greeter.package}/bin/noctalia-greeter-xsession "$GREETER_EXPECTED_CLIENT" > "$TMPDIR/old-routing.log" 2>&1; then
+      exit 1
+    fi
+    test -e "$GREETER_PROBE_DIR/rejected-server.json"
+    test ! -e "$GREETER_PROBE_DIR/Xorg.json"
+    test ! -e "$GREETER_PROBE_DIR/client.json"
+    echo "Original package helper's configured-server bypass was rejected by installed-startx regression"
+    # Inspect the packaged privileged policy without changing authentication behavior.
     test "$(noctalia-greeter-apply-appearance --supports secure-sync-v1)" = secure-sync-v1
     python3 - ${greeter.package}/share/polkit-1/actions/org.noctalia.greeter.apply-appearance.policy <<'PY'
     import sys, xml.etree.ElementTree as ET

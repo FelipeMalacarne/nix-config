@@ -12,15 +12,17 @@
         enable = true;
         withUWSM = true;
       };
+      services.displayManager.defaultSession = lib.mkIf (
+        config.my.desktop.defaultSession == "hyprland"
+      ) "hyprland-uwsm";
       home-manager.users.${config.my.user.name}.home.sessionVariables.HYPRLAND_LUA_STUBS =
         "${pkgs.hyprland}/share/hypr/stubs";
       xdg.portal = {
         enable = true;
-        extraPortals = [
-          pkgs.xdg-desktop-portal-hyprland
-          pkgs.xdg-desktop-portal-gtk
+        config.hyprland.default = [
+          "hyprland"
+          "gtk"
         ];
-        config.common.default = "*";
       };
     };
 
@@ -110,6 +112,7 @@
       config = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
         services.hypridle = {
           enable = true;
+          systemdTarget = "wayland-session@hyprland.desktop.target";
           settings = {
             general = {
               lock_cmd = shellCommand "lock";
@@ -136,27 +139,6 @@
             content = topologyLua + "\n" + luaConfig;
             autoLoad = true;
           };
-        };
-        home.file = {
-          ".XCompose".text = ''
-            include "%L"
-            <dead_acute> <c> : "ç" ccedilla
-            <dead_acute> <C> : "Ç" Ccedilla
-          '';
-        };
-        dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
-        home.pointerCursor = {
-          package = pkgs.bibata-cursors;
-          name = "Bibata-Modern-Classic";
-          size = 16;
-          gtk.enable = true;
-          x11.enable = true;
-        };
-        systemd.user.sessionVariables = {
-          GTK_IM_MODULE = "simple";
-          XCURSOR_THEME = "Bibata-Modern-Classic";
-          XCURSOR_SIZE = "22";
-          XCOMPOSEFILE = "$HOME/.XCompose";
         };
       };
     };

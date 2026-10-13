@@ -10,6 +10,7 @@
   flake.modules.homeManager.desktop-foundation = {
     imports = [
       ./config/options.nix
+      ./config/home.nix
       ./config/shell-commands.nix
       ./config/keybindings.nix
     ];

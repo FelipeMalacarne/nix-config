@@ -2,8 +2,10 @@
 {
   my.desktop = {
     shell = "noctalia";
+    defaultSession = "umbriel";
 
     sessions = [
+      "umbriel"
       "hyprland"
       "i3"
     ];
@@ -12,7 +14,8 @@
       main = {
         role = "primary";
         match = {
-          waylandDescription = "Samsung Electric Company Odyssey G61SD";
+          # Live Wayland probe: DP-4; XRandR's original connector stays separate.
+          waylandDescription = "Samsung Electric Company Odyssey G61SD HNBYB00003";
           xrandrOutput = "DP-1";
         };
         mode = {
@@ -35,7 +38,8 @@
       secondary = {
         role = "secondary";
         match = {
-          waylandDescription = "Samsung Electric Company LS27A600U";
+          # Confirmed historical identity; this portrait output is currently disconnected.
+          waylandDescription = "Samsung Electric Company LS27A600U HNMW900149";
           xrandrOutput = "HDMI-A-1";
         };
         mode = {

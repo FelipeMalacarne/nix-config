@@ -8,6 +8,10 @@
       ...
     }:
     lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
+      services.xserver.enable = true;
+      services.displayManager.defaultSession = lib.mkIf (config.my.desktop.defaultSession == "i3") (
+        lib.mkDefault "none+i3"
+      );
       services.xserver.windowManager.i3 = {
         enable = true;
         package = pkgs.i3;
@@ -48,6 +52,47 @@
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
       playerctl = lib.getExe pkgs.playerctl;
       brightnessctl = lib.getExe pkgs.brightnessctl;
+      rotation =
+        output:
+        if output.rotation == 90 then
+          "left"
+        else if output.rotation == 180 then
+          "inverted"
+        else if output.rotation == 270 then
+          "right"
+        else
+          "normal";
+      xrandrArgs = lib.concatMap (
+        output:
+        [
+          "--output"
+          output.match.xrandrOutput
+        ]
+        ++ lib.optionals (output.role == "primary") [ "--primary" ]
+        ++ [
+          "--mode"
+          "${toString output.mode.width}x${toString output.mode.height}"
+          "--rate"
+          (toString output.mode.refresh)
+          "--pos"
+          "${toString output.position.x}x${toString output.position.y}"
+          "--rotate"
+          (rotation output)
+        ]
+      ) (lib.attrValues config.my.desktop.monitors);
+      # i3 exec commands run concurrently; keep topology, wallpaper and compositor ordered.
+      i3Startup = pkgs.writeShellScript "i3-startup" ''
+        ${lib.escapeShellArgs ([ (lib.getExe pkgs.xrandr) ] ++ xrandrArgs)}
+        ${lib.escapeShellArgs [
+          feh
+          "--bg-fill"
+          "${wallpaper}"
+        ]}
+        ${lib.escapeShellArgs [
+          picom
+          "-b"
+        ]}
+      '';
       topologyI3 = lib.concatMapStrings (
         output:
         lib.concatMapStrings (
@@ -57,6 +102,7 @@
     in
     {
       config = lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
+        xsession.enable = true;
         xsession.windowManager.i3 =
           let
             mod = "Mod4";
@@ -168,12 +214,7 @@
 
               startup = [
                 {
-                  command = "${feh} --bg-fill ${wallpaper}";
-                  always = true;
-                  notification = false;
-                }
-                {
-                  command = "${picom} -b";
+                  command = "${i3Startup}";
                   always = true;
                   notification = false;
                 }

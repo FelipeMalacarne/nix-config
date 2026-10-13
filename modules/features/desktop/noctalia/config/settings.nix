@@ -6,7 +6,13 @@ in
 {
   config =
     lib.mkIf
-      (config.my.desktop.shell == "noctalia" && builtins.elem "hyprland" config.my.desktop.sessions)
+      (
+        config.my.desktop.shell == "noctalia"
+        && lib.any (session: builtins.elem session config.my.desktop.sessions) [
+          "hyprland"
+          "umbriel"
+        ]
+      )
       {
         programs.noctalia = {
           # v5 no longer provides v4's native Stylix target.

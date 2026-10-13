@@ -13,12 +13,15 @@ in
     ./hardware.nix
     base
     desktop
+    noctalia-greeter
     ./desktop.nix
     sops
     development
     docker
+    # filmcraft
     flatpak
     gaming
+    recording
     hermes-agent
     nvidia
     ollama

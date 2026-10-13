@@ -122,6 +122,12 @@
           selectedFeatures desktopWithoutHermes == [ ]
         ) "Desktop and development profiles must not implicitly activate optional features";
         assert lib.assertMsg (
+          !desktopWithoutHermes.services.displayManager.sddm.enable
+          && !desktopWithoutHermes.services.greetd.enable
+          && desktopWithoutHermes.programs.umbriel.enable
+          && desktopWithoutHermes.home-manager.users.${desktopWithoutHermes.my.user.name}.programs.umbriel.enable
+        ) "Desktop capabilities must expose Umbriel without implicitly selecting a login manager";
+        assert lib.assertMsg (
           selectedFeatures gamingOnly == [ "gaming" ]
           && gamingOnly.programs.gamemode.enable
           && gamingOnly.programs.gamescope.enable
@@ -140,6 +146,28 @@
                 "prismlauncher"
               ]
         ) "Importing gaming must activate both system and Home Manager integration";
+        assert lib.assertMsg
+          (
+            lib.all
+              (
+                host:
+                let
+                  steam = host.home-manager.users.${host.my.user.name}.systemd.user.services.steam;
+                in
+                steam.Service.ExecStart == [ "${lib.getExe host.programs.steam.package} -silent" ]
+                && steam.Unit.After == [ "graphical-session.target" ]
+                && steam.Unit.PartOf == [ "graphical-session.target" ]
+                && steam.Install.WantedBy == [ "graphical-session.target" ]
+                && !(steam.Service ? Restart)
+              )
+              [
+                gamingOnly
+                zaros
+              ]
+            && !(serverOnly.home-manager.users.${serverOnly.my.user.name}.systemd.user.services ? steam)
+            && !(saradomin.home-manager.users.${saradomin.my.user.name}.systemd.user.services ? steam)
+          )
+          "Gaming must start the configured Steam silently only in graphical sessions, without restarting it on exit";
         assert lib.assertMsg (
           selectedFeatures sunshineOnly == [ "sunshine" ]
         ) "Importing Sunshine must activate it without an extra selector";
@@ -543,7 +571,18 @@
           specialArgs = { inherit self inputs; };
           modules = [
             ../hosts/zaros
-            { my.desktop.shell = lib.mkForce shell; }
+            {
+              my.desktop = {
+                shell = lib.mkForce shell;
+              }
+              // lib.optionalAttrs (shell == "caelestia") {
+                sessions = lib.mkForce [
+                  "hyprland"
+                  "i3"
+                ];
+                defaultSession = lib.mkForce "hyprland";
+              };
+            }
           ];
         }).config;
       zarosCaelestia = mkZarosShell "caelestia";
@@ -566,7 +605,7 @@
         assert lib.assertMsg zarosHome.programs.noctalia.enable "Noctalia must be enabled";
         assert lib.assertMsg (
           !zarosHome.programs.noctalia.systemd.enable
-        ) "Noctalia startup must remain Lua-owned";
+        ) "Noctalia startup must remain compositor-owned, not a shared systemd service";
         assert lib.assertMsg (!zarosHome.programs.caelestia.enable) "Noctalia must disable Caelestia";
         assert lib.assertMsg
           (builtins.hasAttr "noctalia" zarosHome.wayland.windowManager.hyprland.extraLuaFiles)
@@ -645,6 +684,7 @@
         assert lib.assertMsg (
           !builtins.hasAttr "noctalia" zarosNoneHome.wayland.windowManager.hyprland.extraLuaFiles
           && !builtins.hasAttr "caelestia" zarosNoneHome.systemd.user.services
+          && zarosNoneHome.programs.umbriel.settings.general.autostart == [ ]
         ) "none must have no provider startup";
         assert lib.assertMsg (lib.all (command: command == null) (
           lib.attrValues zarosNoneHome.my.desktop.shellCommands
@@ -728,6 +768,19 @@
         ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: file: "cp ${file} $out/${name}") luaFiles)}
         ${pkgs.lua5_4}/bin/luac -p $out/*.lua
       '';
+      desktopChecks = import ./features/desktop/desktop/config/test_sessions.nix {
+        inherit
+          inputs
+          self
+          lib
+          pkgs
+          mkFeatureConfig
+          zaros
+          zarosHome
+          baseOnly
+          serverOnly
+          ;
+      };
       repositoryStructure =
         let
           featureEntries = builtins.readDir ../modules/features;
@@ -788,6 +841,7 @@
         hermes-runtime-state = hermesRuntimeCheck;
         hermes-web = hermesWebCheck;
         hermes-web-runtime = hermesWebRuntimeCheck;
+        inherit (desktopChecks) desktop-sessions umbriel-config greeter-sessions;
       })
       // (lib.optionalAttrs darwin {
         macbook = self.darwinConfigurations.macbook.config.system.build.toplevel;
