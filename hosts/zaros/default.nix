@@ -18,7 +18,7 @@ in
     sops
     development
     docker
-    # filmcraft
+    filmcraft
     flatpak
     gaming
     recording
