@@ -90,6 +90,7 @@ nix build 'path:.#checks.x86_64-linux.artcraft-cli' --no-link -L
 - `config/releases.json`: per-app version, source URLs, SHA-256 and release link.
 - `config/test-selection.nix`: default-off, independent selection and override checks.
 - `config/test-cli.py`: CLI execution and MCP initialization/tool-list checks for every app.
+- `config/test-bridge.py`: real FilmCraft MCP forwarding to a simulated loopback app, without GUI.
 - `config/update-releases.py`: explicit release refresh with atomic catalog writes.
 - `config/test-update.py`: offline updater regression checks.
 
@@ -105,8 +106,9 @@ FilmCraft retains `filmcraft-agent` (window with loopback control on port 9876)
 and `filmcraft-mcp` (MCP bridge to that window). Other apps' live-window flags
 differ; use their release-specific docs instead of assuming the FilmCraft flags.
 
-Installing a package starts no server or GUI. OpenCode starts the headless MCP
-processes when connecting to its configured servers. Library/project directories and model
+Installing a package starts no server or GUI. OpenCode starts MCP processes
+when connecting: headless engine sessions by default, or a bridge to the
+already-running FilmCraft window when selected. Library/project directories and model
 downloads remain managed by the app/user; Nix does not replace existing state.
 Some upstream MCP servers expose unrestricted filesystem access, so connection
 scope should match the editing project.
@@ -160,11 +162,35 @@ the generated command path. Overrides must still provide `<app>-cli` with the
 `mcp` interface. No store hash, user profile path or executable search is
 hardcoded.
 
-The default connection is **headless**, not a live bridge to a GUI. The agent
-must open/save the project explicitly; a reconnected MCP session must not assume
-previous in-memory state. Open or reload the saved project in the GUI to review
-it, and avoid concurrent edits of the same file. FilmCraft's live-window bridge
-remains an optional manual setup, not an automatically started desktop window.
+The suite default is **headless**, not a live bridge to a GUI. For that mode,
+open/save explicitly and open/reload the saved revision in the GUI. Never assume
+a reconnect preserves state or edit the same file from two engine sessions.
+
+Zaros now selects **live FilmCraft collaboration**:
+
+```nix
+my.artcraft.filmcraft.enable = true;
+my.artcraft.filmcraft.mcp.mode = "bridge"; # enum: headless | bridge
+```
+
+This changes the single `craft-filmcraft` connection to the package's CLI with
+`mcp --bridge 127.0.0.1:9876`, matching `filmcraft-agent`. It does not register a
+second headless FilmCraft server or change the other apps' modes. The port is
+the packaged launcher's fixed loopback endpoint; no service/firewall is added.
+
+Open `filmcraft-agent` and the intended project before connecting OpenCode.
+The editor inspects the active GUI project/sequence before mutations, applies
+small coherent batches, saves checkpoints and hands control back. When the
+user makes manual changes, refresh project/selection/IDs on handoff. Do not
+write to that document from a separate headless CLI, and do not silently fall
+back to headless when the window is missing. Closing the window disconnects
+the bridge; reconnect and inspect rather than recreating the timeline.
+
+The vault documents the workflow in `docs/filmcraft-collaboration.md`. Its
+`bin/opencode-edit` can build and use this generated HM config in a temporary
+session without activation or overwriting global files. Neither the launcher
+nor the Nix feature starts/closes the GUI. Native visual/playback validation is
+still required with the user's window; configuration checks do not prove it.
 
 Validate the integration (selection, overrides, tool scoping and generated HM
 JSON) without activating the host:
@@ -191,7 +217,7 @@ make artcraft-check                            # Build/test the suite on Linux
 `artcraft-updates` writes nothing. Like the underlying CLI, it exits nonzero if
 updates are available, so Make reports an error status in that case. Inspect
 the diff to distinguish available updates from a failed request. `artcraft-check`
-runs selection, CLI/MCP and updater tests on Linux; it runs updater tests only on
+runs selection, CLI/MCP, simulated bridge and updater tests on Linux; it runs updater tests only on
 Darwin, where the desktop packages are not provided. No target activates NixOS.
 
 The equivalent direct CLI commands are:

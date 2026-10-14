@@ -21,15 +21,29 @@ already available, or ask before introducing a new dependency.
 
 ## Manage state
 
-The default connection runs each app's CLI `mcp` over stdio in a headless
-process. It is not a bridge to an open desktop window. Inspect the session and
-explicitly open the intended project or create a new one. Do not assume project
-state survives a reconnect. Save before switching projects or sessions.
+Inspect the configured mode and available tools; do not infer that a window
+being open means a headless server controls it. FilmCraft bridge connects to
+the app started by `filmcraft-agent` at `127.0.0.1:9876`. Other apps may have
+different live-control support; do not copy FilmCraft flags to them.
 
-Do not modify the same project simultaneously from MCP, a separate CLI process
-and the GUI: their in-memory state may diverge. Work on a revision, save it, and
-tell the user which file to open or reload. Live-window bridges require a
-separately configured connection and release-specific support.
+**Live bridge:** inspect the active project, its path/name, sequence and UI
+before a mutation. Confirm it is the intended document; if it is unexpected
+or contains unsaved work that opening a different project would replace, ask
+before switching. Reuse the live session instead of opening a second engine.
+If no GUI is connected, stop editing and explain how to start the selected
+bridge; do not silently switch to headless or launch/close desktop apps.
+
+Work in small coherent edit batches. Save a versioned checkpoint before a
+meaningful change, apply the batch, inspect the timeline plus representative
+preview/UI frames, save and hand control back. If the user says they are taking
+over, stop mutations; playback and manual changes happen on their turn. Resume
+only on handoff and re-inspect state/selection/IDs, which may have changed.
+Undo history is helpful but is not a substitute for saved checkpoints.
+
+**Headless:** it is a separate engine session. Explicitly open/create and save
+the intended revision; tell the user which file to open or reload in the GUI.
+Do not write the same file concurrently from GUI, MCP and another CLI process.
+Never assume a reconnect preserves state in either mode; inspect again.
 
 ## Build a video from footage
 

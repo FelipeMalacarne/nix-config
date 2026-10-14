@@ -10,7 +10,13 @@ in
     name: app:
     lib.nameValuePair "craft-${name}" {
       command = lib.getExe' app.package "${name}-cli";
-      args = [ "mcp" ];
+      args = [
+        "mcp"
+      ]
+      ++ lib.optionals (name == "filmcraft" && (app.mcp.mode or "headless") == "bridge") [
+        "--bridge"
+        "127.0.0.1:9876"
+      ];
       enabled = true;
     }
   ) selected;
