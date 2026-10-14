@@ -90,7 +90,6 @@ nix build 'path:.#checks.x86_64-linux.artcraft-cli' --no-link -L
 - `config/releases.json`: per-app version, source URLs, SHA-256 and release link.
 - `config/test-selection.nix`: default-off, independent selection and override checks.
 - `config/test-cli.py`: CLI execution and MCP initialization/tool-list checks for every app.
-- `config/test-bridge.py`: real FilmCraft MCP forwarding to a simulated loopback app, without GUI.
 - `config/update-releases.py`: explicit release refresh with atomic catalog writes.
 - `config/test-update.py`: offline updater regression checks.
 
@@ -102,16 +101,14 @@ Registering an MCP connection is separate from installing a package.
 The OpenCode feature supplies that registration automatically when used on a
 host with selected Craft apps; other clients still need their own connection.
 
-FilmCraft retains `filmcraft-agent` (window with loopback control on port 9876)
-and `filmcraft-mcp` (MCP bridge to that window). Other apps' live-window flags
-differ; use their release-specific docs instead of assuming the FilmCraft flags.
+Installing a package starts no GUI or server. OpenCode starts each selected
+CLI's headless MCP when connecting. The agent saves an editable revision;
+the user opens that file in the ordinary desktop app. No bridge launchers,
+control port or X11/Wayland environment override are configured.
 
-Installing a package starts no server or GUI. OpenCode starts MCP processes
-when connecting: headless engine sessions by default, or a bridge to the
-already-running FilmCraft window when selected. Library/project directories and model
-downloads remain managed by the app/user; Nix does not replace existing state.
-Some upstream MCP servers expose unrestricted filesystem access, so connection
-scope should match the editing project.
+Library/project directories and model downloads remain managed by the
+app/user; Nix does not replace existing state. MCP access is not a filesystem
+sandbox, so work only within the editing project and explicitly named sources.
 
 ### OpenCode integration
 
@@ -166,31 +163,28 @@ The suite default is **headless**, not a live bridge to a GUI. For that mode,
 open/save explicitly and open/reload the saved revision in the GUI. Never assume
 a reconnect preserves state or edit the same file from two engine sessions.
 
-Zaros now selects **live FilmCraft collaboration**:
+Zaros now selects **headless FilmCraft editing with saved-file handoff**:
 
 ```nix
 my.artcraft.filmcraft.enable = true;
-my.artcraft.filmcraft.mcp.mode = "bridge"; # enum: headless | bridge
 ```
 
-This changes the single `craft-filmcraft` connection to the package's CLI with
-`mcp --bridge 127.0.0.1:9876`, matching `filmcraft-agent`. It does not register a
-second headless FilmCraft server or change the other apps' modes. The port is
-the packaged launcher's fixed loopback endpoint; no service/firewall is added.
+The single `craft-filmcraft` server runs the package's CLI with `mcp`, just like
+the other selected apps. There is no per-app mode selector or GUI dependency.
+After applying a configuration/package change, reconnect/restart OpenCode;
+changing the checkout does not replace an already-running MCP process.
 
-Open `filmcraft-agent` and the intended project before connecting OpenCode.
-The editor inspects the active GUI project/sequence before mutations, applies
-small coherent batches, saves checkpoints and hands control back. When the
-user makes manual changes, refresh project/selection/IDs on handoff. Do not
-write to that document from a separate headless CLI, and do not silently fall
-back to headless when the window is missing. Closing the window disconnects
-the bridge; reconnect and inspect rather than recreating the timeline.
+The editor opens/creates the intended input, inspects it, edits a small approved
+batch and saves a new `.fcproj`, preview and cue sheet. The user opens that file
+with ordinary `filmcraft` (or File > Open in an existing window). The window does
+not follow the headless session live. Preserve previous revisions and never let
+GUI and agent overwrite the same file concurrently. Manual edits are saved to
+a separate input file; the agent explicitly reloads that input for the next cut.
 
-The vault documents the workflow in `docs/filmcraft-collaboration.md`. Its
-`bin/opencode-edit` can build and use this generated HM config in a temporary
-session without activation or overwriting global files. Neither the launcher
-nor the Nix feature starts/closes the GUI. Native visual/playback validation is
-still required with the user's window; configuration checks do not prove it.
+The vault documents this workflow in `docs/filmcraft-collaboration.md`. Start
+ordinary `opencode`; no project-specific launcher is required. The retired
+bridge experiment is recorded in the vault archive, not maintained as a second
+integration path in this module. No feature starts/closes the GUI or activates NixOS.
 
 Validate the integration (selection, overrides, tool scoping and generated HM
 JSON) without activating the host:
@@ -217,7 +211,7 @@ make artcraft-check                            # Build/test the suite on Linux
 `artcraft-updates` writes nothing. Like the underlying CLI, it exits nonzero if
 updates are available, so Make reports an error status in that case. Inspect
 the diff to distinguish available updates from a failed request. `artcraft-check`
-runs selection, CLI/MCP, simulated bridge and updater tests on Linux; it runs updater tests only on
+runs selection, CLI/MCP and updater tests on Linux; it runs updater tests only on
 Darwin, where the desktop packages are not provided. No target activates NixOS.
 
 The equivalent direct CLI commands are:

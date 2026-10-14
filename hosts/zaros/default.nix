@@ -64,7 +64,6 @@ in
 
   my = {
     artcraft.filmcraft.enable = true;
-    artcraft.filmcraft.mcp.mode = "bridge";
     wol.interface = "enp12s0";
     rgb.color = config.my.colors.secondary;
     restic = {

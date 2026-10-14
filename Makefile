@@ -147,7 +147,7 @@ artcraft-check:
 	@craft_system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
 	craft_checks=("path:.#checks.$${craft_system}.artcraft-updater"); \
 	case "$${craft_system}" in \
-		*-linux) craft_checks+=("path:.#checks.$${craft_system}.artcraft-selection" "path:.#checks.$${craft_system}.artcraft-cli" "path:.#checks.$${craft_system}.artcraft-bridge") ;; \
+		*-linux) craft_checks+=("path:.#checks.$${craft_system}.artcraft-selection" "path:.#checks.$${craft_system}.artcraft-cli") ;; \
 	esac; \
 	nix build "$${craft_checks[@]}" --no-link -L
 

@@ -21,29 +21,20 @@ already available, or ask before introducing a new dependency.
 
 ## Manage state
 
-Inspect the configured mode and available tools; do not infer that a window
-being open means a headless server controls it. FilmCraft bridge connects to
-the app started by `filmcraft-agent` at `127.0.0.1:9876`. Other apps may have
-different live-control support; do not copy FilmCraft flags to them.
+Craft MCPs run headless sessions, separate from the desktop apps. Explicitly
+open/create and inspect the intended input; no GUI or control port is needed.
+Use the supported headless inspection/rendering commands, not UI-only tools.
 
-**Live bridge:** inspect the active project, its path/name, sequence and UI
-before a mutation. Confirm it is the intended document; if it is unexpected
-or contains unsaved work that opening a different project would replace, ask
-before switching. Reuse the live session instead of opening a second engine.
-If no GUI is connected, stop editing and explain how to start the selected
-bridge; do not silently switch to headless or launch/close desktop apps.
-
-Work in small coherent edit batches. Save a versioned checkpoint before a
-meaningful change, apply the batch, inspect the timeline plus representative
-preview/UI frames, save and hand control back. If the user says they are taking
-over, stop mutations; playback and manual changes happen on their turn. Resume
-only on handoff and re-inspect state/selection/IDs, which may have changed.
-Undo history is helpful but is not a substitute for saved checkpoints.
-
-**Headless:** it is a separate engine session. Explicitly open/create and save
-the intended revision; tell the user which file to open or reload in the GUI.
+Save each delivery to a new revision, preserving its input and previous cuts.
 Do not write the same file concurrently from GUI, MCP and another CLI process.
-Never assume a reconnect preserves state in either mode; inspect again.
+Deliver the saved project and preview, then tell the user which file to open in
+the ordinary GUI. The window does not update live from the headless session.
+
+If the user edits manually, obtain their saved input path and reopen/inspect it
+before the next batch. Never assume reconnecting preserves memory state or IDs.
+Work in small approved batches, save checkpoints and pause for review.
+Preserve existing editorial approvals; inspect actual results before retrying
+a timed-out mutation. Undo history is not a replacement for saved checkpoints.
 
 ## Build a video from footage
 

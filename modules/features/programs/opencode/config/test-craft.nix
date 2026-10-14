@@ -63,20 +63,6 @@ let
       };
     };
   };
-  bridge = evaluate {
-    my.artcraft.filmcraft = {
-      enable = true;
-      inherit package;
-      mcp.mode = "bridge";
-    };
-  };
-  bridgeOverride = evaluate {
-    my.artcraft.filmcraft = {
-      enable = true;
-      package = replacement;
-      mcp.mode = "bridge";
-    };
-  };
   servers = cfg: builtins.attrNames cfg.programs.mcp.servers;
   empty =
     cfg:
@@ -108,25 +94,10 @@ assert lib.assertMsg (
   &&
     overridden.programs.mcp.servers.craft-filmcraft.command == lib.getExe' replacement "filmcraft-cli"
   && film.programs.mcp.servers.craft-filmcraft.args == [ "mcp" ]
-) "MCP must run the named CLI from the host's actual package, including overrides";
-assert lib.assertMsg (
-  bridge.programs.mcp.servers.craft-filmcraft.command == lib.getExe' package "filmcraft-cli"
-  &&
-    bridgeOverride.programs.mcp.servers.craft-filmcraft.command
-    == lib.getExe' replacement "filmcraft-cli"
-  &&
-    bridge.programs.mcp.servers.craft-filmcraft.args == [
-      "mcp"
-      "--bridge"
-      "127.0.0.1:9876"
-    ]
-  &&
-    servers bridge == [
-      "craft-filmcraft"
-      "playwright"
-    ]
+  && overridden.programs.mcp.servers.craft-filmcraft.args == [ "mcp" ]
+  && multiple.programs.mcp.servers.craft-filmcraft.args == [ "mcp" ]
   && multiple.programs.mcp.servers.craft-photocraft.args == [ "mcp" ]
-) "Live FilmCraft must use one bridge connection without changing other apps or losing overrides";
+) "MCP must run the named CLI from the host's actual package, including overrides";
 assert lib.assertMsg (
   film.programs.opencode.settings.tools."craft-*" == false
   && film.programs.opencode.settings.agent.craft-editor.tools."craft-*" == true
@@ -150,14 +121,5 @@ pkgs.runCommand "opencode-craft" { nativeBuildInputs = [ pkgs.jq ]; } ''
   ' ${json overridden} > /dev/null
   jq -e '(.mcp | keys) == ["playwright"] and (has("agent") | not)' ${json absent} > /dev/null
   test -f ${film.programs.opencode.skills.artcraft-editing}/SKILL.md
-  jq -e --arg cli ${lib.escapeShellArg (lib.getExe' package "filmcraft-cli")} '
-    .mcp["craft-filmcraft"].command == [$cli, "mcp", "--bridge", "127.0.0.1:9876"] and
-    .mcp["craft-filmcraft"].type == "local" and
-    .mcp["craft-filmcraft"].enabled == true and
-    (.mcp | keys) == ["craft-filmcraft", "playwright"]
-  ' ${json bridge} > /dev/null
-  jq -e --arg cli ${lib.escapeShellArg (lib.getExe' replacement "filmcraft-cli")} '
-    .mcp["craft-filmcraft"].command == [$cli, "mcp", "--bridge", "127.0.0.1:9876"]
-  ' ${json bridgeOverride} > /dev/null
   touch $out
 ''

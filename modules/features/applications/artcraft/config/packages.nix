@@ -52,12 +52,6 @@ let
         done
         makeWrapper "$out/bin/${name}-cli" "$out/bin/${name}-mcp-headless" \
           --add-flags "mcp"
-      ''
-      + lib.optionalString (name == "filmcraft") ''
-        makeWrapper "$out/bin/filmcraft" "$out/bin/filmcraft-agent" \
-          --add-flags "--control 9876"
-        makeWrapper "$out/bin/filmcraft-cli" "$out/bin/filmcraft-mcp" \
-          --add-flags "mcp --bridge 127.0.0.1:9876"
       '';
       meta = {
         description = "${name} creative application and agent CLI";
