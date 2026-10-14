@@ -57,6 +57,8 @@ in
 
   networking.hostName = "zaros";
 
+  boot.tmp.cleanOnBoot = true;
+
   console = {
     font = "ter-v24b";
     packages = [ pkgs.terminus_font ];
