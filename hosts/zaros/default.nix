@@ -18,7 +18,7 @@ in
     sops
     development
     docker
-    filmcraft
+    artcraft
     flatpak
     gaming
     recording
@@ -63,6 +63,7 @@ in
   };
 
   my = {
+    artcraft.filmcraft.enable = true;
     wol.interface = "enp12s0";
     rgb.color = config.my.colors.secondary;
     restic = {

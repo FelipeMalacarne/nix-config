@@ -73,6 +73,14 @@ is imported; removing a feature also means removing its settings. There is no
 additional `my.<feature>.enable` selector. Enable flags remain appropriate for
 optional subfeatures such as `my.hermes-agent.web.enable`.
 
+The optional [Craft suite](docs/artcraft.md#available-apps) documents every app,
+its purpose, and its `my.artcraft.<app>.enable` flag. Configure these selectors
+after importing `self.modules.nixos.artcraft`. Every app defaults to
+disabled; Zaros selects only FilmCraft. Packages can also be tested independently
+with `nix run 'path:.#filmcraft'`.
+Use `make artcraft-updates`, `make artcraft-update APPS=filmcraft`, and
+`make artcraft-check` to maintain the pinned suite.
+
 Desktop sessions are selected with `my.desktop.sessions`; `my.desktop.defaultSession`
 must be a member of that list. Zaros selects `[ "umbriel" "hyprland" "i3" ]`
 with default `"umbriel"`. Each compositor maps that default to its native login
