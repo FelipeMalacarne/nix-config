@@ -98,15 +98,80 @@ nix build 'path:.#checks.x86_64-linux.artcraft-cli' --no-link -L
 Every selected package includes the desktop app, `<app>-cli` and
 `<app>-mcp-headless`. The last command starts `<app>-cli mcp` over stdio.
 Registering an MCP connection is separate from installing a package.
+The OpenCode feature supplies that registration automatically when used on a
+host with selected Craft apps; other clients still need their own connection.
 
 FilmCraft retains `filmcraft-agent` (window with loopback control on port 9876)
 and `filmcraft-mcp` (MCP bridge to that window). Other apps' live-window flags
 differ; use their release-specific docs instead of assuming the FilmCraft flags.
 
-No server or GUI starts automatically. Library/project directories and model
+Installing a package starts no server or GUI. OpenCode starts the headless MCP
+processes when connecting to its configured servers. Library/project directories and model
 downloads remain managed by the app/user; Nix does not replace existing state.
 Some upstream MCP servers expose unrestricted filesystem access, so connection
 scope should match the editing project.
+
+### OpenCode integration
+
+When both the Home Manager `opencode` feature and selected `my.artcraft` apps
+are present, the configuration derives one local `craft-<app>` MCP server per
+enabled app from the host's actual package. Disabled apps are not registered.
+Without the ArtCraft feature (including standalone HM and Darwin), OpenCode
+keeps its existing configuration and does not gain Craft servers or the editor.
+
+The pieces have distinct roles:
+
+- **MCP** performs editing operations through the selected app's CLI.
+- **`artcraft-editing` skill** supplies the inspect, rough-cut, save and verify
+  workflow; it is loaded on demand, not injected as a large global prompt.
+- **`craft-editor` subagent** exposes Craft tools only for editing tasks. The
+  usual coding agents have `craft-*` tools disabled to avoid cluttering their
+  tool catalogs. This is tool visibility, not a security sandbox.
+
+The editor inherits OpenCode's normal model choice and permissions. It does
+not configure an API provider, subscription, cloud upload or synthetic voice.
+Enabling more apps adds their MCP connections to the editor, not to coding
+agents; large upstream tool catalogs may still consume the editor's context.
+
+Invoke it explicitly, for example:
+
+```text
+@craft-editor Use the footage in ~/Videos/OBS to create a footage log and a
+short rough-cut preview. Preserve the source files, keep game and microphone
+audio separate, and save an editable project under this workspace's outputs/.
+```
+
+After applying the configuration, `opencode mcp list` lists the registered
+connections. Existing Playwright registration is preserved. OpenCode's existing
+external-directory permissions still apply; access to recordings outside the
+workspace may require approval. Do not broadly allow the whole home directory
+just to avoid that prompt.
+
+Executable paths use Nix store references rather than assuming commands on PATH:
+
+```nix
+command = lib.getExe' app.package "${name}-cli";
+args = [ "mcp" ];
+```
+
+`lib.getExe app.package` would launch the GUI (`meta.mainProgram`), so `getExe'`
+is intentional here. Package overrides and updated pins automatically change
+the generated command path. Overrides must still provide `<app>-cli` with the
+`mcp` interface. No store hash, user profile path or executable search is
+hardcoded.
+
+The default connection is **headless**, not a live bridge to a GUI. The agent
+must open/save the project explicitly; a reconnected MCP session must not assume
+previous in-memory state. Open or reload the saved project in the GUI to review
+it, and avoid concurrent edits of the same file. FilmCraft's live-window bridge
+remains an optional manual setup, not an automatically started desktop window.
+
+Validate the integration (selection, overrides, tool scoping and generated HM
+JSON) without activating the host:
+
+```sh
+nix build 'path:.#checks.x86_64-linux.opencode-craft' --no-link -L
+```
 
 ## Updating
 

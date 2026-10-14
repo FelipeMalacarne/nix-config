@@ -1,17 +1,30 @@
 { self, inputs, ... }:
 let
   module =
-    { pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      osConfig ? { },
+      ...
+    }:
+    let
+      craft = import ./config/craft-integration.nix {
+        inherit lib;
+        apps = osConfig.my.artcraft or { };
+      };
+    in
     {
       programs.mcp = {
         enable = true;
 
-        servers.playwright = {
-          command = "${pkgs.nodejs}/bin/npx";
-          args = [
-            "-y"
-            "@playwright/mcp"
-          ];
+        servers = craft.servers // {
+          playwright = {
+            command = lib.getExe' pkgs.nodejs "npx";
+            args = [
+              "-y"
+              "@playwright/mcp"
+            ];
+          };
         };
       };
 
@@ -154,7 +167,8 @@ let
           # plugin = [ "oh-my-opencode-slim@latest" ];
 
           lsp = true;
-        };
+        }
+        // craft.settings;
 
         commands = {
           "setup-ai-memory" = ./prompts/setup-ai-memory.md;
@@ -168,7 +182,8 @@ let
           product-engineering = ./skills/product-engineering;
           project-harness = ./skills/project-harness;
           token-discipline = ./skills/token-discipline;
-        };
+        }
+        // craft.skills;
       };
     };
 in
@@ -176,10 +191,15 @@ in
   flake.modules.homeManager.opencode = module;
 
   perSystem =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
     {
       packages.opencode = inputs.wrapper-modules.wrappers.opencode.wrap {
         inherit pkgs;
+      };
+      checks.opencode-craft = import ./config/test-craft.nix {
+        inherit lib pkgs;
+        inherit (inputs) home-manager;
+        inherit module;
       };
     };
 }
