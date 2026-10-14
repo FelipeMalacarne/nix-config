@@ -32,6 +32,12 @@ in
         trusted-public-keys = [ "nvf.cachix.org-1:GMQWiUhZ6ux9D5CvFFMwnc2nFrUHTeGaXRlVBXo+naI=" ];
       };
 
+      nix.gc = {
+        automatic = true;
+        dates = "weekly";
+        options = "--delete-older-than 7d";
+      };
+
       nixpkgs.config.allowUnfree = true;
       nixpkgs.config.permittedInsecurePackages = [
         "electron-39.8.10"
