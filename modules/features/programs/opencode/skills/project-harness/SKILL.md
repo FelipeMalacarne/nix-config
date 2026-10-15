@@ -1,12 +1,13 @@
 ---
 name: project-harness
-description: Use when onboarding projects, discovering dev commands, creating or updating AGENTS.md, or setting up docs/ai/* project memory.
+description: Use when onboarding projects, discovering verified dev commands, or creating and maintaining AGENTS.md and project documentation.
 ---
 
 # Project Harness
 
 Use this skill to make projects easier for AI agents and humans to work in repeatedly.
-`docs/ai/` is the canonical LLM Wiki and project memory.
+Repository instructions and documentation are authoritative. ai-memory provides
+optional searchable history and handoffs, not a second instruction hierarchy.
 
 ## Inspect
 
@@ -21,21 +22,19 @@ Look for:
 - `docker-compose.yml`
 - `Dockerfile`
 - `.env.example`
-- `docs/ai/`
+- Existing architecture/decision and operational documentation
+- `.ai-memory.toml`, if the repository has explicitly opted into capture
 
-If `docs/ai/` is missing, propose running `setup-ai-memory`. Do not create harness files unless the user asked for them or approves.
+Do not scaffold a parallel memory wiki. Preserve existing project documentation,
+including any existing `docs/ai/` files. Do not create harness files or opt a
+repository into capture unless the user asked for it or approves.
 
 ## Canonical Harness Files
 
 - `AGENTS.md`: durable instructions and repo conventions
-- `docs/ai/README.md`: how to use project memory
-- `docs/ai/index.md`: LLM Wiki entry point and map
-- `docs/ai/log.md`: concise durable work log
-- `docs/ai/project-context.md`: stack, architecture, services, data stores
-- `docs/ai/commands.md`: install, dev, test, lint, build, migrate, Docker commands
-- `docs/ai/decisions.md`: important tradeoffs and decisions
-- `docs/ai/known-issues.md`: recurring bugs, sharp edges, accepted limitations
-- `docs/ai/glossary.md`: domain terms and project-specific vocabulary
+- `README.md`: project overview and verified commands
+- Existing docs/ADRs: architecture, decisions, operational procedures
+- `.ai-memory.toml`: approved capture scope, exclusions, and bounded briefing
 
 ## Record Durable Facts
 

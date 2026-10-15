@@ -11,6 +11,7 @@ For this nix-config repo:
 
 - Preserve the cross-platform module registration pattern.
 - Route user config through `home-manager.users.<user>`.
-- Keep feature modules self-registering under `flake.nixosModules` and `flake.darwinModules` when cross-platform.
+- Register supported aspects under `flake.modules.nixos`, `flake.modules.darwin`, and/or `flake.modules.homeManager`; hosts consume `self.modules` and explicitly select optional features.
+- Follow host -> profile -> feature -> upstream dependencies. Do not add redundant feature enable selectors or implicitly activate optional integrations in base.
 - Format touched Nix files before completion.
 - Do not run Nix eval or build commands when the user has asked to avoid them.

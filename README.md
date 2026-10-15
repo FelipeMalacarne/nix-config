@@ -18,6 +18,9 @@ Hyprland (UWSM-managed) and i3/Xorg remain selectable alternatives.
 Saradomin's DNS architecture and router setup are documented in
 [`docs/adguard-home.md`](docs/adguard-home.md).
 
+The shared, opt-in AI memory workflow and outage/recovery plan are documented in
+[`docs/ai-memory.md`](docs/ai-memory.md).
+
 ## Architecture
 
 The dependency direction is **host -> profile -> feature -> upstream module**.

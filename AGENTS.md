@@ -130,6 +130,24 @@ facts in `hosts/<name>/`. Compose reusable policy in a profile; select optional
 integrations by importing their registered modules in a host or profile. Update
 `modules/flake/configurations.nix` when adding a host.
 
+## AI workflow
+
+ai-memory is selected as a private server on saradomin and a Home Manager client
+on macbook/zaros. Its single feature lives in `modules/features/services/ai-memory/`,
+with server/client internals under the excluded `config/` directory.
+See `docs/ai-memory.md` for pairing, privacy, outage recovery and
+deployment acceptance gates. Capture is allowlist-only; this repository's marker
+uses workspace `personal`, project `nix-config`. The MCP bridge is static: pass
+both explicitly on project-scoped calls. Repository instructions and current
+source outrank recalled history. If memory is unavailable, continue locally;
+never start a competing server. Nix owns integrations; do not run live ai-memory
+installers or self-updates. The former setup command/wiki skill are retired;
+do not scaffold a parallel `docs/ai/` wiki.
+The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml`; hosts decrypt it
+at `/run/secrets/ai-memory-token` with service/user-only ownership. Clients link
+their native `auth-token` path to that runtime secret. Never copy its plaintext
+into configuration, prompts or the Nix store, or rotate it with queued captures.
+
 ## Validation and deployment
 
 ```sh

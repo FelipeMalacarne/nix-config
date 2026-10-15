@@ -172,14 +172,9 @@ let
         }
         // craft.settings;
 
-        commands = {
-          "setup-ai-memory" = ./prompts/setup-ai-memory.md;
-        };
-
         skills = {
           browser-automation = ./skills/browser-automation;
           development-workflow = ./skills/development-workflow;
-          llm-wiki-memory = ./skills/llm-wiki-memory;
           nix-home-manager = ./skills/nix-home-manager;
           product-engineering = ./skills/product-engineering;
           project-harness = ./skills/project-harness;

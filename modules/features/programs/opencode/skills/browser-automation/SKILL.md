@@ -21,7 +21,7 @@ Use this skill when a task needs real browser feedback through Playwright MCP.
 
 - Identify the app URL and dev server command.
 - If the app is not running and the command is unclear, ask before guessing.
-- Prefer project harness docs such as `AGENTS.md`, `README.md`, `Makefile`, `package.json`, or `docs/ai/commands.md` for commands.
+- Prefer project sources such as `AGENTS.md`, `README.md`, `Makefile`, `package.json`, and existing operational docs for commands.
 
 ## Browser Workflow
 

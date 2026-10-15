@@ -27,6 +27,13 @@ in
 
   services.openssh.enable = true;
 
+  sops.secrets.ai-memory-token = {
+    sopsFile = ../../secrets/ai-memory.yaml;
+    key = "token";
+    owner = user;
+    mode = "0400";
+  };
+
   my = {
     user.name = "felipeautentique";
 
@@ -82,10 +89,14 @@ in
         ghostty
         firefox
         development
+        ai-memory-client
         sketchybar
       ];
 
       my.infrastructure.ssh.hosts = config.my.infrastructure.ssh.hosts;
+
+      my.ai-memory.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
+      my.ai-memory.tokenFile = config.sops.secrets.ai-memory-token.path;
 
       home.activation.installZarosAuthorizedKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 700 -d "$HOME/.ssh"

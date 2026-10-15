@@ -1,0 +1,15 @@
+# Explicit opt-in for this repository, shared across machines and worktrees.
+workspace = "personal"
+project = "nix-config"
+identity = "felipemalacarne/nix-config"
+
+[capture]
+ignore_paths = ["secrets/**", "keys/**", ".env", "**/.env", ".env.*", "**/.env.*", "docs/**"]
+
+[briefing]
+inject_on_session_start = true
+max_chars = 4000
+
+[profile]
+contribute = false
+consume = false

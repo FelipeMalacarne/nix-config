@@ -1,0 +1,109 @@
+{ inputs, self, ... }:
+let
+  module =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      cfg = config.my.ai-memory;
+      package = self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory;
+      dataDir =
+        if pkgs.stdenv.hostPlatform.isDarwin then
+          "${config.home.homeDirectory}/Library/Application Support/ai-memory"
+        else
+          "${config.xdg.dataHome}/ai-memory";
+      toml = (pkgs.formats.toml { }).generate "ai-memory-client.toml" {
+        server_url = cfg.serverUrl;
+        embedding_provider = "none";
+        auth.bearer_token_file = "auth-token";
+      };
+      plugin = pkgs.runCommand "ai-memory-opencode2.ts" { nativeBuildInputs = [ package ]; } ''
+        export HOME="$TMPDIR/home"
+        export AI_MEMORY_DATA_DIR="$TMPDIR/data"
+        mkdir -p "$HOME" "$AI_MEMORY_DATA_DIR"
+        ai-memory install-hooks --agent opencode2 --capture-mode allowlist \
+          --server-url ${lib.escapeShellArg cfg.serverUrl} \
+          --apply --config-file "$out"
+      '';
+    in
+    {
+      options.my.ai-memory.serverUrl = lib.mkOption {
+        type = lib.types.strMatching "https://[a-zA-Z0-9.-]+(:[0-9]+)?";
+        description = "Private HTTPS base URL shared by MCP, hooks and recovery; no /mcp suffix.";
+      };
+      options.my.ai-memory.tokenFile = lib.mkOption {
+        type = lib.types.strMatching "/.+";
+        description = "Private runtime token path provisioned by the host (e.g. SOPS); only a symlink, never its contents, enters the Nix store.";
+      };
+
+      config = {
+        assertions = [
+          {
+            assertion = config.programs.opencode.enable && config.programs.opencode.enableMcpIntegration;
+            message = "ai-memory-client requires OpenCode with its MCP integration explicitly selected.";
+          }
+          {
+            assertion = !(lib.hasPrefix "${builtins.storeDir}/" cfg.tokenFile);
+            message = "ai-memory-client tokenFile must be a private runtime file, never a Nix store path.";
+          }
+        ];
+        home.packages = [
+          package
+          pkgs.git
+        ];
+        # Never let managed launches rewrite Home Manager's agent configuration.
+        home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE = "false";
+        home.activation.aiMemoryPrivateData =
+          lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ]
+            ''
+              $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -d -m 700 ${lib.escapeShellArg dataDir}
+            '';
+        home.file.ai-memory-config = {
+          target = "${dataDir}/config.toml";
+          source = toml;
+        };
+        home.file.ai-memory-capture-mode = {
+          target = "${dataDir}/capture-mode";
+          text = "allowlist\n";
+        };
+        home.file.ai-memory-auth-token = {
+          target = "${dataDir}/auth-token";
+          source = config.lib.file.mkOutOfStoreSymlink cfg.tokenFile;
+        };
+        programs.mcp = {
+          enable = true;
+          servers.ai-memory = {
+            command = lib.getExe package;
+            args = [
+              "--data-dir"
+              dataDir
+              "mcp-bridge"
+              "--no-session-id"
+              "--server-url"
+              cfg.serverUrl
+            ];
+          };
+        };
+        xdg.configFile."opencode/plugins/ai-memory-opencode2.ts".source = plugin;
+        programs.opencode.settings.instructions = [ "${./workflow.md}" ];
+        programs.opencode.skills = lib.genAttrs [
+          "ai-memory-retrieval"
+          "ai-memory-handoff"
+          "ai-memory-durable-pages"
+        ] (name: "${inputs.ai-memory}/crates/ai-memory-core/src/routing_skills/${name}");
+      };
+    };
+in
+{
+  flake.modules.homeManager.ai-memory-client = module;
+
+  perSystem = { lib, pkgs, ... }: {
+    checks.ai-memory-client = import ./test-client.nix {
+      inherit lib pkgs module;
+      inherit (inputs) home-manager;
+    };
+  };
+}
