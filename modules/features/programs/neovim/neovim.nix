@@ -11,6 +11,11 @@ in
     {
       inherit packages;
 
+      checks.neovim-options = import ./config/options-check.nix {
+        inherit inputs self pkgs;
+        configDir = toString ./.;
+      };
+
       checks.neovim = pkgs.runCommand "neovim-variants" { } ''
         export HOME="$TMPDIR/home"
         mkdir -p "$HOME"
@@ -57,16 +62,52 @@ in
       pkgs,
       ...
     }:
+    let
+      cfg = config.my.neovim;
+      packages =
+        if cfg.variant == "dev" then
+          import ./config/packages.nix {
+            inherit inputs pkgs;
+            inherit (cfg) devConfigDir;
+          }
+        else
+          packagesFor pkgs;
+    in
     {
       # Base and development both import this aspect through deferred modules.
       key = "nix-config/home-manager/neovim";
 
-      options.my.neovim.package = lib.mkOption {
-        type = lib.types.package;
-        default = (packagesFor pkgs).neovim-minimal;
-        description = "Neovim variant to install; minimal by default, full in the development profile.";
+      options.my.neovim = {
+        variant = lib.mkOption {
+          type = lib.types.enum [
+            "minimal"
+            "full"
+            "dev"
+          ];
+          default = "minimal";
+          description = "Editor variant; development profiles default to full, dev reads a local Lua checkout.";
+        };
+        devConfigDir = lib.mkOption {
+          type = lib.types.nullOr (lib.types.strMatching "/.+");
+          default = null;
+          example = "/home/felipe/repos/nix-config/modules/features/programs/neovim";
+          description = "Absolute runtime config directory required for the dev variant. Use a string, not a Nix path, to keep edits outside the store.";
+        };
+        package = lib.mkOption {
+          type = lib.types.package;
+          default = packages."neovim-${cfg.variant}";
+          description = "Selected Neovim package; may be overridden for a custom editor.";
+        };
       };
 
-      config.home.packages = [ config.my.neovim.package ];
+      config = {
+        assertions = [
+          {
+            assertion = cfg.variant != "dev" || cfg.devConfigDir != null;
+            message = "my.neovim.devConfigDir must be set when my.neovim.variant is dev.";
+          }
+        ];
+        home.packages = [ cfg.package ];
+      };
     };
 }

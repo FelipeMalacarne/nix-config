@@ -1,4 +1,8 @@
-{ inputs, pkgs }:
+{
+  inputs,
+  pkgs,
+  devConfigDir ? null,
+}:
 let
   inherit (pkgs) lib;
 
@@ -41,7 +45,9 @@ let
         if dev then
           lib.generators.mkLuaInline ''
             (function()
-              local dir = vim.env.NVIM_CONFIG_DIR
+              local dir = ${
+                if devConfigDir == null then "vim.env.NVIM_CONFIG_DIR" else builtins.toJSON devConfigDir
+              }
               assert(dir and dir:sub(1, 1) == "/", "neovim-dev requires NVIM_CONFIG_DIR to be an absolute config directory")
               assert(vim.fn.filereadable(dir .. "/init.lua") == 1, "NVIM_CONFIG_DIR must contain init.lua")
               return dir
@@ -55,72 +61,78 @@ let
         servers = lib.optionals full (builtins.attrNames servers);
       };
 
-      runtimePkgs = lib.optionals full (
-        builtins.attrValues servers
-        ++ (with pkgs; [
-          stylua
-          nixfmt
-          shfmt
-          prettierd
-          gofumpt
-          lazygit
-          lazydocker
-          lazysql
-          tuxedo
+      runtimePkgs =
+        (with pkgs; [
           ripgrep
           fd
         ])
-        ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.inotify-tools ]
-      );
+        ++ lib.optionals full (
+          builtins.attrValues servers
+          ++ (with pkgs; [
+            stylua
+            nixfmt
+            shfmt
+            prettierd
+            gofumpt
+            lazygit
+            lazydocker
+            lazysql
+            tuxedo
+          ])
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.inotify-tools ]
+        );
 
-      specs.plugins.data = lib.optionals full (
-        with pkgs.vimPlugins;
-        [
-          (nvim-treesitter.withPlugins (
-            grammars: with grammars; [
-              bash
-              c
-              css
-              dockerfile
-              go
-              gomod
-              gosum
-              gotmpl
-              html
-              javascript
-              json
-              lua
-              luadoc
-              markdown
-              markdown_inline
-              nix
-              php
-              php_only
-              query
-              sql
-              terraform
-              toml
-              tsx
-              typescript
-              vim
-              vimdoc
-              yaml
-            ]
-          ))
+      specs.plugins.data =
+        (with pkgs.vimPlugins; [
           telescope-nvim
           plenary-nvim
           telescope-fzf-native-nvim
           blink-cmp
-          nvim-lspconfig
           neo-tree-nvim
           nvim-web-devicons
           nui-nvim
           catppuccin-nvim
-          conform-nvim
           which-key-nvim
           snacks-nvim
-        ]
-      );
+        ])
+        ++ lib.optionals full (
+          with pkgs.vimPlugins;
+          [
+            (nvim-treesitter.withPlugins (
+              grammars: with grammars; [
+                bash
+                c
+                css
+                dockerfile
+                go
+                gomod
+                gosum
+                gotmpl
+                html
+                javascript
+                json
+                lua
+                luadoc
+                markdown
+                markdown_inline
+                nix
+                php
+                php_only
+                query
+                sql
+                terraform
+                toml
+                tsx
+                typescript
+                vim
+                vimdoc
+                yaml
+              ]
+            ))
+            nvim-lspconfig
+            conform-nvim
+          ]
+        );
     };
 
   full = wrapNeovim { full = true; };

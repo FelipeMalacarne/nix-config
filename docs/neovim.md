@@ -1,20 +1,57 @@
 # Neovim variants
 
-The Home Manager `neovim` feature installs one package through
-`my.neovim.package`. Its default is minimal; the `development` profile selects
-full with `mkDefault`, so hosts can override it. Saradomin and saradomin-vm use
-minimal; zaros and macbook use full.
+The Home Manager `neovim` feature installs one editor selected by
+`my.neovim.variant` (`minimal`, `full`, or `dev`). Its default is minimal; the
+`development` profile selects full with `mkDefault`, so hosts can override it.
+Saradomin and saradomin-vm use minimal; zaros and macbook use full.
+
+For local configuration development, set these Home Manager options:
+
+```nix
+my.neovim = {
+  variant = "dev";
+  devConfigDir = "${config.home.homeDirectory}/repos/nix-config/modules/features/programs/neovim";
+};
+```
+
+`devConfigDir` must be an absolute string, not a Nix path literal (which would
+copy the checkout into the store). The configured dev wrapper reads this path
+directly; it does not need or modify `NVIM_CONFIG_DIR` in the login environment.
+The directory must contain `init.lua` when the editor launches. For a custom
+package, `my.neovim.package` remains an override of the variant's default.
 
 - `neovim-minimal`: shared editing options, keymaps, terminal window, diagnostics
-  UI and built-in syntax highlighting. No bundled plugins, LSPs, formatters or
-  external TUIs or Python/Node/Ruby remote-plugin providers. Folding uses
-  indentation instead of Treesitter. Neovim's own built-in parsers remain.
+  UI, Catppuccin theme, Which-key, Neo-tree, Telescope with native FZF, Snacks,
+  and Blink completion from buffers, paths and snippets. Includes ripgrep/fd
+  for file search and live grep. No bundled LSPs, formatters, external TUIs or
+  Python/Node/Ruby remote-plugin providers. Folding uses indentation instead of
+  Treesitter. Neovim's own built-in parsers remain.
 - `neovim-full`: workstation plugins, LSPs, formatters and TUIs, with a curated
   Treesitter grammar list rather than all grammars.
 - `neovim`: compatibility alias for `neovim-full`.
 - `neovim-dev`: full dependencies, but reads Lua from `NVIM_CONFIG_DIR` on launch.
   It requires an absolute directory containing `init.lua` and has no fallback to
   an unrelated user config. Normal packages always use the immutable store copy.
+
+## Shared controls
+
+The leader key is Space. Both minimal and full provide:
+
+| Key | Action |
+| --- | --- |
+| `<leader>ff` / `<leader><leader>` | Find files |
+| `<leader>fg` | Search file contents (live grep) |
+| `<leader>fb` | Switch buffers |
+| `<leader>fr` | Recent files |
+| `<leader>/` | Fuzzy search current buffer |
+| `<leader>e` / `<leader>E` | File explorer / current file's directory |
+| `<leader>?` | Show key hints |
+| `<C-/>` | Toggle terminal |
+| `<C-Space>` | Show completion |
+
+Full additionally provides LSP actions, formatting and external TUI shortcuts.
+
+## Standalone packages
 
 From the repository root:
 
@@ -40,3 +77,6 @@ keymaps, variant isolation, full LSP executable availability and representative
 Treesitter parsers. It does not activate host configurations.
 `checks.<system>.neovim-selection` verifies all four hosts select the expected
 package and that the compatibility alias points to full.
+`checks.<system>.neovim-options` verifies variant selection, custom package
+overrides, the required dev path and startup using a configured dev directory
+even when the shell supplies a different `NVIM_CONFIG_DIR`.

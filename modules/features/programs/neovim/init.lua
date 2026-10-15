@@ -10,21 +10,23 @@ require("config.ui")
 require("config.keymaps")
 require("config.diagnostic")
 require("config.autocmds")
+
+-- Shared editing UI for both server and workstation variants.
+for _, plugin in ipairs({
+	"catppuccin-nvim",
+	"blink",
+	"neo-tree",
+	"snacks",
+	"telescope",
+	"which-key",
+}) do
+	require("plugins." .. plugin)
+end
+
 if info.variant == "full" then
 	require("config.lsp")
-	-- Explicit ordering; configuration errors must not be silently swallowed.
-	for _, plugin in ipairs({
-		"catppuccin-nvim",
-		"blink",
-		"conform",
-		"neo-tree",
-		"snacks",
-		"telescope",
-		"treesitter",
-		"which-key",
-	}) do
-		require("plugins." .. plugin)
-	end
+	require("plugins.conform")
+	require("plugins.treesitter")
 else
 	vim.cmd("syntax enable")
 end
