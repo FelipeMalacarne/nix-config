@@ -202,16 +202,7 @@ in
           cp -R ${inputs.opencode}/script ./script
         '';
       };
-      opencode = upstream.opencode.overrideAttrs (
-        old:
-        (restoreScripts old)
-        // {
-          # Desktop discovers service.json; the upstream Nix "prod" channel uses service-prod.json.
-          env = old.env // {
-            OPENCODE_CHANNEL = "latest";
-          };
-        }
-      );
+      opencode = upstream.opencode.overrideAttrs restoreScripts;
     in
     {
       packages.opencode = inputs.wrapper-modules.wrappers.opencode.wrap {
@@ -220,14 +211,7 @@ in
       };
       packages.opencode-desktop =
         (upstream.opencode-desktop.override { inherit opencode; }).overrideAttrs
-          (old: {
-            postPatch = (restoreScripts old).postPatch + ''
-              # Use the immutable bundled CLI instead of a version-only cache that survives Nix rebuilds.
-              substituteInPlace packages/desktop/src/main/service/desktop-cli.ts \
-                --replace-fail 'const binary = app.isPackaged || isolated ? yield* installCli(bundled, version) : bundled' \
-                               'const binary = bundled'
-            '';
-          });
+          restoreScripts;
       checks.opencode-craft = import ./config/test-craft.nix {
         inherit lib pkgs;
         inherit (inputs) home-manager;
