@@ -7,34 +7,46 @@ let
   inherit (pkgs) lib;
 
   # Keep server enablement and bundled executables in one manifest.
-  servers = with pkgs; {
+  baseServers = with pkgs; {
     lua_ls = lua-language-server;
-    gopls = gopls;
-    phpantom-lsp = inputs.phpantom-lsp.packages.${pkgs.stdenv.hostPlatform.system}.phpantom-lsp;
-    nixd = nixd;
-    tsgo = typescript-go;
-    superhtml = superhtml;
-    cssls = vscode-css-languageserver;
-    tailwindcss = tailwindcss-language-server;
-    jsonls = vscode-json-languageserver;
-    marksman = marksman;
-    yamlls = yaml-language-server;
-    tofu_ls = tofu-ls;
-    sqls = sqls;
-    docker_language_server = docker-language-server;
-    helm_ls = helm-ls;
+    bashls = bash-language-server;
   };
+  # nil keeps the server editor lighter; full retains nixd's richer integration.
+  minimalServers = baseServers // {
+    nil_ls = pkgs.nil;
+  };
+  fullServers =
+    baseServers
+    // (with pkgs; {
+      gopls = gopls;
+      phpantom-lsp = inputs.phpantom-lsp.packages.${pkgs.stdenv.hostPlatform.system}.phpantom-lsp;
+      nixd = nixd;
+      tsgo = typescript-go;
+      superhtml = superhtml;
+      cssls = vscode-css-languageserver;
+      tailwindcss = tailwindcss-language-server;
+      jsonls = vscode-json-languageserver;
+      marksman = marksman;
+      yamlls = yaml-language-server;
+      tofu_ls = tofu-ls;
+      sqls = sqls;
+      docker_language_server = docker-language-server;
+      helm_ls = helm-ls;
+    });
 
   wrapNeovim =
     {
       full ? false,
       dev ? false,
     }:
+    let
+      servers = if full then fullServers else minimalServers;
+    in
     inputs.wrapper-modules.wrappers.neovim.wrap {
       inherit pkgs;
 
       # Upstream enables remote-plugin hosts by default, even with no plugins.
-      # Minimal must not pull Python, Node and Ruby (and their toolchains).
+      # Disable unused remote-plugin providers (Node-based LSPs are separate).
       hosts = lib.optionalAttrs (!full) {
         python3.nvim-host.enable = false;
         node.nvim-host.enable = false;
@@ -58,7 +70,7 @@ let
 
       info = {
         variant = if full then "full" else "minimal";
-        servers = lib.optionals full (builtins.attrNames servers);
+        servers = builtins.attrNames servers;
       };
 
       runtimePkgs =
@@ -66,9 +78,9 @@ let
           ripgrep
           fd
         ])
+        ++ builtins.attrValues servers
         ++ lib.optionals full (
-          builtins.attrValues servers
-          ++ (with pkgs; [
+          (with pkgs; [
             stylua
             nixfmt
             shfmt
@@ -88,6 +100,7 @@ let
           plenary-nvim
           telescope-fzf-native-nvim
           blink-cmp
+          nvim-lspconfig
           neo-tree-nvim
           nvim-web-devicons
           nui-nvim
@@ -129,7 +142,6 @@ let
                 yaml
               ]
             ))
-            nvim-lspconfig
             conform-nvim
           ]
         );

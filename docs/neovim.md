@@ -22,10 +22,12 @@ package, `my.neovim.package` remains an override of the variant's default.
 
 - `neovim-minimal`: shared editing options, keymaps, terminal window, diagnostics
   UI, Catppuccin theme, Which-key, Neo-tree, Telescope with native FZF, Snacks,
-  and Blink completion from buffers, paths and snippets. Includes ripgrep/fd
-  for file search and live grep. No bundled LSPs, formatters, external TUIs or
-  Python/Node/Ruby remote-plugin providers. Folding uses indentation instead of
-  Treesitter. Neovim's own built-in parsers remain.
+  and Blink completion from LSPs, buffers, paths and snippets. Includes ripgrep/fd
+  for file search and live grep, plus Nix (`nil`), Lua (`lua-language-server`) and
+  Bash (`bash-language-server`) LSPs. No bundled formatters, external TUIs or
+  Python/Node/Ruby remote-plugin providers (the Bash LSP itself uses Node).
+  Folding uses indentation instead of Treesitter. Neovim's own built-in parsers
+  remain.
 - `neovim-full`: workstation plugins, LSPs, formatters and TUIs, with a curated
   Treesitter grammar list rather than all grammars.
 - `neovim`: compatibility alias for `neovim-full`.
@@ -49,7 +51,10 @@ The leader key is Space. Both minimal and full provide:
 | `<C-/>` | Toggle terminal |
 | `<C-Space>` | Show completion |
 
-Full additionally provides LSP actions, formatting and external TUI shortcuts.
+Both provide LSP completion, hover (`K`), definitions (`gd`), rename (`<leader>rn`)
+and code actions (`<leader>ca`) when a supported server attaches. Telescope symbol
+search uses `<leader>fs` / `<leader>fw`. Full adds the wider language-server suite
+(including PHPantom and nixd rather than nil), formatting and external TUIs.
 
 ## Standalone packages
 
@@ -59,6 +64,13 @@ From the repository root:
 nix run 'path:.#neovim-minimal' -- /path/to/file
 nix run 'path:.#neovim-full' -- /path/to/file
 NVIM_CONFIG_DIR="$PWD/modules/features/programs/neovim" nix run 'path:.#neovim-dev'
+```
+
+GitHub runs use the published revision, independently of Home Manager settings.
+If a recently published update seems missing, refresh Nix's flake cache:
+
+```sh
+nix run --refresh github:FelipeMalacarne/nix-config#neovim-minimal
 ```
 
 Restart the dev editor to pick up Lua edits without rebuilding. Plugin, grammar,
@@ -73,8 +85,9 @@ dependencies are not included. PHP formatting still uses project-provided
 `pint`; it is not bundled by this configuration.
 
 `checks.<system>.neovim` tests headless minimal, full and dev startup, core
-keymaps, variant isolation, full LSP executable availability and representative
-Treesitter parsers. It does not activate host configurations.
+keymaps, theme, variant isolation, LSP executable availability and representative
+Treesitter parsers. Minimal also tests real Nix/Lua/Bash server initialization,
+completion support and buffer keymaps. It does not activate host configurations.
 `checks.<system>.neovim-selection` verifies all four hosts select the expected
 package and that the compatibility alias points to full.
 `checks.<system>.neovim-options` verifies variant selection, custom package

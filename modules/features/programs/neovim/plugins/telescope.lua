@@ -27,10 +27,8 @@ keybind("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", "Live grep")
 keybind("n", "<leader>fb", "<cmd>Telescope buffers<cr>", "Buffers")
 keybind("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", "Help tags")
 keybind("n", "<leader>fr", "<cmd>Telescope oldfiles<cr>", "Recent files")
-if vim.g.neovim_variant == "full" then
-	keybind("n", "<leader>fs", "<cmd>Telescope lsp_document_symbols<cr>", "Document symbols")
-	keybind("n", "<leader>fw", "<cmd>Telescope lsp_dynamic_workspace_symbols<cr>", "Workspace symbols")
-end
+keybind("n", "<leader>fs", "<cmd>Telescope lsp_document_symbols<cr>", "Document symbols")
+keybind("n", "<leader>fw", "<cmd>Telescope lsp_dynamic_workspace_symbols<cr>", "Workspace symbols")
 keybind("n", "<leader>fd", "<cmd>Telescope diagnostics<cr>", "Diagnostics")
 keybind("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<cr>", "Fuzzy find in buffer")
 

@@ -21,6 +21,8 @@ in
         mkdir -p "$HOME"
         NVIM_TEST_VARIANT=minimal ${packages.neovim-minimal}/bin/nvim --headless -i NONE \
           -c 'lua dofile("${./config/check.lua}")' -c 'cquit 1'
+        ${packages.neovim-minimal}/bin/nvim --headless -i NONE \
+          -c 'lua dofile("${./config/check-lsp.lua}")' -c 'cquit 1'
         NVIM_TEST_VARIANT=full ${packages.neovim-full}/bin/nvim --headless -i NONE \
           -c 'lua dofile("${./config/check.lua}")' -c 'cquit 1'
         NVIM_TEST_VARIANT=full NVIM_CONFIG_DIR=${./.} ${packages.neovim-dev}/bin/nvim --headless -i NONE \

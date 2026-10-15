@@ -23,8 +23,9 @@ for _, plugin in ipairs({
 	require("plugins." .. plugin)
 end
 
+require("config.lsp")
+
 if info.variant == "full" then
-	require("config.lsp")
 	require("plugins.conform")
 	require("plugins.treesitter")
 else

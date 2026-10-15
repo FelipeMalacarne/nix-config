@@ -21,8 +21,7 @@ require("blink.cmp").setup({
 	},
 
 	sources = {
-		default = vim.g.neovim_variant == "full" and { "lsp", "path", "snippets", "buffer" }
-			or { "path", "snippets", "buffer" },
+		default = { "lsp", "path", "snippets", "buffer" },
 		providers = {
 			lsp = { score_offset = 5 },
 		},

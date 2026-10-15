@@ -1,5 +1,6 @@
 vim.lsp.config("*", {
 	root_markers = { ".git" },
+	capabilities = require("blink.cmp").get_lsp_capabilities(),
 })
 
 vim.lsp.enable(require(vim.g.nix_info_plugin_name).info.servers)
