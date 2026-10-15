@@ -195,6 +195,12 @@ in
     {
       packages.opencode = inputs.wrapper-modules.wrappers.opencode.wrap {
         inherit pkgs;
+        package = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode.overrideAttrs (old: {
+          # Upstream's source filter omits script/, which the CLI build imports.
+          postPatch = (old.postPatch or "") + ''
+            cp -R ${inputs.opencode}/script ./script
+          '';
+        });
       };
       checks.opencode-craft = import ./config/test-craft.nix {
         inherit lib pkgs;

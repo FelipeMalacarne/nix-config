@@ -21,6 +21,8 @@
 
     nvim-config.url = "github:FelipeMalacarne/nvim";
 
+    opencode.url = "github:anomalyco/opencode/dev";
+
     phpantom-lsp = {
       url = "github:PHPantom-dev/phpantom_lsp";
       inputs.nixpkgs.follows = "nixpkgs";
