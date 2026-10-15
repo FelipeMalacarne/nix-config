@@ -183,17 +183,17 @@ their native `auth-token` path to that runtime secret. Never copy its plaintext
 into configuration, prompts or the Nix store, or rotate it with queued captures.
 The memory feature owns shared SOPS credential declarations and platform client
 forwarding; hosts retain machine facts such as the endpoint and server hostname.
-The server config selects GitHub Copilot `copilot` summaries (no paid-provider
-fallback) and CPU-local embeddings with a 2 GiB ceiling. Provision its mutable,
-service-owned Copilot cache separately from the bootstrap GitHub token. The
-bootstrap is SOPS-encrypted in `secrets/ai-memory-copilot.yaml`, rendered to a
-service-only runtime environment file, never plaintext in Nix or the store.
-The committed initial marker is deliberately unconfigured and blocks startup;
-the operator must import the real token with `ai-memory-import-copilot --confirm`
-in a private terminal outside captured agent sessions, then commit ciphertext.
-Agents must not read the real local `auth.json` or decrypt provider secrets.
-Never deploy the complete mutable `auth.json` as a SOPS-managed file. Hourly
-improvement proposals require approval; dream/profile stay off. `/memory-finish <memory-UUID>`
+The server config selects ChatGPT subscription `openai-oauth` / `gpt-6-luna` summaries (not the
+separately billed `openai` API; no paid-provider fallback) and CPU-local embeddings
+with a 2 GiB ceiling. The operator completes device login as the `ai-memory`
+service user in a private terminal, outside captured agent sessions. Its mutable
+`/var/lib/ai-memory/auth.json` stays service-owned and private, never plaintext in
+Nix, the store, prompts or SOPS-managed as a whole. Agents must not read that
+file, handle device codes, decrypt provider secrets or run interactive login.
+The legacy encrypted Copilot bootstrap/import helper and existing runtime cache
+entries are preserved, but Copilot secrets are no longer selected for this role.
+Private subscription acceptance and separate deployment approval are required.
+Hourly improvement proposals require approval; dream/profile stay off. `/memory-finish <memory-UUID>`
 verifies and finalizes one explicit record without deleting its OpenCode chat;
 a handoff alone is not SessionEnd. See the documented login and finish runbooks.
 OpenClaw's module/input are removed. Do not delete its legacy encrypted credential

@@ -15,6 +15,10 @@
 - Hooks capture routine work. Durable pages require an explicit request;
   permanent rules belong in `AGENTS.md` first. Do not scaffold `docs/ai/` or
   automatically rewrite skills/instructions based on sessions.
+- Wiki writes replace the entire page and omitted metadata. Read first and pass
+  the returned `page_id` as `expected_page_id` when updating or deleting; use
+  `create_only: true` for a new page. On `precondition_failed`, re-read and decide
+  rather than blindly overwriting another session's work.
 - Closing OpenCode does not necessarily end its session. When asked to wrap up,
   use the upstream handoff skill rather than assuming a handoff was created.
   `/memory-finish <ai-memory-session-UUID>` also finalizes that exact, verified

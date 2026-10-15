@@ -1,0 +1,52 @@
+diff --git a/crates/ai-memory-core/src/routing_skills/ai-memory-durable-pages/SKILL.md b/crates/ai-memory-core/src/routing_skills/ai-memory-durable-pages/SKILL.md
+--- a/crates/ai-memory-core/src/routing_skills/ai-memory-durable-pages/SKILL.md
++++ b/crates/ai-memory-core/src/routing_skills/ai-memory-durable-pages/SKILL.md
+@@ -29,7 +29,10 @@
+ frontmatter and author fields are not editable.
+ Every write replaces the whole page and its metadata; omitted fields are
+ cleared. Read the current page first when preserving existing content matters.
+-There is no patch or compare-and-write precondition.
++There is no partial patch operation. To avoid overwriting concurrent changes,
++pass the current page's `page_id` as `expected_page_id`; use `create_only: true`
++when creating a page that must not already exist. A `precondition_failed` error
++writes nothing: re-read the page and decide before retrying.
+ 
+ When the user explicitly wants a note to be temporary, pass `expires_at` as an
+ RFC3339 instant or a bare `YYYY-MM-DD` (the end of that day in UTC). After the
+diff --git a/crates/ai-memory-cli/src/commands/render_shared.rs b/crates/ai-memory-cli/src/commands/render_shared.rs
+--- a/crates/ai-memory-cli/src/commands/render_shared.rs
++++ b/crates/ai-memory-cli/src/commands/render_shared.rs
+@@ -2532,6 +2532,11 @@
+ // one copy's entries in order.
+ const spoolSeqPrefix = Math.floor(Math.random() * 0x100000000).toString(16).padStart(8, "0");
+ let spoolSeq = 0;
++// Bound new offline capture without deleting an operator's existing backlog.
++// This is a per-write guard, not a cross-process filesystem quota.
++const HOOK_SPOOL_MAX_FILES = 4096;
++const HOOK_SPOOL_MAX_ENTRY_BYTES = 64 * 1024;
++let spoolLimitWarned = false;
+ 
+ function spoolFailedHook(url: URL | string, payload: Record<string, unknown>): void {
+   try {
+@@ -2553,10 +2558,20 @@
+       ...(token ? { token } : {}),
+       attempts: 0,
+     };
++    const encoded = JSON.stringify(entry);
++    if (new TextEncoder().encode(encoded).byteLength > HOOK_SPOOL_MAX_ENTRY_BYTES ||
++        readdirSync(dir).length >= HOOK_SPOOL_MAX_FILES) {
++      if (!spoolLimitWarned) {
++        console.warn("[ai-memory] offline capture limit reached; new capture dropped; check ai-memory status");
++        spoolLimitWarned = true;
++      }
++      return;
++    }
++    spoolLimitWarned = false;
+     const seq = spoolSeqPrefix + (spoolSeq++ & 0xffffffff).toString(16).padStart(8, "0");
+     const name = `${String(createdMs).padStart(13, "0")}-${process.pid}-${seq}.json`;
+     const tmp = join(dir, `${name}.tmp`);
+-    writeFileSync(tmp, JSON.stringify(entry), { mode: 0o600 });
++    writeFileSync(tmp, encoded, { mode: 0o600 });
+     renameSync(tmp, join(dir, name));
+   } catch (_e) {
+     // Spooling is best-effort on top of best-effort capture.

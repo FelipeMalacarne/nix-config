@@ -18,6 +18,7 @@ in
     openssh
     tailscale
     ai-memory-server
+    ai-memory-backup
   ];
 
   networking.hostName = "saradomin";

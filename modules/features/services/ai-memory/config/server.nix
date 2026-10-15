@@ -50,20 +50,6 @@ in
           group = service.group;
           restartUnits = [ "ai-memory.service" ];
         };
-        sops.secrets.ai-memory-copilot = {
-          sopsFile = ../../../../../secrets/ai-memory-copilot.yaml;
-          key = "github_token";
-          owner = service.user;
-          group = service.group;
-          mode = "0400";
-        };
-        sops.templates."ai-memory-copilot.env" = {
-          content = "COPILOT_GITHUB_TOKEN=${config.sops.placeholder.ai-memory-copilot}\n";
-          owner = service.user;
-          group = service.group;
-          mode = "0400";
-          restartUnits = [ "ai-memory.service" ];
-        };
         assertions = [
           {
             assertion = config.services.tailscale.enable;
@@ -77,12 +63,12 @@ in
 
         services.ai-memory = {
           enable = true;
+          package = self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory;
           bind = "127.0.0.1";
           openFirewall = false;
           # Headroom for in-process CPU embeddings; this is a ceiling, not a reservation.
           memoryMax = "2G";
           tasksMax = 128;
-          environmentFile = config.sops.templates."ai-memory-copilot.env".path;
           settings = {
             allowed_hosts = [
               "localhost"
@@ -90,9 +76,11 @@ in
               cfg.hostName
             ];
             embedding_provider = "local";
-            # Copilot subscription allowance only: no paid-provider fallback.
-            # Only a runtime SOPS template carries the GitHub bootstrap token.
-            llm_provider = "copilot";
+            # ChatGPT subscription backend, not the separately billed OpenAI API.
+            # Device login/refresh owns the service-private mutable auth.json.
+            llm_provider = "openai-oauth";
+            # Do not inherit the stale GPT-5.5 subscription default (retired).
+            llm_model = "gpt-6-luna";
             llm_reasoning_effort = "low";
             llm_fallbacks = [ ];
             consolidate_on_session_end = true;
@@ -117,6 +105,20 @@ in
             };
             dream.enabled = false;
             profile.enabled = "off";
+            # Make the inherited preservation policy visible and stable across updates.
+            decay = {
+              lambda = 0.02;
+              cold_threshold = 0.20;
+              hard_delete_after_days = 180;
+              observation_retention_days = 0;
+              compact_cold_episodic = false;
+              dedup_cold_clusters = false;
+            };
+            maintenance = {
+              enabled = true;
+              forget_sweep_interval_secs = 86400;
+              lint_interval_secs = 86400;
+            };
           };
         };
 
@@ -143,12 +145,11 @@ in
             echo 'ai-memory bearer is missing, unreadable or blank; refusing unauthenticated startup.' >&2
             exit 1
           fi
-          case "''${COPILOT_GITHUB_TOKEN:-}" in
-            ""|UNCONFIGURED|*[!A-Za-z0-9_]*)
-              echo 'Copilot token missing or unconfigured; import it with ai-memory-import-copilot before activation.' >&2
-              exit 1
-              ;;
-          esac
+          if ! test -r ${lib.escapeShellArg "${service.dataDir}/auth.json"} ||
+             ! test -s ${lib.escapeShellArg "${service.dataDir}/auth.json"}; then
+            echo 'ChatGPT login missing; complete the private service-user openai-oauth login before activation.' >&2
+            exit 1
+          fi
         '';
         systemd.services.ai-memory.path = [ pkgs.gnugrep ];
 
@@ -188,7 +189,16 @@ in
   perSystem = { lib, pkgs, ... }: {
     checks.ai-memory-server =
       let
-        cfg = self.nixosConfigurations.saradomin.config;
+        inherit (import ../../../../checks/config/fixtures.nix { inherit inputs self; }) mkFeatureConfig;
+        cfg = mkFeatureConfig [
+          self.modules.nixos.server
+          self.modules.nixos.tailscale
+          self.modules.nixos.ai-memory-server
+          {
+            my.ai-memory-server.hostName = "fixture.example.test";
+            services.ai-memory.enableWeb = true;
+          }
+        ];
         settings = cfg.services.ai-memory.settings;
         pruneNulls =
           value:
@@ -208,8 +218,11 @@ in
         );
         tokenGuard = pkgs.writeShellScript "ai-memory-fixture-token-guard" (
           lib.replaceStrings
-            [ (lib.escapeShellArg cfg.my.ai-memory-server.tokenFile) ]
-            [ ''"$FIXTURE_TOKEN"'' ]
+            [
+              (lib.escapeShellArg cfg.my.ai-memory-server.tokenFile)
+              (lib.escapeShellArg "${cfg.services.ai-memory.dataDir}/auth.json")
+            ]
+            [ ''"$FIXTURE_TOKEN"'' ''"$FIXTURE_PROVIDER_AUTH"'' ]
             cfg.systemd.services.ai-memory.preStart
         );
       in
@@ -220,8 +233,8 @@ in
       assert lib.hasInfix "--enable-web" cfg.systemd.services.ai-memory.serviceConfig.ExecStart;
       assert cfg.services.ai-memory.memoryMax == "2G";
       assert settings.embedding_provider == "local";
-      assert settings.llm_provider == "copilot";
-      assert settings.llm_model == null;
+      assert settings.llm_provider == "openai-oauth";
+      assert settings.llm_model == "gpt-6-luna";
       assert settings.llm_base_url == null;
       assert settings.llm_reasoning_effort == "low";
       assert settings.llm_fallbacks == [ ];
@@ -232,20 +245,10 @@ in
       assert cfg.sops.secrets.ai-memory-token.owner == cfg.services.ai-memory.user;
       assert cfg.sops.secrets.ai-memory-token.mode == "0400";
       assert settings.auth.secure_cookie;
-      assert cfg.sops.secrets.ai-memory-copilot.key == "github_token";
-      assert cfg.sops.secrets.ai-memory-copilot.owner == cfg.services.ai-memory.user;
-      assert cfg.sops.secrets.ai-memory-copilot.mode == "0400";
-      assert cfg.sops.templates."ai-memory-copilot.env".owner == cfg.services.ai-memory.user;
-      assert cfg.sops.templates."ai-memory-copilot.env".mode == "0400";
-      assert cfg.sops.templates."ai-memory-copilot.env".restartUnits == [ "ai-memory.service" ];
-      assert
-        cfg.sops.templates."ai-memory-copilot.env".content
-        == "COPILOT_GITHUB_TOKEN=${cfg.sops.placeholder.ai-memory-copilot}\n";
+      assert !(cfg.sops.secrets ? ai-memory-copilot);
+      assert !(cfg.sops.templates ? "ai-memory-copilot.env");
       assert !(cfg.systemd.services.ai-memory.environment ? COPILOT_GITHUB_TOKEN);
-      assert cfg.services.ai-memory.environmentFile == cfg.sops.templates."ai-memory-copilot.env".path;
-      assert
-        cfg.systemd.services.ai-memory.serviceConfig.EnvironmentFile
-        == "-${cfg.sops.templates."ai-memory-copilot.env".path}";
+      assert cfg.services.ai-memory.environmentFile == null;
       assert settings.auto_improve.scheduler.enabled;
       assert settings.auto_improve.scheduler.interval_secs == 3600;
       assert settings.auto_improve.scheduler.max_sessions_per_tick == 1;
@@ -254,11 +257,15 @@ in
       assert settings.auto_improve.require_approval;
       assert !settings.dream.enabled;
       assert settings.profile.enabled == "off";
+      assert settings.decay.observation_retention_days == 0;
+      assert settings.decay.hard_delete_after_days == 180;
+      assert !settings.decay.compact_cold_episodic;
+      assert !settings.decay.dedup_cold_clusters;
+      assert settings.maintenance.forget_sweep_interval_secs == 86400;
       assert cfg.systemd.services.ai-memory.serviceConfig.ProtectSystem == "strict";
       assert lib.hasInfix "--https=8443 http://127.0.0.1:49374"
         cfg.systemd.services.ai-memory-https.serviceConfig.ExecStart;
       assert cfg.systemd.services.ai-memory-https.serviceConfig.Restart == "always";
-      assert !(self.nixosConfigurations.saradomin-vm.config.services ? ai-memory);
       pkgs.runCommand "ai-memory-server-policy"
         {
           nativeBuildInputs = [
@@ -270,29 +277,28 @@ in
         ''
           export HOME="$TMPDIR/home"
           mkdir -p "$HOME"
-          if FIXTURE_TOKEN="$TMPDIR/missing-token" COPILOT_GITHUB_TOKEN=ghu_fixture ${tokenGuard}; then
+          export FIXTURE_PROVIDER_AUTH="$TMPDIR/fixture-auth.json"
+          printf '{"fixture":"not-a-real-login"}\n' > "$FIXTURE_PROVIDER_AUTH"
+          if FIXTURE_TOKEN="$TMPDIR/missing-token" ${tokenGuard}; then
             echo 'Missing token must block server startup' >&2
             exit 1
           fi
           printf ' \n' > "$TMPDIR/blank-token"
-          if FIXTURE_TOKEN="$TMPDIR/blank-token" COPILOT_GITHUB_TOKEN=ghu_fixture ${tokenGuard}; then
+          if FIXTURE_TOKEN="$TMPDIR/blank-token" ${tokenGuard}; then
             echo 'Blank token must block server startup' >&2
             exit 1
           fi
           printf 'fixture-token\n' > "$TMPDIR/valid-token"
-          if FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN=UNCONFIGURED ${tokenGuard}; then
-            echo 'Unconfigured Copilot token must block server startup' >&2
+          if FIXTURE_TOKEN="$TMPDIR/valid-token" FIXTURE_PROVIDER_AUTH="$TMPDIR/missing-auth.json" ${tokenGuard}; then
+            echo 'Missing ChatGPT login must block server startup' >&2
             exit 1
           fi
-          if FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN= ${tokenGuard}; then
-            echo 'Missing Copilot token must block server startup' >&2
+          touch "$TMPDIR/empty-auth.json"
+          if FIXTURE_TOKEN="$TMPDIR/valid-token" FIXTURE_PROVIDER_AUTH="$TMPDIR/empty-auth.json" ${tokenGuard}; then
+            echo 'Empty ChatGPT login must block server startup' >&2
             exit 1
           fi
-          if FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN='invalid token' ${tokenGuard}; then
-            echo 'Invalid Copilot token must block server startup' >&2
-            exit 1
-          fi
-          FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN=ghu_fixture ${tokenGuard}
+          FIXTURE_TOKEN="$TMPDIR/valid-token" ${tokenGuard}
           node ${./test-server.mjs} \
             ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory} \
             ${fixtureConfig} "$TMPDIR"

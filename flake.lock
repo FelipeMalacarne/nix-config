@@ -7,16 +7,17 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1792043893,
-        "narHash": "sha256-bQm7qYFmwBX9qetvsP7Syd2QtGWnz2V0Te26iMCCg34=",
+        "lastModified": 1792083588,
+        "narHash": "sha256-PKUZsFKiAwaaFLOJhsnB6/gv7PROiskcGccZ3lKW7Sc=",
         "owner": "akitaonrails",
         "repo": "ai-memory",
-        "rev": "b70679af9fb19c5dff69acf4a742f2d755b25290",
+        "rev": "8f6a15b3a2f622959cfc7659b905fb9701b73bfd",
         "type": "github"
       },
       "original": {
         "owner": "akitaonrails",
         "repo": "ai-memory",
+        "rev": "8f6a15b3a2f622959cfc7659b905fb9701b73bfd",
         "type": "github"
       }
     },

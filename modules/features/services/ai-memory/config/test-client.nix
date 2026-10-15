@@ -79,6 +79,14 @@ pkgs.runCommand "ai-memory-client"
     }; do
       test -f "$skill/SKILL.md"
     done
+    grep -q 'expected_page_id' ${skills."opencode/skills/ai-memory-durable-pages".source}/SKILL.md
+    if grep -q 'There is no patch or compare-and-write precondition' ${
+      skills."opencode/skills/ai-memory-durable-pages".source
+    }/SKILL.md; then
+      echo 'Durable-page concurrency guidance regressed' >&2
+      exit 1
+    fi
+    node ${./test-spool-limits.mjs} ${plugin}
     node --experimental-strip-types ${./test-offline.mjs} ${plugin}
     touch "$out"
   ''

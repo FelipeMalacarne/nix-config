@@ -25,21 +25,26 @@ automatic instruction rewriting. The old `/setup-ai-memory` command and
   `programs/ai-memory` feature. The server remains explicitly selected only by
   saradomin; it does not receive the workstation profile.
 - Private endpoint: `https://saradomin.osiris-fish.ts.net:8443`.
+- The input is pinned to reviewed commit `8f6a15b3a2f622959cfc7659b905fb9701b73bfd`,
+  including upstream fixes #1316–#1318 for Markdown section patches, SQLite WAL
+  bounds and hook-ledger Git-history amplification. A small Nix-owned source patch
+  corrects durable-page concurrency guidance and bounds new TypeScript spool
+  entries. Both server and clients use that same patched package and skill source.
 - Backend: `127.0.0.1:49374`; no new firewall port or public ingress.
 - A foreground Tailscale Serve unit owns only its dedicated HTTPS listener. It
   refuses an occupied port, never resets Serve, and never enables Funnel.
 - Data: `/var/lib/ai-memory` (wiki, raw data, SQLite, credentials and history).
 - Resource ceiling: 2 GiB, 128 tasks. CPU-only local embeddings use the pinned
   `all-MiniLM-L6-v2` model (384 dimensions, approximately 87 MB download).
-- Saradomin enables the built-in web UI. A SOPS-provisioned GitHub Copilot token
-  supplies LLM summaries, with no paid API fallback. Session-end consolidation is enabled;
+- Saradomin enables the built-in web UI. The ChatGPT subscription `openai-oauth`
+  backend supplies LLM summaries, with no paid API fallback. Session-end consolidation is enabled;
   the hourly improvement reviewer stages proposals for manual approval.
   Dream processing, LLM search reranking and cross-project profiles stay off.
 
-These describe the repository configuration, not proof of deployment. The real
-bootstrap-token import and native activation/acceptance checks below must happen
-separately; the initial encrypted `UNCONFIGURED` marker deliberately blocks
-startup.
+These describe the repository configuration, not proof of deployment. Private
+service-user ChatGPT login, provider acceptance and native activation checks must
+happen separately. The new configuration no longer selects Copilot's bootstrap
+EnvironmentFile; legacy ciphertext and existing cache entries are preserved.
 
 `AGENTS.md`, current code and verified tests are authoritative. ai-memory holds
 historical evidence and handoffs, not permissions or a replacement instructions
@@ -82,6 +87,13 @@ Home Manager installs the pinned CLI, generates the upstream OpenCode V2 adapter
 handoff and durable pages. It also installs the `/memory-finish` prompt command.
 No installer runs against the real home.
 
+Integration is intentionally **OpenCode-only**. The `ai` profile also installs
+Claude Code, Codex and GitHub Copilot CLI, but does not configure ai-memory hooks,
+MCP or skills for them. Hermes's own memory is separate. Those clients do not
+participate in cross-client capture/recall merely by being installed. OpenCode
+Desktop shares the intended configuration, but its native loading and lifecycle
+still require separate acceptance testing.
+
 MCP uses the local `ai-memory mcp-bridge --no-session-id`, reading credentials at
 runtime and connecting to the shared server. This is a **static** client: pass
 both workspace and project on every project-scoped call, even with lifecycle
@@ -90,6 +102,15 @@ hooks enabled. The installed workflow instructions explain this requirement.
 Do not run `ai-memory setup`, `upgrade`, or live `install-*` commands over managed
 configuration. `ai-memory run` must use `--no-autowire`; the session environment
 also sets `AI_MEMORY_RUN_AUTOWIRE=false`. Update through flake inputs and rebuild.
+Do not substitute an imperative installer or self-update for a Nix change.
+See the backup and coordinated upgrade/rollback requirements below before
+activating an updated server binary.
+
+The managed durable-page skill and always-loaded workflow require optimistic
+concurrency: read a page and pass its `page_id` as `expected_page_id` on an update
+or deletion; use `create_only = true` for a new page. On `precondition_failed`,
+re-read and resolve the conflict. A write replaces the whole page and omitted
+metadata, not just the requested paragraph.
 
 Client data and config use the CLI/adapter's native directories:
 
@@ -104,85 +125,69 @@ Preserve existing data; a conflicting existing config/token requires manual
 review before activation. Do not use environment overrides that route the CLI
 and plugin to different data directories or servers.
 
-### GitHub Copilot login and usage
+### ChatGPT subscription login and usage
 
-The LLM provider is `copilot`, using your GitHub Copilot entitlement rather than
-a separately billed model-provider API key. It shares your account's allowance
-and rate limits with coding; it is not unlimited. No paid-provider fallback is
-configured. To avoid extra charges, also keep paid overages disabled in your
-GitHub/Copilot account's billing controls: this Nix configuration cannot enforce
-account-level spending settings. Captured content used for summaries and
-improvement review leaves Saradomin for Copilot and its model providers;
-embeddings and ordinary search stay local. Check your plan's data controls
-before enabling this for another repository, particularly work/client code.
+The server uses **`openai-oauth`**, ai-memory's ChatGPT/Codex subscription backend,
+not `openai`, which is separately billed API access. It does not use an OpenAI
+Platform API key and has no paid-provider fallback. Subscription eligibility,
+rate limits, available models, provider terms and account-level spending/data
+controls still apply; this is not unlimited or guaranteed access. Captured
+observations used for summaries/review leave Saradomin for the provider. Local
+embeddings and ordinary search remain on Saradomin.
 
-Signing into Copilot in OpenCode, VS Code or the Copilot CLI is not an ai-memory
-provider login. `ai-memory auth login copilot` on the Mac authenticates that
-local data directory. The operator-only importer can encrypt just its GitHub
-bootstrap token for Saradomin; it never copies the complete login file.
+Keep the single shared memory server. Moving it to each workstation would not
+fix provider/model eligibility and would create separate histories to manage.
+OpenCode's own model/login is independent of this server's provider login.
 
-**Before activating this server configuration**, run the following in your own
-private terminal from the repository root, outside a captured agent session:
+**Before activating this configuration**, run the following in your own private
+terminal, outside captured agent sessions:
 
 ```sh
-# Only if you have not already signed in to ai-memory:
-ai-memory auth login copilot
-
-# Preview reads no credentials. Review the public recipients in .sops.yaml.
-nix run 'path:.#ai-memory-import-copilot'
-nix run 'path:.#ai-memory-import-copilot' -- --confirm
+ssh -t saradomin 'sudo -u ai-memory /run/current-system/sw/bin/ai-memory --data-dir /var/lib/ai-memory auth login openai-oauth'
 ```
 
-The login prints a browser URL and temporary device code; complete it with your
-Copilot-enabled GitHub account. Never paste a code or credential into an agent
-conversation. The importer uses the native macOS/Linux ai-memory `auth.json`
-path (or explicit `--auth-file`), extracts only `copilot.githubAccess`, rejects
-missing/expired tokens and environment-file injection, and passes the token to
-SOPS through stdin. It atomically replaces `secrets/ai-memory-copilot.yaml` with
-ciphertext only: no plaintext argument, temporary file, stdout or stderr. It
-does not change the source login, extract other providers, or import the
-short-lived Copilot API token. The initial encrypted value is the intentionally
-invalid `UNCONFIGURED` marker; never activate until it has been replaced.
+The native flow prints a browser URL and temporary device code; complete it
+with the intended ChatGPT subscription account. **Never paste the device code,
+URL containing credentials, tokens or auth-file contents into an agent chat.**
+Tell the agent only whether login succeeded. Do not run login through an agent
+tool, read the real `auth.json`, copy another application's credential file or
+put provider credentials into Nix/SOPS configuration.
 
-Review the encrypted file and commit it separately before deployment:
+Login/refresh owns the mutable, service-private `/var/lib/ai-memory/auth.json`.
+Keep it owned by `ai-memory`, mode 0600, and inside the protected data directory.
+It must remain writable for refresh, never a store symlink or whole-file
+SOPS-managed secret. The startup guard rejects missing/unreadable/empty files;
+the native provider additionally rejects a file without valid OpenAI OAuth
+credentials. Missing login must never silently switch to paid API access.
+The SOPS bearer used by memory clients is separate and unchanged.
+
+Then, with explicit probe approval, run a harmless structured-output test in
+your private terminal:
 
 ```sh
-git add secrets/ai-memory-copilot.yaml
-git commit -m 'secrets: provision ai-memory Copilot bootstrap token'
+ssh -t saradomin 'sudo -u ai-memory /run/current-system/sw/bin/ai-memory --data-dir /var/lib/ai-memory llm-test --provider openai-oauth --model gpt-6-luna --structured --prompt "Return a short answer"'
 ```
 
-Saradomin decrypts the bootstrap to `/run/secrets/ai-memory-copilot` and renders
-`/run/secrets/rendered/ai-memory-copilot.env`, both owned by `ai-memory`, mode
-0400. systemd reads the latter as `EnvironmentFile` to supply
-`COPILOT_GITHUB_TOKEN`; only its placeholder and path enter the Nix store.
-Missing, blank or unconfigured values fail the pre-start guard. Template changes
-schedule a restart during an approved activation, never an agent-initiated live
-restart. No separate interactive login on Saradomin is needed for this path.
+The configuration explicitly selects **`gpt-6-luna`**, recommended for focused
+summarization/extraction in [OpenAI's current Codex model guidance](https://developers.openai.com/codex/models).
+Do not inherit ai-memory's stale `gpt-5.5` default: OpenAI retired that model
+from Codex with ChatGPT sign-in on October 14, 2026 (API-key access is separate).
+The pinned client already omits unsupported temperature overrides for GPT-6.
+Availability is still account/client-dependent. The private service-user probe
+has passed for `openai-oauth` / `gpt-6-luna`, including structured JSON output;
+this confirms provider acceptance, **not production activation**. Repeat the test
+after account/model changes rather than relying on a public comparison page. It consumes
+subscription allowance but does not restart production. A model failure is not
+permission to rotate credentials, delete cache entries or enable API fallback.
 
-The server exchanges the GitHub bootstrap token for short-lived Copilot tokens
-and maintains its own owner-only `/var/lib/ai-memory/auth.json` cache. Do not
-print, commit, copy or SOPS-manage that mutable cache. Expiry or revocation of
-the GitHub bootstrap itself requires another local login/import and separately
-approved deployment; SOPS does not renew it. Existing cached tokens may remain
-valid until expiry, and are not automatically deleted during rotation. The
-SOPS bearer used to access the memory server is separate and unchanged.
-
-After approved native build/deployment, an operator can smoke-test the runtime
-credential without printing or shell-sourcing it on Saradomin:
-
-```sh
-sudo systemd-run --quiet --wait --pipe --collect \
-  -p User=ai-memory -p Group=ai-memory \
-  -p EnvironmentFile=/run/secrets/rendered/ai-memory-copilot.env \
-  /run/current-system/sw/bin/ai-memory --data-dir /var/lib/ai-memory \
-  llm-test --provider copilot --model gpt-5.5 --structured --prompt 'Return a short answer'
-```
-
-This creates a transient test unit and consumes subscription allowance; it does
-not restart the production service. Do not dump its environment or credentials
-for diagnostics. The pinned Copilot default (`gpt-5.5`) depends on your
-entitlement/model policy: verify access rather than assuming a model available
-in OpenCode works through this backend. No paid-provider fallback is configured.
+The legacy `secrets/ai-memory-copilot.yaml` ciphertext, operator-only
+`ai-memory-import-copilot` package and existing Copilot auth-cache entries remain
+preserved. They are not selected by the new server role: no Copilot bootstrap
+secret or EnvironmentFile is declared, and no Copilot-specific startup guard
+remains. Do not run the legacy importer for ChatGPT login or delete its encrypted
+credential/runtime history as routine cleanup. The temporary diagnostic code
+used during provider evaluation was public-only and unrooted; no diagnostic or
+new provider credential is installed in the live service by these changes.
 
 Session-end summaries have a 16,000-token input target and 2,000-token output
 limit, with low reasoning effort. Compaction can also queue a summary. Provider
@@ -191,8 +196,10 @@ checkpoints remain available. LLM search reranking is left off so ordinary
 recall does not spend subscription allowance.
 
 The improvement scheduler reviews at most one eligible ended session **per
-project per hour**, after a ten-minute settling period. It can process existing
-eligible sessions too, not just newly captured work. All improvement proposals
+project per hour**, after a ten-minute settling period. A persisted first-run
+watermark excludes earlier history; old or terminally failed reviews need an
+explicit scoped manual catch-up rather than being assumed to replay forever.
+All improvement proposals
 require manual approval; they do not automatically rewrite repository files,
 skills or `AGENTS.md`. From an opted-in client, inspect this project's queue:
 
@@ -204,6 +211,31 @@ Use `pending-writes show` / `diff` to review a specific proposal before any
 explicit `approve` or `reject`. Summaries themselves are generated automatically
 and are not approval-gated; treat them as fallible evidence and spot-check them.
 Dream processing and cross-session experience synthesis remain off.
+
+### Retention and storage policy
+
+The feature explicitly preserves the upstream defaults rather than changing
+retention during this repair:
+
+- Daily forget sweep and lint remain enabled.
+- Working/episodic retention uses `lambda = 0.02` and a cold threshold of `0.20`.
+  An untouched, default-salience episodic page becomes cold after roughly 80 days;
+  use, feedback and explicit page metadata affect this timing. Semantic,
+  procedural and pinned pages do not age out through ordinary decay. Explicit
+  TTL expiry overrides pins.
+- Evicted tombstones/version ancestry have a 180-day grace period before the
+  corresponding hard-delete pass. Git history and backups can still contain
+  earlier text; retention is not a secure-erasure guarantee.
+- Raw-observation pruning remains **off** (`observation_retention_days = 0`):
+  raw observations are retained indefinitely. Searchable page retention and raw
+  observation retention are separate policies.
+- Cold-page compaction, deduplication, dream and profile harvesting stay off.
+
+The 2 GiB systemd ceiling limits RAM, not disk. Monitor free disk, database/WAL,
+wiki Git history and client spools. The reviewed upstream fixes prevent new
+ledger-history amplification and bound WAL handling after compaction; they do
+not erase historical ledger blobs or promise a total storage quota. Do not run
+history rewriting, compaction or pruning as an automatic part of activation.
 
 ### Local embeddings and resource checks
 
@@ -378,6 +410,18 @@ discovery. It never touches the deployed service or real data.
 
 This is **best-effort buffering, not guaranteed lossless capture**:
 
+- The Nix-owned TypeScript guard permits at most 4096 directory entries and
+  64 KiB per newly serialized event (including its credential envelope). When
+  full, it refuses **new** queued events and warns once until capacity returns;
+  it never evicts or rewrites the existing backlog. Temporary/foreign entries
+  count toward the limit too. Existing oversized entries are preserved. Checks
+  occur per write, so concurrent processes may slightly overshoot; this is not
+  a filesystem quota. Capture resumes after successful draining frees capacity.
+- The native CLI drain has its own age/attempt/count policy. It is not the
+  TypeScript guard and can discard entries during operator-run recovery. Do not
+  assume indefinite retention or lossless replay merely because the server
+  reconnects.
+
 - A crash can lose the in-memory queue before it reaches disk; full/read-only
   disks or shutdown interruption can also lose events.
 - Spool files can contain a bearer and private content. Do not print, commit,
@@ -409,13 +453,109 @@ or run two servers against the same data directory.
 
 ## Backup and operational acceptance
 
-The wiki's local Git history is **not a backup**. No backup schedule, restore
-claim, remote deployment or real-service restart is introduced by this change.
+The wiki's local Git history is **not a backup**. A prepared backup module is
+not evidence of provisioning, a successful off-host snapshot or a tested restore.
 Before relying on the service, approve an encrypted off-host backup target,
 retention and a consistent snapshot procedure covering the **whole data
-directory**, including auth material, not just derived SQLite or wiki files.
+directory**, including auth material, not just SQLite indexes or wiki files.
 Test a restore separately without exposing it or starting a second writer.
 Rebuilding Nix restores software/configuration, not lost runtime memory.
+
+SQLite is only partly derived: sessions, observations, handoffs, users/API-key
+state and audit records cannot be recreated from Markdown by `reindex`. The
+upstream Git-mirror example must not be copied unchanged: its tarball excludes
+the database, and its exclusions do not cover every bearer/spool path. Never
+push credentials, hook spools or database state to an ordinary Git mirror.
+Native `ai-memory backup` supplies a coherent database snapshot plus wiki/config,
+but not the entire `raw/` tree, mutable provider cache or external SOPS inputs;
+it alone is not a full disaster-recovery plan.
+
+### Prepared Restic/R2 backup
+
+Saradomin explicitly selects the NixOS-only `ai-memory-backup` aspect. It does
+**nothing operational** until both `my.restic.ai-memory.repositoryFile` and
+`passwordFile` are configured: no Restic job, timer, new required secret,
+initialization, upload, restore or ai-memory restart is created by the current
+unprovisioned selection. The existing Zaros Restic feature and its policy are
+unchanged.
+
+Use a dedicated R2 Restic repository/prefix and password. After separately
+provisioning the named values in the existing encrypted SOPS source, a host
+configuration can reference their runtime paths:
+
+```nix
+sops.secrets."restic/saradomin/ai-memory/repository" = { };
+sops.secrets."restic/saradomin/ai-memory/password" = { };
+my.restic.ai-memory = {
+  repositoryFile = config.sops.secrets."restic/saradomin/ai-memory/repository".path;
+  passwordFile = config.sops.secrets."restic/saradomin/ai-memory/password".path;
+};
+```
+
+When configured, the feature reuses the existing SOPS `restic/r2-env` credential
+pattern, unless `my.restic.ai-memory.environmentFile` supplies another private
+runtime EnvironmentFile. R2 region and path-style lookup match the existing
+Restic integration. All credential settings reject Nix store paths. Do not
+reuse a broad repository or expose credentials in arguments, logs or the store.
+
+The native `services.restic.backups.ai-memory` job remains **manual-only**, with
+`initialize = false`, no timer, no pruning and no credential-loading wrapper.
+Repository initialization, the first backup, retention/scheduling and activation
+each require deliberate approval; this preparation performs none of them.
+
+The job runs as root and uses Restic's `--stdin-from-command` to store one
+encrypted `ai-memory-full.tar` artifact. Its producer:
+
+- Streams the full data tree, including hidden wiki Git history, raw data,
+  pending proposals, mutable provider auth, logs, models and unknown regular
+  files. No plaintext full archive is saved on local disk.
+- Replaces the live SQLite database/WAL/SHM/journal with a validated online
+  SQLite snapshot. Only that temporary database is staged under root-only
+  `/var/lib/ai-memory-backup` (0700, umask 0077), and the producer removes its
+  own temporary directory after success or failure. It never deletes source
+  data or an existing Restic snapshot.
+- Excludes transient `.serve.lock*` files; refuses symlinks, special files,
+  unreadable directories, unexpected additional databases and detected
+  per-file copy races. A failed producer makes Restic reject the new snapshot;
+  isolated tests exercise that contract and preservation of an older snapshot.
+- Includes a private manifest describing its layout and limits. SQLite is
+  transactionally consistent, but the other files are copied live: **this is
+  not an atomic point-in-time snapshot of the entire application**. Saradomin
+  currently has no configured filesystem snapshot layer. Stronger cross-file
+  consistency needs a separately approved quiesce/snapshot design, not a false
+  claim that copying a live directory is atomic.
+
+The artifact's layout is `data/` plus `backup-manifest.json`; it is not a native
+`ai-memory restore` archive. Recovery must first restore/dump the artifact into
+a private location, validate/extract it without trusting unsafe archive paths,
+and restore service ownership/permissions while the production service is
+separately approved to be stopped. Never print the archive to a captured terminal.
+External SOPS credentials, the age identity and Nix configuration are not inside
+the data tree; preserve their existing secure recovery procedures separately.
+
+Remaining provisioning gates: choose and restrict the R2 destination, provision
+dedicated encrypted repository/password values, initialize only with approval,
+perform an approved first off-host backup, and test recovery. There is currently
+**no configured or verified production backup**.
+
+### Coordinated upgrades and rollback
+
+1. Before an approved server upgrade, take and verify an encrypted off-host
+   snapshot of runtime state, record the deployed generation/package path and
+   preserve access to the old binary. Verify recovery in a private isolated
+   environment before relying on it; do not expose a second live writer.
+2. Review the selected commit, local source patch and migration notes; build on
+   native Linux and validate clients before separately approving activation.
+3. Do not assume a Nix-generation rollback reverses data changes. Migrations are
+   forward-only; an older binary may refuse the newer schema/wiki format.
+4. If data rollback is necessary, separately approve stopping the service and
+   restoring the matching pre-upgrade snapshot with the **old** binary. Using
+   a newer binary to restore can migrate that snapshot forward again. Preserve
+   the current state separately before replacement; post-snapshot writes and
+   credential changes would otherwise be lost.
+5. Confirm credentials, integrity, authenticated HTTPS and scoped capture/recall
+   before resuming normal clients. Never clear queues, reset data or rewrite Git
+   history merely to make the old binary start.
 
 Native server and two-machine HTTPS/auth/capture/recall checks, occupied-port
 behavior, reboot persistence and backup/restore verification remain deployment

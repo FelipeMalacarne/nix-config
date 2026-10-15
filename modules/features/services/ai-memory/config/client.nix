@@ -52,7 +52,7 @@ let
         "ai-memory-retrieval"
         "ai-memory-handoff"
         "ai-memory-durable-pages"
-      ] (name: "${inputs.ai-memory}/crates/ai-memory-core/src/routing_skills/${name}");
+      ] (name: "${package.src}/crates/ai-memory-core/src/routing_skills/${name}");
     in
     {
       options.my.ai-memory.serverUrl = lib.mkOption {

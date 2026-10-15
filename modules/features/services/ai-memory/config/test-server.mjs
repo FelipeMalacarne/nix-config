@@ -16,11 +16,12 @@ const env = {
   AI_MEMORY_EMBEDDING_PROVIDER: "none",
   AI_MEMORY_CONSOLIDATE_ON_SESSION_END: "false",
   AI_MEMORY_AUTO_IMPROVE__SCHEDULER__ENABLED: "false",
-  // An operator's ambient GitHub credentials must never affect this fixture.
+  // Ambient provider credentials must never affect this isolated fixture.
   COPILOT_GITHUB_TOKEN: "",
   GH_TOKEN: "",
   GITHUB_TOKEN: "",
   GITHUB_COPILOT_API_TOKEN: "",
+  OPENAI_API_KEY: "",
 };
 const data = join(root, "server-data");
 mkdirSync(data, { mode: 0o700 });
@@ -34,10 +35,10 @@ await new Promise((resolve) => socket.close(resolve));
 await assert.rejects(
   run(binary, ["--config", config, "--data-dir", data,
     "serve", "--transport", "http", "--no-watcher", "--bind", `127.0.0.1:${port}`], {
-    env: { ...env, AI_MEMORY_LLM_PROVIDER: "copilot" }, timeout: 20000,
+    env: { ...env, AI_MEMORY_LLM_PROVIDER: "openai-oauth" }, timeout: 20000,
   }),
   (error) => {
-    assert.match(error.stderr, /no copilot auth found/);
+    assert.match(error.stderr, /openai-oauth.*(auth|login)|no.*(oauth|auth).*found/i);
     return true;
   },
   "missing subscription login must fail clearly without a paid fallback",
