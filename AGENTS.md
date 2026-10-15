@@ -71,7 +71,10 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `desktop` — audio, network, i3, Hyprland, Umbriel, Noctalia and Caelestia
   capabilities, Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
   explicitly select the login manager; the profile imports neither Greeter nor SDDM.
-- `development` — programming and Kubernetes tooling.
+- `development` — programming and Kubernetes tooling, without AI clients.
+- `ai` — explicit workstation composition of OpenCode, Claude Code, Codex, GitHub
+  Copilot CLI and the SOPS-backed ai-memory client. NixOS/Darwin imports forward
+  the Home Manager profile. Hermes stays host-selected; ai-usagebar is deferred.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
 
@@ -133,7 +136,7 @@ integrations by importing their registered modules in a host or profile. Update
 ## AI workflow
 
 ai-memory is selected as a private server on saradomin and a Home Manager client
-on macbook/zaros. Its single feature lives in `modules/features/services/ai-memory/`,
+on macbook/zaros through their explicit `ai` profile. Its single feature lives in `modules/features/services/ai-memory/`,
 with server/client internals under the excluded `config/` directory.
 See `docs/ai-memory.md` for pairing, privacy, outage recovery and
 deployment acceptance gates. Capture is allowlist-only; this repository's marker
@@ -147,6 +150,10 @@ The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml`; hosts decrypt i
 at `/run/secrets/ai-memory-token` with service/user-only ownership. Clients link
 their native `auth-token` path to that runtime secret. Never copy its plaintext
 into configuration, prompts or the Nix store, or rotate it with queued captures.
+The memory feature owns shared SOPS credential declarations and platform client
+forwarding; hosts retain machine facts such as the endpoint and server hostname.
+OpenClaw's module/input are removed. Do not delete its legacy encrypted credential
+or runtime state as part of routine cleanup.
 
 ## Validation and deployment
 

@@ -1,4 +1,12 @@
-{ inputs, self, ... }:
+{
+  config,
+  inputs,
+  self,
+  ...
+}:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.nixos.ai-memory-server =
     {
@@ -14,7 +22,10 @@
       token = cfg.tokenFile;
     in
     {
-      imports = [ inputs.ai-memory.nixosModules.default ];
+      imports = [
+        inputs.ai-memory.nixosModules.default
+        registry.nixos.sops
+      ];
 
       options.my.ai-memory-server = {
         hostName = lib.mkOption {
@@ -28,12 +39,17 @@
         };
         tokenFile = lib.mkOption {
           type = lib.types.strMatching "/.+";
-          default = defaultToken;
-          description = "Runtime bearer token file; the default is minted once. A SOPS-managed alternative must be readable by the service user.";
+          default = config.sops.secrets.ai-memory-token.path;
+          description = "Runtime bearer token file, defaulting to the feature's SOPS-managed credential.";
         };
       };
 
       config = {
+        sops.secrets.ai-memory-token = (import ./credential.nix) // {
+          owner = service.user;
+          group = service.group;
+          restartUnits = [ "ai-memory.service" ];
+        };
         assertions = [
           {
             assertion = config.services.tailscale.enable;

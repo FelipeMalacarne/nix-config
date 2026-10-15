@@ -1,5 +1,25 @@
-{ inputs, self, ... }:
+{
+  config,
+  inputs,
+  self,
+  ...
+}:
 let
+  registry = config.flake.modules;
+  systemModule =
+    { config, ... }:
+    let
+      user = config.my.user.name;
+    in
+    {
+      sops.secrets.ai-memory-token = (import ./credential.nix) // {
+        owner = user;
+      };
+      home-manager.users.${user} = {
+        imports = [ registry.homeManager.ai-memory-client ];
+        my.ai-memory.tokenFile = config.sops.secrets.ai-memory-token.path;
+      };
+    };
   module =
     {
       config,
@@ -99,6 +119,18 @@ let
 in
 {
   flake.modules.homeManager.ai-memory-client = module;
+  flake.modules.nixos.ai-memory-client = {
+    imports = [
+      registry.nixos.sops
+      systemModule
+    ];
+  };
+  flake.modules.darwin.ai-memory-client = {
+    imports = [
+      registry.darwin.sops
+      systemModule
+    ];
+  };
 
   perSystem = { lib, pkgs, ... }: {
     checks.ai-memory-client = import ./test-client.nix {

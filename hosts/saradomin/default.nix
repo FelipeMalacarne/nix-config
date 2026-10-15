@@ -23,15 +23,6 @@ in
 
   my.ai-memory-server.hostName = "saradomin.osiris-fish.ts.net";
   services.ai-memory.enableWeb = true;
-  my.ai-memory-server.tokenFile = config.sops.secrets.ai-memory-token.path;
-  sops.secrets.ai-memory-token = {
-    sopsFile = ../../secrets/ai-memory.yaml;
-    key = "token";
-    owner = config.services.ai-memory.user;
-    group = config.services.ai-memory.group;
-    mode = "0400";
-    restartUnits = [ "ai-memory.service" ];
-  };
 
   home-manager.users.${user} = {
     home.packages = [

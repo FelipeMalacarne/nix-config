@@ -89,11 +89,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-openclaw = {
-      url = "github:openclaw/nix-openclaw";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     jagex-launcher = {
       url = "github:FelipeMalacarne/jagex-launcher-nix";
       inputs.nixpkgs.follows = "nixpkgs";

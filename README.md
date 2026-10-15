@@ -35,13 +35,21 @@ Features are grouped into five domains: `system`, `desktop`, `services`,
 within its domain. Its excluded local `config/` directory is for internal
 implementation files, manually imported by the discovered feature entrypoint.
 
-`modules/profiles/` contains the `base`, `desktop`, `development`, and `server`
+`modules/profiles/` contains the `base`, `desktop`, `development`, `ai`, and `server`
 compositions. `base` provides shared policy without optional system integrations;
 `desktop` exposes i3, Hyprland, Umbriel, Noctalia and Caelestia capabilities plus
 shared graphical applications, but does not select a login manager;
-`development` provides development tools; and `server` provides headless
+`development` provides programming and Kubernetes tools without selecting AI
+clients. `ai` composes OpenCode, Claude Code, Codex, GitHub Copilot CLI and the
+SOPS-backed ai-memory client; macbook and zaros explicitly import that platform
+profile, which forwards its Home Manager composition. Hermes remains an optional
+host selection, and ai-usagebar is not included. `server` provides headless
 base/server policy. `server` does not
 implicitly enable optional services: hosts select them through feature imports.
+
+OpenClaw's configuration and flake dependency have been retired. Existing runtime
+data and the encrypted legacy credential are preserved; their deletion or
+revocation is a separate operation.
 
 `import-tree` discovers Nix files under `modules/`, except paths matching
 `*/config/*`. Feature entrypoints are discovered automatically and manually

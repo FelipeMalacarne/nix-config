@@ -17,6 +17,7 @@ in
     ./desktop.nix
     sops
     development
+    ai
     docker
     artcraft
     flatpak
@@ -41,7 +42,6 @@ in
       chatgpt
       scape2011
       development
-      ai-memory-client
       microbot
       office
       webos-dev-manager
@@ -50,7 +50,6 @@ in
     ];
 
     my.ai-memory.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
-    my.ai-memory.tokenFile = config.sops.secrets.ai-memory-token.path;
 
     home.packages = with pkgs; [
       google-chrome
@@ -90,12 +89,6 @@ in
   sops.secrets.hermes-web = lib.mkIf config.my.hermes-agent.web.enable {
     sopsFile = ../../secrets/hermes-web.yaml;
     key = "environment";
-    owner = user;
-    mode = "0400";
-  };
-  sops.secrets.ai-memory-token = {
-    sopsFile = ../../secrets/ai-memory.yaml;
-    key = "token";
     owner = user;
     mode = "0400";
   };

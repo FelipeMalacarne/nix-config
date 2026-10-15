@@ -18,7 +18,6 @@ in
   flake.modules.homeManager.development = {
     imports = with registry.homeManager; [
       programming
-      opencode
       k8s
     ];
   };

@@ -9,13 +9,21 @@ automatic instruction rewriting. The old `/setup-ai-memory` command and
 `llm-wiki-memory` skill have been retired; existing project docs are not deleted.
 
 - Server feature: `self.modules.nixos.ai-memory-server`.
-- Client feature: `self.modules.homeManager.ai-memory-client`, selected explicitly
-  by each workstation alongside the development profile/OpenCode.
+- Workstation composition: `self.modules.nixos.ai` / `self.modules.darwin.ai`,
+  explicitly selected by zaros/macbook. It combines the Home Manager `ai`
+  coding profile (OpenCode, Claude Code, Codex, GitHub Copilot CLI) with the
+  SOPS-backed system memory-client role, which forwards its Home Manager module.
+  `development` no longer selects AI tools. Hermes remains opt-in on zaros;
+  ai-usagebar is deferred.
+- Memory client roles: `self.modules.nixos.ai-memory-client` /
+  `self.modules.darwin.ai-memory-client` own SOPS provisioning and forward
+  `self.modules.homeManager.ai-memory-client`. Hosts only supply the endpoint.
 - One cohesive dendritic feature lives at `modules/features/services/ai-memory/`:
   `ai-memory.nix` is its only discovered entrypoint and explicitly imports the
   server/client implementations under `config/`. The package, checks, workflow
   policy and test fixtures live with the same feature; there is no separate
-  `programs/ai-memory` feature. Hosts still explicitly select the required role.
+  `programs/ai-memory` feature. The server remains explicitly selected only by
+  saradomin; it does not receive the workstation profile.
 - Private endpoint: `https://saradomin.osiris-fish.ts.net:8443`.
 - Backend: `127.0.0.1:49374`; no new firewall port or public ingress.
 - A foreground Tailscale Serve unit owns only its dedicated HTTPS listener. It
@@ -94,8 +102,9 @@ Before activating the server:
 ### SOPS-managed credential — no manual password transfer
 
 The same 256-bit bearer is encrypted in `secrets/ai-memory.yaml`, using the
-repository's **existing** SOPS age recipient. Each host declares its own
-`sops.secrets.ai-memory-token`, decrypted to `/run/secrets/ai-memory-token`:
+repository's **existing** SOPS age recipient. The memory feature's selected
+server/client role declares `sops.secrets.ai-memory-token`, decrypted to
+`/run/secrets/ai-memory-token`:
 
 - saradomin: owner/group `ai-memory`, mode **0400**; the service reads this path
   through `my.ai-memory-server.tokenFile`. It generates no separate token.
