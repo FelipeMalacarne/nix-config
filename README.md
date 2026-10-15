@@ -1,6 +1,7 @@
 # nix-config
 
-Felipe's personal NixOS/nix-darwin configuration. It is feature-first: hosts
+Felipe's personal NixOS/nix-darwin configuration. It follows a feature-first,
+dendritic composition model: hosts
 compose reusable profiles and features without duplicating policy.
 
 ## Hosts
@@ -12,8 +13,8 @@ compose reusable profiles and features without duplicating policy.
 | `saradomin-vm` | NixOS, x86_64 | Server VM variant |
 | `macbook` | nix-darwin, Apple Silicon | Development laptop |
 
-Zaros defaults to **Umbriel + Noctalia**, with **Noctalia Greeter** for login.
-Hyprland (UWSM-managed) and i3/Xorg remain selectable alternatives.
+Zaros defaults to **Hyprland (UWSM-managed) + Noctalia**, with **Noctalia Greeter**
+for login. Experimental Umbriel and i3/Xorg remain selectable alternatives.
 
 Saradomin's DNS architecture and router setup are documented in
 [`docs/adguard-home.md`](docs/adguard-home.md).
@@ -46,6 +47,20 @@ profile, which forwards its Home Manager composition. Hermes remains an optional
 host selection, and ai-usagebar is not included. `server` provides headless
 base/server policy. `server` does not
 implicitly enable optional services: hosts select them through feature imports.
+
+Platform profiles forward their Home Manager composition to the primary user.
+Hosts select a platform profile once; additional Home Manager imports are for
+independently selected user-only features, not a second copy of the profile.
+
+Generic SSH, programming and Kubernetes tooling do not provision secrets.
+Hosts explicitly import `ssh-credentials`, `programming-credentials` and
+`k8s-credentials` when they need the existing SOPS-backed integration. Credential
+companions import their own SOPS prerequisite, as does Restic. The default base
+and server compositions therefore work without system SOPS integration.
+
+Shared SSH inventory defaults merge per setting. For example, overriding
+`my.infrastructure.ssh.hosts."github.com".IdentityFile` preserves the other
+settings for GitHub and all unrelated hosts.
 
 OpenClaw's configuration and flake dependency have been retired. Existing runtime
 data and the encrypted legacy credential are preserved; their deletion or
@@ -94,7 +109,7 @@ Use `make artcraft-updates`, `make artcraft-update APPS=filmcraft`, and
 
 Desktop sessions are selected with `my.desktop.sessions`; `my.desktop.defaultSession`
 must be a member of that list. Zaros selects `[ "umbriel" "hyprland" "i3" ]`
-with default `"umbriel"`. Each compositor maps that default to its native login
+with default `"hyprland"`. Each compositor maps that default to its native login
 identifier: `umbriel`, `hyprland-uwsm`, or `none+i3`.
 
 `my.desktop.shell` selects `noctalia`, `caelestia`, or `none`, independently of the
@@ -121,6 +136,12 @@ probe on DP-4); the portrait secondary is
 currently disconnected). Its 90-degree rotation and workspaces 6-9 remain
 declared. The original XRandR outputs DP-1 and HDMI-A-1 stay separate, with
 existing modes, refresh rates and positions preserved.
+
+Monitor requirements follow the selected sessions: Wayland-only hosts need no
+XRandR connector and may use HiDPI scaling; i3 selections still require their
+XRandR identity and scale 1. Desktop application bindings and Dolphin share
+`my.desktop.terminalCommand` and `my.desktop.terminalDesktopId`; override both
+together when selecting a different compatible terminal.
 
 The desktop profile exposes both Noctalia and Caelestia capabilities, but only
 the selected provider is activated on Zaros. Adding a provider requires a
@@ -210,6 +231,10 @@ The key must match `.sops.yaml`. CI never decrypts secrets.
 
 ## Safe commands
 
+Use `nix develop path:.` for the native validation tools (Make, Nix, formatter and
+linters). Per-system package policy is declared in the flake; validation does
+not need `NIXPKGS_ALLOW_UNFREE` or whole-flake `--impure` evaluation.
+
 ```bash
 make fmt             # pinned treefmt formatter
 make fmt-check       # formatting check
@@ -219,6 +244,21 @@ make build-all       # all NixOS closures (Linux only)
 make build-darwin    # MacBook closure
 make build HOST=zaros
 ```
+
+`make build-all` and `make build-darwin` build
+`packages.<native-system>.host-closures`, derived from the explicit configuration
+outputs. Adding a host does not require editing another Make host list.
+
+On Darwin, Firefox uses its upstream native profile directory under
+`Library/Application Support/Firefox`, rather than Linux's `.mozilla/firefox`.
+No browser data is migrated by this refactor: review existing profiles before
+activation. The optional ChatGPT feature supports Apple Silicon Darwin only and
+is not selected on Zaros or MacBook.
+
+SketchyBar's CPU helper is built from source as `packages.aarch64-darwin.sketchybar-helper`;
+the generated startup configuration never compiles inside the linked config directory.
+Darwin hotkeys keep `alt+shift+w` for quit and `alt+shift+x` for warp-next;
+top-edge resize uses `alt+ctrl+w`, and x-axis mirror uses `alt+ctrl+shift+x`.
 
 Activation commands remain guarded: `switch`, `test`, and `boot` require the
 local hostname unless `DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1` is explicit, while
@@ -238,12 +278,19 @@ a second activation selector. Put large implementation files in a
 feature-local `config/` directory and import them from the entrypoint. Add a
 desktop provider by implementing its aspect, shell command registry entry, and
 completeness assertion. Add a host directory under `hosts/`, then update
-`modules/flake/configurations.nix` and the appropriate checks/Make target.
+`modules/flake/configurations.nix` and its behavioral expectations. Native closure
+checks, the build selector and directory/output consistency follow automatically.
+
+Keep feature checks beside their feature, using excluded implementation files
+under `config/` where useful. Shared synthetic fixtures live in
+`modules/checks/config/`; repository checks own concrete host selections and
+hardware-preservation expectations. Do not hide required integrations by adding
+them to every fixture.
 
 ## Validation and deferred work
 
 Use `make eval-check` for evaluation, `make fmt-check` for formatting, and
-`make check` or `nix flake check --impure path:.` for full validation. CI runs
+`make check` or `nix flake check path:.` for full validation. CI runs
 the full check natively on Linux and Apple-Silicon macOS. Native graphical
 session, backup/restore, deployment and security-runtime checks remain
 operational follow-ups. Password-hash ownership, SSH/firewall policy, broad

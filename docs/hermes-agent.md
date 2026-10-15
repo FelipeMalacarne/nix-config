@@ -158,7 +158,7 @@ approval policy; the web feature does not alter it.
 
 ## Configuration and credentials
 
-The feature preserves the selected model, `openai/gpt-5.6-sol`. Home Manager
+The feature preserves the selected model, `openai/gpt-5.6-luna`. Home Manager
 merges declared settings into the writable config on activation; undeclared
 settings are preserved. The upstream managed-mode marker makes some interactive
 configuration commands refuse changes, so change Nix-managed settings here and

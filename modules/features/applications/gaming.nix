@@ -1,5 +1,6 @@
-{ inputs, ... }:
+{ config, inputs, ... }:
 let
+  registry = config.flake.modules;
   homeGaming =
     {
       lib,
@@ -44,7 +45,7 @@ in
       ...
     }:
     {
-      home-manager.users.${config.my.user.name}.imports = [ homeGaming ];
+      home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.gaming ];
       nixpkgs.overlays = [ inputs.millennium.overlays.default ];
 
       hardware.graphics.enable = true;

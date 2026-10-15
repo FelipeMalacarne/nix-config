@@ -29,6 +29,14 @@ and nix-darwin.
 
 ## Architecture and module system
 
+Follow and implement the **dendritic pattern**: feature/aspect-oriented
+flake-parts modules that co-locate related NixOS, nix-darwin and Home Manager
+configuration. Robust, clean, explicit composition and idiomatic Nix best
+practices are architectural requirements, not just file-layout preferences.
+Prefer cohesive reusable modules, native upstream options and typed interfaces;
+minimize duplication, unnecessary indirection and cross-layer coupling. Future
+changes and refactors must preserve and improve this composition model.
+
 The dependency direction is **host -> profile -> feature -> upstream module**.
 Hosts own machine facts and explicitly import profiles and selected features.
 Profiles compose features and policy. Features must not depend on profiles or
@@ -45,12 +53,24 @@ paths matching `.*/config/.*`. Features live at
 entrypoints are discovered automatically and import internal `config/` files
 manually.
 
+Feature checks live beside their feature in discovered flake-parts modules;
+shared synthetic fixture helpers live under `modules/checks/config/`. Repository
+checks own concrete host expectations. Native closure checks and the
+`packages.<system>.host-closures` build selector derive from explicit configuration
+outputs rather than maintaining parallel host lists.
+
 Each feature registers itself as `flake.modules.nixos.<aspect>`,
 `flake.modules.darwin.<aspect>`, and/or `flake.modules.homeManager.<aspect>`.
 Flake-parts modules compose through `config.flake.modules`; plain hosts consume
 the final `self.modules`. Registration is auto-discovered, but activation and
 composition stay explicit. Use only the platform registrations the
 implementation supports.
+
+Platform profiles forward their corresponding Home Manager composition to the
+primary user; hosts must not repeat those Home Manager profile imports. Keep
+explicit Home Manager imports for independently selected user-only features.
+Platform features that forward a Home Manager aspect must use its final
+`config.flake.modules.homeManager` aggregate, so other dendritic fragments apply.
 
 Importing a registered feature module activates that feature. Do not add a
 redundant `my.<feature>.enable` selector or default-import optional features into
@@ -78,6 +98,14 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
 
+Generic SSH, programming and Kubernetes tooling do not provision credentials.
+Hosts explicitly select `ssh-credentials`, `programming-credentials` and
+`k8s-credentials` where needed. These companion aspects own their SOPS
+prerequisite; Restic also imports its intrinsic SOPS prerequisite. Preserve
+existing secret paths, owners, modes and runtime behavior when composing them.
+Shared SSH inventory defaults merge per setting; override only host-specific
+leaves instead of copying the full inventory.
+
 Core and shared Home Manager policy live under
 `modules/features/system/core/` (with internals in its `config/`). Noctalia's
 registration, settings and startup live under
@@ -99,6 +127,9 @@ selections require shell `none`. Umbriel's `start-umbriel` owns its native
 `wayland-session@hyprland.desktop.target`; Swayidle targets `umbriel-session.target`,
 both with 180-second lock and 240-second DPMS timeouts. Portals route per desktop
 with a GTK fallback.
+Monitor identity requirements follow selected sessions: Wayland needs its native
+description, i3 needs its XRandR connector and scale 1. Wayland-only hosts may use
+HiDPI scaling without an XRandR identity. Preserve Zaros's existing facts.
 Adding a provider requires an aspect, registry entry, explicit desktop-profile
 import, and variant checks.
 
@@ -121,8 +152,8 @@ connector names for Umbriel identities.
 
 ## Hosts
 
-- `zaros`: NixOS desktop defaulting to Umbriel + Noctalia and Noctalia Greeter,
-  with Hyprland/UWSM and i3 alternatives, gaming, NVIDIA, development and server
+- `zaros`: NixOS desktop defaulting to Hyprland/UWSM + Noctalia and Noctalia Greeter,
+  with experimental Umbriel and i3 alternatives, gaming, NVIDIA, development and server
   integrations; Sunshine is available but not selected.
 - `saradomin`: headless NixOS home server with k3s, Disko, SSH and Tailscale.
 - `saradomin-vm`: NixOS VM variant using the server profile, OpenSSH and Tailscale.
@@ -183,7 +214,7 @@ make secrets                   # edit SOPS secrets
 
 `switch`, `test`, and `boot` are local-host-only by default; intentional
 cross-host activation requires `DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1`. Rollback
-never accepts cross-host overrides. CI runs `nix flake check --impure` on native
+never accepts cross-host overrides. CI runs pure `nix flake check` on native
 Linux and Apple-Silicon macOS and does not deploy or decrypt secrets.
 Linux checks `desktop-sessions`, `umbriel-config`, and `greeter-sessions` cover
 composition, native CLI config validation, upstream session discovery and the

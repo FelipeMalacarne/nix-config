@@ -10,80 +10,10 @@
       ...
     }:
     let
-      linux = system == "x86_64-linux";
-      darwin = system == "aarch64-darwin";
       zaros = self.nixosConfigurations.zaros.config;
       saradomin = self.nixosConfigurations.saradomin.config;
-      zarosUser = zaros.my.user.name;
-      zarosHome = zaros.home-manager.users.${zarosUser};
-      mkFeatureConfig =
-        modules:
-        (inputs.nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit self inputs; };
-          # Base's SSH key integration requires SOPS, including in minimal fixtures.
-          modules = [ self.modules.nixos.sops ] ++ modules ++ [ { system.stateVersion = "24.11"; } ];
-        }).config;
-      baseOnly = mkFeatureConfig [ self.modules.nixos.base ];
-      serverOnly = mkFeatureConfig [ self.modules.nixos.server ];
-      desktopWithoutHermes = mkFeatureConfig [
-        self.modules.nixos.base
-        self.modules.nixos.desktop
-        self.modules.nixos.development
-        ../hosts/zaros/desktop.nix
-        (
-          { config, ... }:
-          {
-            home-manager.users.${config.my.user.name}.imports = with self.modules.homeManager; [
-              linux-base
-              desktop
-              development
-            ];
-          }
-        )
-      ];
-      gamingOnly = mkFeatureConfig [
-        self.modules.nixos.base
-        self.modules.nixos.gaming
-      ];
-      sunshineOnly = mkFeatureConfig [
-        self.modules.nixos.base
-        self.modules.nixos.sunshine
-      ];
-      wolAlternate = mkFeatureConfig [
-        self.modules.nixos.base
-        self.modules.nixos.wol
-        { my.wol.interface = "enp1s0"; }
-      ];
-      wolWithoutInterface = builtins.tryEval (
-        builtins.deepSeq
-          (mkFeatureConfig [
-            self.modules.nixos.base
-            self.modules.nixos.wol
-          ]).systemd.services.enable-wol.serviceConfig.ExecStart
-          true
-      );
-      selectedFeatures =
-        host:
-        builtins.attrNames (
-          lib.filterAttrs (_: enabled: enabled) {
-            adguard-home = host.services.adguardhome.enable;
-            docker = host.virtualisation.docker.enable;
-            flatpak = host.services.flatpak.enable;
-            gaming = host.programs.steam.enable;
-            hermes-agent = host.home-manager.users.${host.my.user.name}.programs.hermes-agent.enable or false;
-            k3s = host.services.k3s.enable;
-            nvidia = builtins.elem "nvidia" host.services.xserver.videoDrivers;
-            ollama = host.services.ollama.enable;
-            openssh = host.services.openssh.enable;
-            restic = host.services.restic.backups ? r2;
-            rgb = host.services.hardware.openrgb.enable;
-            sunshine = host.services.sunshine.enable;
-            tailscale = host.services.tailscale.enable;
-            virtualization = host.virtualisation.libvirtd.enable;
-            wol = host.systemd.services ? enable-wol;
-          }
-        );
+      zarosHome = zaros.home-manager.users.${zaros.my.user.name};
+      selectedFeatures = import ./checks/config/selected-features.nix { inherit lib; };
       featureImportsCheck =
         assert lib.assertMsg (
           selectedFeatures zaros == [
@@ -116,67 +46,12 @@
           ]
         ) "The VM must select only OpenSSH and Tailscale";
         assert lib.assertMsg (
-          selectedFeatures baseOnly == [ ] && selectedFeatures serverOnly == [ ]
-        ) "Base and server profiles must not implicitly activate optional features";
-        assert lib.assertMsg (
-          selectedFeatures desktopWithoutHermes == [ ]
-        ) "Desktop and development profiles must not implicitly activate optional features";
-        assert lib.assertMsg (
-          !desktopWithoutHermes.services.displayManager.sddm.enable
-          && !desktopWithoutHermes.services.greetd.enable
-          && desktopWithoutHermes.programs.umbriel.enable
-          && desktopWithoutHermes.home-manager.users.${desktopWithoutHermes.my.user.name}.programs.umbriel.enable
-        ) "Desktop capabilities must expose Umbriel without implicitly selecting a login manager";
-        assert lib.assertMsg (
-          selectedFeatures gamingOnly == [ "gaming" ]
-          && gamingOnly.programs.gamemode.enable
-          && gamingOnly.programs.gamescope.enable
-          && builtins.elem 24642 gamingOnly.networking.firewall.allowedTCPPorts
-          && builtins.elem 24642 gamingOnly.networking.firewall.allowedUDPPorts
-          &&
-            lib.all
-              (
-                name:
-                lib.any (
-                  package: lib.getName package == name
-                ) gamingOnly.home-manager.users.${gamingOnly.my.user.name}.home.packages
-              )
-              [
-                "lutris"
-                "prismlauncher"
-              ]
-        ) "Importing gaming must activate both system and Home Manager integration";
-        assert lib.assertMsg
-          (
-            lib.all
-              (
-                host:
-                let
-                  steam = host.home-manager.users.${host.my.user.name}.systemd.user.services.steam;
-                in
-                steam.Service.ExecStart == [ "${lib.getExe host.programs.steam.package} -silent" ]
-                && steam.Unit.After == [ "graphical-session.target" ]
-                && steam.Unit.PartOf == [ "graphical-session.target" ]
-                && steam.Install.WantedBy == [ "graphical-session.target" ]
-                && !(steam.Service ? Restart)
-              )
-              [
-                gamingOnly
-                zaros
-              ]
-            && !(serverOnly.home-manager.users.${serverOnly.my.user.name}.systemd.user.services ? steam)
-            && !(saradomin.home-manager.users.${saradomin.my.user.name}.systemd.user.services ? steam)
-          )
-          "Gaming must start the configured Steam silently only in graphical sessions, without restarting it on exit";
-        assert lib.assertMsg (
-          selectedFeatures sunshineOnly == [ "sunshine" ]
-        ) "Importing Sunshine must activate it without an extra selector";
-        assert lib.assertMsg (
-          selectedFeatures wolAlternate == [ "wol" ]
-          && lib.hasSuffix "/bin/ethtool -s enp1s0 wol g" wolAlternate.systemd.services.enable-wol.serviceConfig.ExecStart
+          zarosHome.systemd.user.services.steam.Service.ExecStart == [
+            "${lib.getExe zaros.programs.steam.package} -silent"
+          ]
+          && !(saradomin.home-manager.users.${saradomin.my.user.name}.systemd.user.services ? steam)
           && lib.hasSuffix "/bin/ethtool -s enp12s0 wol g" zaros.systemd.services.enable-wol.serviceConfig.ExecStart
-          && !wolWithoutInterface.success
-        ) "WOL imports must use the required host-specific interface";
+        ) "Host gaming and WOL selections must preserve their configured commands";
         pkgs.runCommand "feature-imports" { } "touch $out";
       sopsEnvironmentCheck =
         assert lib.assertMsg (
@@ -199,11 +74,11 @@
           !saradomin.services.adguardhome.mutableSettings
         ) "Saradomin AdGuard Home configuration must remain declarative";
         assert lib.assertMsg (
-          saradomin.services.adguardhome.settings.dns.bind_hosts == [
+          settings.dns.bind_hosts == [
             "10.10.0.10"
             "100.106.58.87"
           ]
-          && saradomin.services.adguardhome.settings.dns.port == 53
+          && settings.dns.port == 53
         ) "AdGuard Home must serve DNS on the Saradomin LAN and Tailscale addresses";
         assert lib.assertMsg (
           settings.dns.upstream_dns == [
@@ -261,532 +136,15 @@
           && lib.all (path: lib.hasInfix "e ${path} 0775 1001 1001 -" rules) paths
         ) "Saradomin media host paths must create and repair UID/GID 1001 ownership";
         pkgs.runCommand "saradomin-media-permissions" { } "touch $out";
-      hermesSettings = zarosHome.services.hermes-agent.settings;
-      mkHermesHome =
-        services:
-        (inputs.home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          modules = [
-            self.modules.homeManager.hermes-agent
-            {
-              home = {
-                username = "hermes-check";
-                homeDirectory = "/home/hermes-check";
-                stateVersion = "24.11";
-              };
-              services.hermes-agent = services;
-            }
-          ];
-        }).config;
-      hermesExternalToken = mkHermesHome { backend.sessionTokenFile = "/run/hermes-check/token"; };
-      hermesWithoutBackend = mkHermesHome { backend.mode = "none"; };
-      hermesWithoutService = mkHermesHome { enable = lib.mkForce false; };
-      hermesInactive =
-        host:
-        let
-          home = host.home-manager.users.${host.my.user.name};
-        in
-        !(home.programs.hermes-agent.enable or false)
-        && !(home.programs.hermes-agent.desktop.enable or false)
-        && !(home.services.hermes-agent.enable or false)
-        && lib.all (package: !(builtins.elem package home.home.packages)) [
-          zarosHome.programs.hermes-agent.package
-          hermesDesktop
-        ]
-        && !builtins.hasAttr "HERMES_HOME" home.home.sessionVariables
-        && !builtins.hasAttr "hermesAgentSetup" home.home.activation
-        && !builtins.hasAttr "hermesAgentWorkflow" home.home.activation
-        && !builtins.hasAttr "hermesAgentSessionToken" home.home.activation
-        && !builtins.hasAttr "hermes-backend" home.systemd.user.services
-        && !builtins.hasAttr "hermes-agent" home.systemd.user.services;
-      hermesAgentCheck =
-        assert lib.assertMsg (
-          inputs.hermes-agent.inputs.nixpkgs.rev
-          == (builtins.fromJSON (builtins.readFile "${inputs.hermes-agent}/flake.lock"))
-          .nodes.nixpkgs.locked.rev
-        ) "Hermes must retain upstream's nixpkgs pin for the Electron header checksum";
-        assert lib.assertMsg zarosHome.programs.hermes-agent.enable "Hermes CLI must be enabled on zaros";
-        assert lib.assertMsg zarosHome.programs.hermes-agent.desktop.enable
-          "Hermes desktop must be enabled on zaros";
-        assert lib.assertMsg zarosHome.services.hermes-agent.enable
-          "Hermes state must be managed by Home Manager";
-        assert lib.assertMsg (
-          lib.all (path: lib.attrByPath path false hermesSettings) [
-            [
-              "memory"
-              "memory_enabled"
-            ]
-            [
-              "memory"
-              "user_profile_enabled"
-            ]
-            [
-              "skills"
-              "write_approval"
-            ]
-            [
-              "security"
-              "redact_secrets"
-            ]
-            [
-              "agent"
-              "verify_on_stop"
-            ]
-            [
-              "checkpoints"
-              "enabled"
-            ]
-          ]
-          && (hermesSettings.approvals.mode or "") == "smart"
-        ) "Hermes must explicitly enable learning, reviewed skill writes, and infrastructure safeguards";
-        assert lib.assertMsg (builtins.elem "KUBECONFIG" (
-          lib.attrByPath [ "terminal" "env_passthrough" ] [ ] hermesSettings
-        )) "Hermes terminal tools must receive the Home Manager-managed Kubernetes config path";
-        assert lib.assertMsg (
-          builtins.hasAttr "hermesAgentWorkflow" zarosHome.home.activation
-          && builtins.elem "hermesAgentSetup" zarosHome.home.activation.hermesAgentWorkflow.after
-          && zarosHome.services.hermes-agent.hermesHomeFiles == { }
-        ) "Hermes must seed a writable workflow after state setup without replacing learned files";
-        assert lib.assertMsg (lib.all
-          (
-            package:
-            builtins.elem package zarosHome.services.hermes-agent.extraPackages
-            && lib.hasInfix (builtins.unsafeDiscardStringContext "${package}/bin") (
-              lib.concatStringsSep "\n" zarosHome.systemd.user.services.hermes-backend.Service.Environment
-            )
-          )
-          (
-            with pkgs;
-            [
-              nix
-              nixfmt
-              gnumake
-              git
-              jq
-              ripgrep
-              fd
-              uv
-              curl
-              systemd
-            ]
-          )
-        ) "Hermes backend must receive its Nix workflow tools without relying on an interactive shell";
-        assert lib.assertMsg (
-          zarosHome.services.hermes-agent.backend.mode == "dashboard"
-          && zarosHome.services.hermes-agent.backend.host == "127.0.0.1"
-        ) "Hermes dashboard must bind to loopback";
-        assert lib.assertMsg (
-          zarosHome.home.sessionVariables.HERMES_HOME == "${zarosHome.home.homeDirectory}/.hermes"
-        ) "Hermes CLI must use the existing personal state directory";
-        assert lib.assertMsg (builtins.hasAttr "hermes-backend" zarosHome.systemd.user.services)
-          "Hermes dashboard must have a systemd user service";
-        assert lib.assertMsg (
-          zarosHome.services.hermes-agent.backend.sessionTokenFile
-          == "${zarosHome.services.hermes-agent.hermesHome}/.backend-session-token"
-          && builtins.hasAttr "hermesAgentSessionToken" zarosHome.home.activation
-          && builtins.elem "hermesAgentSetup" zarosHome.home.activation.hermesAgentSessionToken.after
-          && builtins.elem "reloadSystemd" zarosHome.home.activation.hermesAgentSessionToken.before
-        ) "Hermes desktop and backend must share a token initialized after state setup";
-        assert lib.assertMsg (
-          !(hermesExternalToken.home.activation ? hermesAgentSessionToken)
-          && !(hermesWithoutBackend.home.activation ? hermesAgentSessionToken)
-          && !(hermesWithoutService.home.activation ? hermesAgentSessionToken)
-          && !(hermesWithoutService.home.activation ? hermesAgentWorkflow)
-        ) "Hermes must not provision caller-managed tokens or state for disabled services";
-        assert lib.assertMsg (
-          zarosHome.services.hermes-agent.environmentFiles == [ ]
-          && zarosHome.services.hermes-agent.environment == { }
-          && zarosHome.services.hermes-agent.authFile == null
-        ) "Hermes must preserve existing runtime credentials";
-        assert lib.assertMsg (
-          !builtins.hasAttr "hermes-agent" zaros.systemd.services
-          && !builtins.hasAttr "hermes-backend" zaros.systemd.services
-        ) "Hermes must not run a second system-wide instance";
-        assert lib.assertMsg zaros.users.users.${zarosUser}.linger
-          "Hermes user service must survive logout";
-        assert lib.assertMsg (lib.all hermesInactive [
-          baseOnly
-          desktopWithoutHermes
-          self.nixosConfigurations.saradomin.config
-          self.nixosConfigurations.saradomin-vm.config
-        ]) "Omitting Hermes must install no applications, start no services, and manage no state";
-        pkgs.runCommand "hermes-agent-integration" { } "touch $out";
-      mkZarosWeb =
-        web:
-        (inputs.nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit self inputs; };
-          modules = [
-            ../hosts/zaros
-            { my.hermes-agent.web = lib.mapAttrs (_: value: lib.mkForce value) web; }
-          ];
-        }).config;
-      hermesWebOtherPort = mkZarosWeb { publicUrl = "https://zaros.osiris-fish.ts.net:8443"; };
-      hermesWebDisabled = mkZarosWeb { enable = false; };
-      hermesWebAbsent =
-        host:
-        !(host.systemd.services ? hermes-tailnet)
-        && !(host.home-manager.users.${host.my.user.name}.systemd.user.services ? hermes-web)
-        && !((lib.attrByPath [ "sops" "secrets" ] { } host) ? hermes-web);
-      hermesWebInvalid =
-        web:
-        let
-          evaluated = builtins.tryEval (
-            let
-              candidate = mkZarosWeb web;
-              assertions =
-                candidate.assertions ++ candidate.home-manager.users.${candidate.my.user.name}.assertions;
-              assertionResults = map (assertion: assertion.assertion) assertions;
-            in
-            builtins.deepSeq candidate.my.hermes-agent.web.port (
-              builtins.deepSeq assertionResults (lib.all lib.id assertionResults)
-            )
-          );
-        in
-        !evaluated.success || !evaluated.value;
-      hermesWebCheck =
-        assert lib.assertMsg (lib.attrByPath [
-          "my"
-          "hermes-agent"
-          "web"
-          "enable"
-        ] false zaros) "Zaros must explicitly select private Hermes web access";
-        assert lib.assertMsg (
-          zarosHome.systemd.user.services ? hermes-web
-        ) "Private web access must have a separate authenticated user dashboard, preserving Desktop";
-        assert lib.assertMsg (
-          builtins.elem "HERMES_DASHBOARD_PUBLIC_URL=https://zaros.osiris-fish.ts.net" zarosHome.systemd.user.services.hermes-web.Service.Environment
-          &&
-            zarosHome.systemd.user.services.hermes-web.Service.EnvironmentFile
-            == [ zaros.sops.secrets.hermes-web.path ]
-          && zarosHome.services.hermes-agent.environmentFiles == [ ]
-          && zarosHome.services.hermes-agent.environment == { }
-          && !((zarosHome.services.hermes-agent.settings.dashboard or { }) ? public_url)
-        ) "Web URL and SOPS credentials must be scoped to the web service, not shared Desktop state";
-        assert lib.assertMsg (
-          zaros.systemd.services ? hermes-tailnet
-        ) "Hermes web must have a managed Tailscale proxy";
-        assert lib.assertMsg (
-          lib.hasInfix "serve --yes --https=443 http://127.0.0.1:9120" zaros.systemd.services.hermes-tailnet.serviceConfig.ExecStart
-          && !(lib.hasInfix "--bg" zaros.systemd.services.hermes-tailnet.serviceConfig.ExecStart)
-          && zaros.systemd.services.hermes-tailnet.serviceConfig.Restart == "always"
-          && zaros.systemd.services.hermes-tailnet.serviceConfig.KillSignal == "SIGINT"
-          && builtins.elem "tailscaled.service" zaros.systemd.services.hermes-tailnet.partOf
-          && lib.hasInfix ".auth_required == true" zaros.systemd.services.hermes-tailnet.preStart
-        ) "The proxy must own and recover a foreground route, and wait for authenticated Hermes";
-        assert lib.assertMsg (
-          lib.hasInfix "serve --yes --https=8443 http://127.0.0.1:9120" hermesWebOtherPort.systemd.services.hermes-tailnet.serviceConfig.ExecStart
-          && lib.hasInfix "zaros.osiris-fish.ts.net." hermesWebOtherPort.systemd.services.hermes-tailnet.preStart
-          && lib.all (a: a.assertion) hermesWebOtherPort.assertions
-        ) "A port in publicUrl must configure HTTPS independently of the loopback backend port";
-        assert lib.assertMsg (lib.all hermesWebAbsent [
-          hermesWebDisabled
-          baseOnly
-          desktopWithoutHermes
-          self.nixosConfigurations.saradomin.config
-          self.nixosConfigurations.saradomin-vm.config
-        ]) "Disabling web access or omitting Hermes must remove both web units and its decrypted secret";
-        assert lib.assertMsg (
-          zaros.networking.firewall.allowedTCPPorts == hermesWebDisabled.networking.firewall.allowedTCPPorts
-          &&
-            zaros.networking.firewall.trustedInterfaces
-            == hermesWebDisabled.networking.firewall.trustedInterfaces
-        ) "Hermes web must not widen firewall access or change Tailscale trust";
-        assert lib.assertMsg (lib.all hermesWebInvalid [
-          { publicUrl = "http://zaros.osiris-fish.ts.net"; }
-          { publicUrl = "https://zaros.osiris-fish.ts.net/path"; }
-          { publicUrl = "https://zaros.osiris-fish.ts.net:0"; }
-          { publicUrl = "https://zaros.osiris-fish.ts.net:65536"; }
-          { environmentFile = null; }
-          { environmentFile = "/nix/store/unsafe-secret"; }
-          { port = 0; }
-          { port = zarosHome.services.hermes-agent.backend.port; }
-        ]) "Unsafe origins, credentials paths and colliding listener ports must fail evaluation";
-        assert lib.assertMsg (
-          (zarosHome.systemd.user.services.hermes-web.Unit."X-Restart-Triggers" or [ ]) != [ ]
-          && zaros.sops.secrets.hermes-web.owner == zarosUser
-          && zaros.sops.secrets.hermes-web.mode == "0400"
-        ) "Encrypted credential updates must restart the web listener, with private user-owned delivery";
-        pkgs.runCommand "hermes-web-integration" { } "touch $out";
-      mkHermesWebManifest =
-        host:
-        let
-          home = host.home-manager.users.${host.my.user.name};
-        in
-        pkgs.writeText "hermes-web-runtime.json" (
-          builtins.toJSON {
-            private = home.systemd.user.services.hermes-backend.Service;
-            web = home.systemd.user.services.hermes-web.Service;
-            tokenFile = home.services.hermes-agent.backend.sessionTokenFile;
-            privatePort = home.services.hermes-agent.backend.port;
-            stateDirectories =
-              (import "${inputs.hermes-agent}/nix/moduleCommon.nix" { inherit lib; }).stateSubdirs;
-            publicUrl = host.my.hermes-agent.web.publicUrl;
-            preStart = host.systemd.services.hermes-tailnet.preStart;
-            tailscale = lib.getExe host.services.tailscale.package;
-            curl = lib.getExe pkgs.curl;
-            bash = lib.getExe pkgs.bash;
-          }
-        );
-      hermesWebRuntimeCheck = pkgs.runCommand "hermes-web-runtime" { } (
-        lib.concatMapStringsSep "\n"
-          (
-            host:
-            let
-              manifest = mkHermesWebManifest host;
-            in
-            ''
-              ${pkgs.python3.withPackages (ps: [ ps.websockets ])}/bin/python3 \
-                ${./features/programs/hermes-agent/config/test_web_runtime.py} ${manifest}
-              ${pkgs.python3}/bin/python3 \
-                ${./features/programs/hermes-agent/config/test_web_preflight.py} ${manifest}
-            ''
-          )
-          [
-            zaros
-            hermesWebOtherPort
-          ]
-        + "\ntouch $out\n"
-      );
-      hermesDesktop = lib.findFirst (
-        package: lib.getName package == "hermes-desktop"
-      ) null zarosHome.home.packages;
-      hermesBackendLauncher = builtins.head zarosHome.systemd.user.services.hermes-backend.Service.ExecStart;
-      hermesRuntimeCheck = pkgs.runCommand "hermes-runtime-state" { } ''
-        ${pkgs.python3}/bin/python3 ${./features/programs/hermes-agent/config}/test_runtime_state.py -v
-
-        # Inspect the actual upstream-generated launchers, not copies of them.
-        grep -Fq 'HERMES_DASHBOARD_SESSION_TOKEN' ${hermesBackendLauncher}
-        grep -Fq '${zarosHome.services.hermes-agent.backend.sessionTokenFile}' ${hermesBackendLauncher}
-        grep -Fq '${zarosHome.programs.hermes-agent.package}/bin/hermes' ${hermesBackendLauncher}
-        grep -Fq 'HERMES_DESKTOP_REMOTE_TOKEN' ${hermesDesktop}/bin/hermes-desktop
-        grep -Fq 'http://127.0.0.1:9119' ${hermesDesktop}/bin/hermes-desktop
-        grep -Fq '${zarosHome.services.hermes-agent.backend.sessionTokenFile}' ${hermesDesktop}/bin/hermes-desktop
-        touch $out
-      '';
-      mkZarosShell =
-        shell:
-        (inputs.nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit self inputs; };
-          modules = [
-            ../hosts/zaros
-            {
-              my.desktop = {
-                shell = lib.mkForce shell;
-              }
-              // lib.optionalAttrs (shell == "caelestia") {
-                sessions = lib.mkForce [
-                  "hyprland"
-                  "i3"
-                ];
-                defaultSession = lib.mkForce "hyprland";
-              };
-            }
-          ];
-        }).config;
-      zarosCaelestia = mkZarosShell "caelestia";
-      zarosNone = mkZarosShell "none";
-      zarosCaelestiaHome = zarosCaelestia.home-manager.users.${zarosUser};
-      zarosNoneHome = zarosNone.home-manager.users.${zarosUser};
-      invalidShell = builtins.tryEval (
-        builtins.deepSeq (mkZarosShell "invalid-shell").system.build.toplevel.drvPath true
-      );
-      noctaliaBarNames = builtins.attrNames (
-        lib.filterAttrs (_: bar: builtins.isAttrs bar) (zarosHome.programs.noctalia.settings.bar or { })
-      );
-      noctaliaTestBar = if noctaliaBarNames == [ ] then "default" else builtins.head noctaliaBarNames;
-      noctaliaGuiSpacing =
-        if (zarosHome.programs.noctalia.settings.bar.${noctaliaTestBar}.widget_spacing or 6) == 8 then
-          9
-        else
-          8;
-      shellProvidersCheck =
-        assert lib.assertMsg zarosHome.programs.noctalia.enable "Noctalia must be enabled";
-        assert lib.assertMsg (
-          !zarosHome.programs.noctalia.systemd.enable
-        ) "Noctalia startup must remain compositor-owned, not a shared systemd service";
-        assert lib.assertMsg (!zarosHome.programs.caelestia.enable) "Noctalia must disable Caelestia";
-        assert lib.assertMsg
-          (builtins.hasAttr "noctalia" zarosHome.wayland.windowManager.hyprland.extraLuaFiles)
-          "Noctalia startup Lua is missing";
-        assert lib.assertMsg (
-          !builtins.hasAttr "caelestia" zarosHome.systemd.user.services
-        ) "Noctalia must not define Caelestia service";
-        assert lib.assertMsg (builtins.elem zarosHome.programs.noctalia.package zarosHome.home.packages)
-          "Noctalia package must be directly installed";
-        assert lib.assertMsg (
-          zarosHome.programs.noctalia.package == inputs.noctalia.packages.${system}.default
-          && lib.hasPrefix "local noctalia = ${builtins.toJSON (lib.getExe zarosHome.programs.noctalia.package)}" zarosHome.wayland.windowManager.hyprland.extraLuaFiles.noctalia.content
-        ) "Noctalia startup must use the configured native package";
-        assert lib.assertMsg (
-          zarosHome.my.desktop.shellCommands == {
-            launcher = "${lib.getExe zarosHome.programs.noctalia.package} msg panel-toggle launcher";
-            dashboard = "${lib.getExe zarosHome.programs.noctalia.package} msg panel-toggle control-center";
-            settings = "${lib.getExe zarosHome.programs.noctalia.package} msg settings-toggle";
-            session = "${lib.getExe zarosHome.programs.noctalia.package} msg panel-toggle session";
-            lock = "${lib.getExe zarosHome.programs.noctalia.package} msg session lock";
-          }
-        ) "Noctalia commands must use the native IPC interface";
-        assert lib.assertMsg zarosHome.programs.noctalia.checkConfig
-          "Noctalia config validation must be enabled";
-        assert lib.assertMsg (
-          !builtins.elem zarosHome.programs.caelestia.package zarosHome.home.packages
-          && !builtins.elem zarosHome.programs.caelestia.cli.package zarosHome.home.packages
-        ) "Noctalia must not install Caelestia packages";
-        assert lib.assertMsg zarosCaelestiaHome.programs.caelestia.enable "Caelestia must be enabled";
-        assert lib.assertMsg zarosCaelestiaHome.programs.caelestia.systemd.enable
-          "Caelestia systemd must be enabled";
-        assert lib.assertMsg zarosCaelestiaHome.programs.caelestia.cli.enable
-          "Caelestia CLI must be enabled";
-        assert lib.assertMsg (
-          zarosCaelestiaHome.programs.caelestia.systemd.target == "wayland-session@hyprland.desktop.target"
-        ) "Caelestia must target the UWSM Hyprland session";
-        assert lib.assertMsg (
-          !zarosCaelestiaHome.programs.noctalia.enable
-        ) "Caelestia must disable Noctalia";
-        assert lib.assertMsg (
-          !builtins.hasAttr "noctalia" zarosCaelestiaHome.wayland.windowManager.hyprland.extraLuaFiles
-        ) "Caelestia must not define Noctalia Lua";
-        assert lib.assertMsg (builtins.hasAttr "caelestia" zarosCaelestiaHome.systemd.user.services)
-          "Caelestia service is missing";
-        assert lib.assertMsg (
-          zarosCaelestiaHome.systemd.user.services.caelestia.Service.ExecStart
-          == [ "${zarosCaelestiaHome.programs.caelestia.package}/bin/caelestia-shell" ]
-        ) "Caelestia ExecStart is not the configured shell";
-        assert lib.assertMsg (
-          zarosCaelestiaHome.systemd.user.services.caelestia.Unit.After
-          == [ zarosCaelestiaHome.programs.caelestia.systemd.target ]
-        ) "Caelestia After target mismatch";
-        assert lib.assertMsg (
-          zarosCaelestiaHome.systemd.user.services.caelestia.Unit.PartOf
-          == [ zarosCaelestiaHome.programs.caelestia.systemd.target ]
-        ) "Caelestia PartOf target mismatch";
-        assert lib.assertMsg (
-          zarosCaelestiaHome.systemd.user.services.caelestia.Install.WantedBy
-          == [ zarosCaelestiaHome.programs.caelestia.systemd.target ]
-        ) "Caelestia WantedBy target mismatch";
-        assert lib.assertMsg (
-          builtins.elem zarosCaelestiaHome.programs.caelestia.package zarosCaelestiaHome.home.packages
-          && builtins.elem zarosCaelestiaHome.programs.caelestia.cli.package zarosCaelestiaHome.home.packages
-        ) "Caelestia packages must be directly installed";
-        assert lib.assertMsg (
-          !builtins.elem zarosCaelestiaHome.programs.noctalia.package zarosCaelestiaHome.home.packages
-        ) "Caelestia must not install Noctalia";
-        assert lib.assertMsg (
-          !zarosNoneHome.programs.noctalia.enable && !zarosNoneHome.programs.caelestia.enable
-        ) "none must disable both providers";
-        assert lib.assertMsg (
-          !builtins.elem zarosNoneHome.programs.noctalia.package zarosNoneHome.home.packages
-          && !builtins.elem zarosNoneHome.programs.caelestia.package zarosNoneHome.home.packages
-          && !builtins.elem zarosNoneHome.programs.caelestia.cli.package zarosNoneHome.home.packages
-        ) "none must install neither provider";
-        assert lib.assertMsg (
-          !builtins.hasAttr "noctalia" zarosNoneHome.wayland.windowManager.hyprland.extraLuaFiles
-          && !builtins.hasAttr "caelestia" zarosNoneHome.systemd.user.services
-          && zarosNoneHome.programs.umbriel.settings.general.autostart == [ ]
-        ) "none must have no provider startup";
-        assert lib.assertMsg (lib.all (command: command == null) (
-          lib.attrValues zarosNoneHome.my.desktop.shellCommands
-        )) "none commands must all be null";
-        assert lib.assertMsg (
-          zarosHome.my.desktop.shellCommands == zarosHome.my.desktop.shellProviders.noctalia.commands
-        ) "Noctalia command registry mismatch";
-        assert lib.assertMsg (
-          zarosCaelestiaHome.my.desktop.shellCommands
-          == zarosCaelestiaHome.my.desktop.shellProviders.caelestia.commands
-        ) "Caelestia command registry mismatch";
-        assert lib.assertMsg (!invalidShell.success) "Invalid shell selector must fail evaluation";
-        pkgs.runCommand "shell-providers" { } ''
-          validation="$(${lib.getExe zarosHome.programs.noctalia.package} config validate \
-            ${zarosHome.xdg.configFile."noctalia/config.toml".source})"
-          printf '%s\n' "$validation"
-          case "$validation" in
-            *WARN*) exit 1 ;;
-          esac
-          ${lib.getExe pkgs.jq} -e '
-            .dark.terminal |
-            (.normal | length == 8) and (.bright | length == 8) and
-            ([.background, .foreground, .cursor, .cursorText, .selectionBg, .selectionFg] |
-              all(test("^#[0-9a-fA-F]{6}$")))
-          ' ${zarosHome.xdg.configFile."noctalia/palettes/stylix.json".source} > /dev/null
-          export XDG_CONFIG_HOME="$TMPDIR/config"
-          export XDG_STATE_HOME="$TMPDIR/state"
-          export XDG_CACHE_HOME="$TMPDIR/cache"
-          mkdir -p "$XDG_CONFIG_HOME/noctalia" "$XDG_STATE_HOME/noctalia"
-          cp ${zarosHome.xdg.configFile."noctalia/config.toml".source} "$XDG_CONFIG_HOME/noctalia/config.toml"
-          cp ${pkgs.writeText "noctalia-saved-settings.toml" ''
-            [bar.${builtins.toJSON noctaliaTestBar}]
-            widget_spacing = ${toString noctaliaGuiSpacing}
-          ''} "$XDG_STATE_HOME/noctalia/settings.toml"
-          ${lib.getExe zarosHome.programs.noctalia.package} config export | ${pkgs.python3}/bin/python3 -c ${lib.escapeShellArg ''
-            import pathlib, sys, tomllib
-            config = tomllib.loads(sys.stdin.read())
-            bars = {name: bar for name, bar in config["bar"].items() if isinstance(bar, dict)}
-            assert sorted(bars) == ${
-              builtins.toJSON (lib.unique (noctaliaBarNames ++ [ noctaliaTestBar ]))
-            }, "Saved settings must not create another bar"
-            assert bars[${builtins.toJSON noctaliaTestBar}]["widget_spacing"] == ${toString noctaliaGuiSpacing}, "GUI overrides must remain effective"
-            assert pathlib.Path(config["wallpaper"]["default"]["path"]).is_file(), "Default wallpaper must exist"
-          ''}
-          touch $out
-        '';
-      noctaliaExportCheck =
-        pkgs.runCommand "noctalia-export"
-          {
-            nativeBuildInputs = [
-              (pkgs.python3.withPackages (ps: [ ps.tomli-w ]))
-              self.packages.${system}.noctalia-export
-            ];
-          }
-          ''
-            python3 -B ${./features/desktop/noctalia/config}/test_export.py -v
-            noctalia-export "$TMPDIR/settings.toml" \
-              --input ${zarosHome.xdg.configFile."noctalia/config.toml".source}
-            python3 - ${./features/desktop/noctalia/config/settings.toml} "$TMPDIR/settings.toml" <<'PY'
-            import pathlib, sys, tomllib
-            expected, exported = (tomllib.loads(pathlib.Path(path).read_text()) for path in sys.argv[1:])
-            assert exported == expected, "Generated config must export back to the portable TOML baseline"
-            PY
-            touch $out
-          '';
-      writeLuaFiles =
-        variant: home:
-        lib.mapAttrs' (
-          name: file:
-          let
-            fileName = "${variant}-${name}.lua";
-          in
-          lib.nameValuePair fileName (pkgs.writeText fileName file.content)
-        ) home.wayland.windowManager.hyprland.extraLuaFiles;
-      luaFiles =
-        (writeLuaFiles "noctalia" zarosHome)
-        // (writeLuaFiles "caelestia" zarosCaelestiaHome)
-        // (writeLuaFiles "none" zarosNoneHome);
-      luaCheck = pkgs.runCommand "zaros-generated-lua" { } ''
-        mkdir -p $out
-        ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: file: "cp ${file} $out/${name}") luaFiles)}
-        ${pkgs.lua5_4}/bin/luac -p $out/*.lua
-      '';
-      desktopChecks = import ./features/desktop/desktop/config/test_sessions.nix {
-        inherit
-          inputs
-          self
-          lib
-          pkgs
-          mkFeatureConfig
-          zaros
-          zarosHome
-          baseOnly
-          serverOnly
-          ;
-      };
       repositoryStructure =
         let
-          featureEntries = builtins.readDir ../modules/features;
+          featureEntries = builtins.readDir ./features;
           hostEntries = builtins.readDir ../hosts;
           featureDomains = builtins.attrNames (lib.filterAttrs (_: type: type == "directory") featureEntries);
           topLevelHosts = builtins.attrNames (lib.filterAttrs (_: type: type == "directory") hostEntries);
+          configuredHosts =
+            builtins.attrNames (self.nixosConfigurations or { })
+            ++ builtins.attrNames (self.darwinConfigurations or { });
           directFeatureNix = lib.filter (
             name: featureEntries.${name} == "regular" && lib.hasSuffix ".nix" name
           ) (builtins.attrNames featureEntries);
@@ -803,15 +161,13 @@
         assert lib.assertMsg (
           directFeatureNix == [ ]
         ) "modules/features must not contain regular .nix modules directly";
-        assert lib.assertMsg (
-          topLevelHosts == [
-            "macbook"
-            "saradomin"
-            "saradomin-vm"
-            "zaros"
-          ]
-        ) "top-level host directories must be exactly macbook, saradomin, saradomin-vm, zaros";
-        assert lib.assertMsg (!builtins.pathExists ../modules/hosts) "legacy modules/hosts must not exist";
+        assert lib.assertMsg
+          (
+            topLevelHosts == lib.sort builtins.lessThan configuredHosts
+            && lib.length (lib.unique configuredHosts) == lib.length configuredHosts
+          )
+          "Each top-level host directory must have exactly one explicit NixOS or Darwin configuration output";
+        assert lib.assertMsg (!builtins.pathExists ./hosts) "legacy modules/hosts must not exist";
         pkgs.runCommand "repository-structure" { } "touch $out";
     in
     {
@@ -825,26 +181,12 @@
       checks = {
         repository-structure = repositoryStructure;
       }
-      // (lib.optionalAttrs linux {
-        zaros = self.nixosConfigurations.zaros.config.system.build.toplevel;
-        saradomin = self.nixosConfigurations.saradomin.config.system.build.toplevel;
-        saradomin-vm = self.nixosConfigurations."saradomin-vm".config.system.build.toplevel;
+      // lib.optionalAttrs (system == "x86_64-linux") {
         saradomin-lan-dns = saradominLanDnsCheck;
         saradomin-adguard-home = saradominAdGuardHomeCheck;
         saradomin-media-permissions = saradominMediaPermissionsCheck;
         feature-imports = featureImportsCheck;
         sops-environment = sopsEnvironmentCheck;
-        generated-lua = luaCheck;
-        shell-providers = shellProvidersCheck;
-        noctalia-export = noctaliaExportCheck;
-        hermes-agent = hermesAgentCheck;
-        hermes-runtime-state = hermesRuntimeCheck;
-        hermes-web = hermesWebCheck;
-        hermes-web-runtime = hermesWebRuntimeCheck;
-        inherit (desktopChecks) desktop-sessions umbriel-config greeter-sessions;
-      })
-      // (lib.optionalAttrs darwin {
-        macbook = self.darwinConfigurations.macbook.config.system.build.toplevel;
-      });
+      };
     };
 }

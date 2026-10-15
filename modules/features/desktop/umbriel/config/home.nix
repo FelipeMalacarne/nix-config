@@ -125,24 +125,6 @@ in
           ) monitors
         );
         workspace = lib.optionals (monitors == [ ]) (map (name: { inherit name; }) workspaceNames);
-        window_rule = lib.optionals (config.my.desktop.shell == "noctalia") [
-          {
-            match.app_id = "^dev.noctalia.Noctalia$";
-            default_floating = true;
-            default_floating_size_px = {
-              width = 1080;
-              height = 920;
-            };
-          }
-        ];
-        layer_rule = lib.optionals (config.my.desktop.shell == "noctalia") [
-          {
-            match.namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher|desktop-widget-.+)$";
-            blur = true;
-            blur_ignore_alpha = 0.5;
-            blur_popups = true;
-          }
-        ];
         keybinds = {
           "Mod+Return" = spawn config.my.desktop.terminalCommand;
           "Mod+W" = once "window-close";

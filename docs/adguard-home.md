@@ -2,8 +2,9 @@
 
 AdGuard Home runs as a NixOS service on the Saradomin host, outside K3s. This
 keeps recursive DNS and filtering available while Kubernetes is unavailable.
-Its web interface is unauthenticated and therefore binds only to
-`127.0.0.1:3000`.
+Its web interface is unauthenticated and binds to the configured LAN address
+on port 3000 for the internal Traefik proxy. The host's scoped firewall rules
+control direct access; see the web-interface trust boundary below.
 
 ## Split DNS
 

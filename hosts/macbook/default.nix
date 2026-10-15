@@ -15,8 +15,10 @@ in
     self.modules.darwin.skhd
     self.modules.darwin.borders
     self.modules.darwin.sketchybar
-    self.modules.darwin.sops
+    self.modules.darwin.ssh-credentials
     self.modules.darwin.development
+    self.modules.darwin.programming-credentials
+    self.modules.darwin.k8s-credentials
     self.modules.darwin.ai
     self.modules.darwin.firefox
   ];
@@ -31,43 +33,12 @@ in
     user.name = "felipeautentique";
 
     infrastructure.ssh.hosts = {
-      "github.com" = {
-        HostName = "ssh.github.com";
-        Port = 443;
-        User = "git";
-        IdentityFile = "~/.ssh/bitbaut";
-        IdentitiesOnly = "yes";
-      };
+      "github.com".IdentityFile = "~/.ssh/bitbaut";
 
       "github-zaros" = {
         HostName = "ssh.github.com";
         Port = 443;
         User = "git";
-        IdentityFile = "~/.ssh/zaros";
-        IdentitiesOnly = "yes";
-      };
-
-      "zamorak" = {
-        Hostname = "137.131.204.251";
-        Port = 22;
-        User = "ubuntu";
-        IdentityFile = "~/.ssh/zamorak";
-      };
-
-      "saradomin" = {
-        User = "felipe";
-        IdentityFile = "~/.ssh/zaros";
-        IdentitiesOnly = "yes";
-      };
-
-      "macbook" = {
-        User = "felipeautentique";
-        IdentityFile = "~/.ssh/zaros";
-        IdentitiesOnly = "yes";
-      };
-
-      "zaros" = {
-        User = "felipe";
         IdentityFile = "~/.ssh/zaros";
         IdentitiesOnly = "yes";
       };
@@ -78,10 +49,8 @@ in
     { lib, ... }:
     {
       imports = with self.modules.homeManager; [
-        base
         ghostty
         firefox
-        development
         sketchybar
       ];
 

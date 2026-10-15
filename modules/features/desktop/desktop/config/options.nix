@@ -6,12 +6,19 @@ let
     "umbriel"
   ];
   monitors = config.my.desktop.monitors;
+  x11 = builtins.elem "i3" config.my.desktop.sessions;
+  wayland = lib.any (session: builtins.elem session config.my.desktop.sessions) [
+    "hyprland"
+    "umbriel"
+  ];
   monitorList = lib.attrValues monitors;
   roles = map (monitor: monitor.role) monitorList;
-  identifiers = lib.concatMap (monitor: [
-    monitor.match.waylandDescription
-    monitor.match.xrandrOutput
-  ]) monitorList;
+  identifiers = lib.filter (identifier: identifier != null) (
+    lib.concatMap (
+      monitor:
+      lib.optional wayland monitor.match.waylandDescription ++ lib.optional x11 monitor.match.xrandrOutput
+    ) monitorList
+  );
   workspaces = lib.concatMap (monitor: monitor.workspaces) monitorList;
 in
 {
@@ -55,13 +62,19 @@ in
             ];
           };
           match = lib.mkOption {
+            default = { };
             type = lib.types.submodule {
               options = {
                 waylandDescription = lib.mkOption {
-                  type = lib.types.str;
-                  description = "Wayland monitor identity; Umbriel requires the full make, model, and serial, not a description prefix.";
+                  type = lib.types.nullOr lib.types.nonEmptyStr;
+                  default = null;
+                  description = "Required when a Wayland session is selected. Umbriel requires the full make, model, and serial, not a description prefix.";
                 };
-                xrandrOutput = lib.mkOption { type = lib.types.str; };
+                xrandrOutput = lib.mkOption {
+                  type = lib.types.nullOr lib.types.nonEmptyStr;
+                  default = null;
+                  description = "XRandR connector name, required only when i3 is selected.";
+                };
               };
             };
           };
@@ -106,6 +119,14 @@ in
 
   config.assertions = [
     {
+      assertion = !wayland || lib.all (monitor: monitor.match.waylandDescription != null) monitorList;
+      message = "my.desktop monitors require a Wayland description when hyprland or umbriel is selected";
+    }
+    {
+      assertion = !x11 || lib.all (monitor: monitor.match.xrandrOutput != null) monitorList;
+      message = "my.desktop monitors require an XRandR output when i3 is selected";
+    }
+    {
       assertion = config.my.desktop.sessions != [ ];
       message = "my.desktop.sessions must not be empty";
     }
@@ -130,7 +151,7 @@ in
       message = "my.desktop monitor workspaces must be unique";
     }
     {
-      assertion = lib.all (monitor: monitor.scale == 1) monitorList;
+      assertion = !x11 || lib.all (monitor: monitor.scale == 1) monitorList;
       message = "my.desktop monitor scale must be 1 for i3/XRandR-compatible topology";
     }
     {

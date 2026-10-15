@@ -99,6 +99,31 @@
           }
         )
         (lib.mkIf
+          (config.my.desktop.shell == "noctalia" && builtins.elem "umbriel" config.my.desktop.sessions)
+          {
+            programs.umbriel.settings = {
+              window_rule = [
+                {
+                  match.app_id = "^dev.noctalia.Noctalia$";
+                  default_floating = true;
+                  default_floating_size_px = {
+                    width = 1080;
+                    height = 920;
+                  };
+                }
+              ];
+              layer_rule = [
+                {
+                  match.namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher|desktop-widget-.+)$";
+                  blur = true;
+                  blur_ignore_alpha = 0.5;
+                  blur_popups = true;
+                }
+              ];
+            };
+          }
+        )
+        (lib.mkIf
           (config.my.desktop.shell == "noctalia" && builtins.elem "hyprland" config.my.desktop.sessions)
           {
             stylix.targets.hyprpaper.enable = lib.mkForce false;

@@ -1,10 +1,18 @@
 { ... }:
 {
   flake.modules.homeManager.dolphin =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       p = config.lib.stylix.colors;
       rgb = n: "${p."${n}-rgb-r"},${p."${n}-rgb-g"},${p."${n}-rgb-b"}";
+      # Standalone imports assume Ghostty is installed; desktop supplies the pair.
+      terminal = config.my.desktop.terminalCommand or (lib.getExe pkgs.ghostty);
+      terminalDesktopId = config.my.desktop.terminalDesktopId or "com.mitchellh.ghostty.desktop";
     in
     {
       home.packages = with pkgs; [
@@ -29,8 +37,8 @@
       xdg.configFile."kdeglobals".text = ''
         [General]
         ColorScheme=NixGenerated
-        TerminalApplication=alacritty
-        TerminalService=Alacritty.desktop
+        TerminalApplication=${terminal}
+        TerminalService=${terminalDesktopId}
         [KDE]
         SingleClick=false
         [Icons]

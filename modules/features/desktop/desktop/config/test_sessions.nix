@@ -18,16 +18,12 @@ let
       self.modules.nixos.desktop
       self.modules.nixos.noctalia-greeter
       ../../../../../hosts/zaros/desktop.nix
-      ({ config, ... }: {
+      {
         fileSystems."/" = {
           device = "none";
           fsType = "tmpfs";
         };
-        home-manager.users.${config.my.user.name}.imports = with self.modules.homeManager; [
-          linux-base
-          desktop
-        ];
-      })
+      }
       extra
     ];
   variant =
@@ -54,6 +50,78 @@ let
       defaultSession = lib.mkForce "hyprland";
     };
   };
+  waylandMonitor = {
+    role = "primary";
+    match.waylandDescription = "Example HiDPI Display SERIAL001";
+    mode = {
+      width = 3840;
+      height = 2160;
+      refresh = 60;
+    };
+    position = {
+      x = 0;
+      y = 0;
+    };
+    scale = 2;
+    workspaces = [ "1" ];
+  };
+  x11Monitor = waylandMonitor // {
+    match.xrandrOutput = "DP-1";
+    scale = 1;
+  };
+  topology = sessions: monitor: {
+    my.desktop = {
+      inherit sessions;
+      defaultSession = builtins.head sessions;
+      shell = "none";
+      monitors = {
+        main = monitor;
+      };
+    };
+  };
+  topologyFixture = sessions: monitor: {
+    my.desktop = lib.mapAttrs (_: lib.mkForce) (topology sessions monitor).my.desktop;
+  };
+  waylandHiDpi = mkDesktop (topologyFixture [ "hyprland" "umbriel" ] waylandMonitor);
+  x11Topology = mkDesktop (topologyFixture [ "i3" ] x11Monitor);
+  mixedX11Topology = mkDesktop {
+    my.desktop = lib.mapAttrs (_: lib.mkForce) (
+      (topology [ "i3" ] x11Monitor).my.desktop
+      // {
+        monitors = {
+          main = x11Monitor;
+          secondary = x11Monitor // {
+            role = "secondary";
+            match = {
+              xrandrOutput = "DP-2";
+              waylandDescription = "Example Secondary Display SERIAL002";
+            };
+            mode = {
+              width = 1920;
+              height = 1080;
+              refresh = 60;
+            };
+            workspaces = [ "2" ];
+          };
+        };
+      }
+    );
+  };
+  waylandSddm = mkDesktop (
+    (topologyFixture [ "hyprland" ] waylandMonitor)
+    // {
+      imports = [ self.modules.nixos.sddm ];
+      services.displayManager.noctalia-greeter.enable = lib.mkForce false;
+    }
+  );
+  terminalOverride = mkDesktop (
+    { config, ... }: {
+      home-manager.users.${config.my.user.name}.my.desktop = {
+        terminalCommand = "/example/bin/terminal";
+        terminalDesktopId = "example-terminal.desktop";
+      };
+    }
+  );
   valid = c: lib.all (a: a.assertion) (c.assertions ++ (home c).assertions);
   rejected =
     extra:
@@ -71,6 +139,8 @@ let
   onlyHome = home umbrielOnly;
   noneHome = home shellNone;
   i3Home = home i3Only;
+  hidpiHome = home waylandHiDpi;
+  terminalHome = home terminalOverride;
   macbookHome = home self.darwinConfigurations.macbook.config;
   settings = zarosHome.programs.umbriel.settings;
   nativeUmbriel = inputs.umbriel.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -157,13 +227,59 @@ in
           "hyprland"
           "i3"
         ]
-      && zaros.my.desktop.defaultSession == "umbriel"
-      && zaros.services.displayManager.defaultSession == "umbriel"
+      && zaros.my.desktop.defaultSession == "hyprland"
+      && zaros.services.displayManager.defaultSession == "hyprland-uwsm"
       && umbrielOnly.services.displayManager.defaultSession == "umbriel"
       && hyprlandCaelestia.services.displayManager.defaultSession == "hyprland-uwsm"
       && i3Only.services.displayManager.defaultSession == "none+i3"
       && sddm.services.displayManager.defaultSession == "hyprland-uwsm"
     ) "Session defaults must forward to HM and use native display-manager identifiers";
+    assert lib.assertMsg
+      (
+        valid waylandHiDpi
+        && valid x11Topology
+        && hidpiHome.my.desktop.monitors.main.match.xrandrOutput == null
+        && hidpiHome.programs.umbriel.settings.output.${waylandMonitor.match.waylandDescription}.scale == 2
+        && lib.hasInfix "scale = 2" hidpiHome.wayland.windowManager.hyprland.extraLuaFiles.main.content
+        && (home x11Topology).my.desktop.monitors.main.match.waylandDescription == null
+      )
+      "Wayland-only HiDPI must not require XRandR; X11-only topology must not require a Wayland identity";
+    assert lib.assertMsg
+      (
+        valid waylandSddm
+        && valid mixedX11Topology
+        && x11Topology.services.displayManager.noctalia-greeter.settings.output == { }
+        && !lib.hasInfix "--output" waylandSddm.services.displayManager.sddm.setupScript
+        && !(mixedX11Topology.services.displayManager.noctalia-greeter.settings.output ? width)
+        && !(mixedX11Topology.services.displayManager.noctalia-greeter.settings.output ? height)
+      )
+      "Login managers must use native output defaults when their backend's monitor identity is unavailable";
+    assert lib.assertMsg (
+      valid terminalOverride
+      && terminalHome.xsession.windowManager.i3.config.terminal == "/example/bin/terminal"
+      &&
+        lib.all
+          (
+            name:
+            lib.hasPrefix "/example/bin/terminal -e "
+              terminalHome.my.desktop.applicationBindings.${name}.command
+          )
+          [
+            "yazi"
+            "btop"
+            "fastfetch"
+          ]
+      && lib.hasInfix "/example/bin/terminal -e " terminalHome.wayland.windowManager.hyprland.extraLuaFiles.sharedBindings.content
+      &&
+        lib.hasInfix "exec /example/bin/terminal -e "
+          terminalHome.xsession.windowManager.i3.config.keybindings."Mod4+Shift+f"
+      &&
+        terminalHome.programs.umbriel.settings.keybinds."Mod+Return".action == "spawn:/example/bin/terminal"
+      && lib.hasInfix "TerminalApplication=/example/bin/terminal" terminalHome.xdg.configFile.kdeglobals.text
+      && lib.hasInfix "TerminalService=example-terminal.desktop" terminalHome.xdg.configFile.kdeglobals.text
+      && lib.hasInfix (builtins.unsafeDiscardStringContext "TerminalApplication=${zarosHome.my.desktop.terminalCommand}") zarosHome.xdg.configFile.kdeglobals.text
+      && lib.hasInfix "TerminalService=com.mitchellh.ghostty.desktop" zarosHome.xdg.configFile.kdeglobals.text
+    ) "Shared bindings and Dolphin must use the effective terminal executable and desktop entry";
     assert lib.assertMsg (
       zaros.services.displayManager.noctalia-greeter.enable
       && zaros.services.greetd.enable
@@ -214,6 +330,31 @@ in
         lib.attrValues zarosHome.programs.noctalia.settings.idle.behavior
       )
     ) "The same Noctalia binary must start once per compositor, without shared startup/idle services";
+    assert lib.assertMsg (
+      settings.window_rule == [
+        {
+          match.app_id = "^dev.noctalia.Noctalia$";
+          default_floating = true;
+          default_floating_size_px = {
+            width = 1080;
+            height = 920;
+          };
+        }
+      ]
+      &&
+        settings.layer_rule == [
+          {
+            match.namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher|desktop-widget-.+)$";
+            blur = true;
+            blur_ignore_alpha = 0.5;
+            blur_popups = true;
+          }
+        ]
+      && onlyHome.programs.umbriel.settings.window_rule == settings.window_rule
+      && onlyHome.programs.umbriel.settings.layer_rule == settings.layer_rule
+      && (noneHome.programs.umbriel.settings.window_rule or [ ]) == [ ]
+      && (noneHome.programs.umbriel.settings.layer_rule or [ ]) == [ ]
+    ) "Noctalia must own its unchanged Umbriel rules and omit them when another shell is selected";
     assert lib.assertMsg (
       noneHome.programs.umbriel.settings.general.autostart == [ ]
       && noneHome.my.desktop.shellStartupCommand == null
@@ -292,6 +433,9 @@ in
           my.desktop.defaultSession = lib.mkForce "hyprland";
         }
         { my.desktop.sessions = lib.mkForce [ ]; }
+        (topologyFixture [ "i3" ] (x11Monitor // { scale = 2; }))
+        (topologyFixture [ "i3" ] (waylandMonitor // { scale = 1; }))
+        (topologyFixture [ "hyprland" ] x11Monitor)
         {
           my.desktop.sessions = lib.mkForce [
             "umbriel"

@@ -1,5 +1,6 @@
-{ inputs, ... }:
+{ config, inputs, ... }:
 let
+  registry = config.flake.modules;
   homeModule =
     {
       config,
@@ -88,7 +89,7 @@ in
     {
       imports = [ ./hermes-agent/config/web.nix ];
 
-      home-manager.users.${config.my.user.name}.imports = [ homeModule ];
+      home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.hermes-agent ];
       users.users.${config.my.user.name}.linger = true;
     };
 }

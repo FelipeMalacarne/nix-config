@@ -1,4 +1,10 @@
+{ config, ... }:
 let
+  registry = config.flake.modules;
+  platformModule = { config, ... }: {
+    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.ssh ];
+  };
+
   homeModule =
     { config, ... }:
     {
@@ -9,7 +15,7 @@ let
       };
     };
 
-  nixosModule =
+  nixosCredentials =
     {
       config,
       ...
@@ -19,6 +25,13 @@ let
       homeDirectory = config.users.users.${user}.home;
     in
     {
+      imports = [
+        registry.nixos.ssh
+        registry.nixos.sops
+      ];
+
+      home-manager.users.${user}.imports = [ registry.homeManager.sops ];
+
       sops.secrets = builtins.listToAttrs (
         map (name: {
           name = "${name}-private-key";
@@ -35,13 +48,20 @@ let
       ];
     };
 
-  darwinModule =
+  darwinCredentials =
     { config, ... }:
     let
       user = config.my.user.name;
       homeDirectory = config.users.users.${user}.home;
     in
     {
+      imports = [
+        registry.darwin.ssh
+        registry.darwin.sops
+      ];
+
+      home-manager.users.${user}.imports = [ registry.homeManager.sops ];
+
       sops.secrets = builtins.listToAttrs (
         map (name: {
           name = "${name}-private-key";
@@ -55,7 +75,10 @@ let
     };
 in
 {
-  flake.modules.nixos.ssh = nixosModule;
-  flake.modules.darwin.ssh = darwinModule;
+  flake.modules.nixos.ssh = platformModule;
+  flake.modules.darwin.ssh = platformModule;
   flake.modules.homeManager.ssh = homeModule;
+
+  flake.modules.nixos.ssh-credentials = nixosCredentials;
+  flake.modules.darwin.ssh-credentials = darwinCredentials;
 }

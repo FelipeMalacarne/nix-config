@@ -1,4 +1,20 @@
+{ config, ... }:
 let
+  registry = config.flake.modules;
+  platformModule = { config, ... }: {
+    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.programming ];
+  };
+  credentialsModule = platform: { config, ... }: {
+    imports = [
+      registry.${platform}.programming
+      registry.${platform}.sops
+    ];
+    sops.secrets."linear-api-key".owner = config.my.user.name;
+    home-manager.users.${config.my.user.name}.imports = [
+      registry.homeManager.programming-credentials
+    ];
+  };
+
   homeModule =
     {
       lib,
@@ -6,7 +22,6 @@ let
       ...
     }:
     let
-      linearKeyPath = "/run/secrets/linear-api-key";
       go-migrate-pg = pkgs.go-migrate.overrideAttrs (oldAttrs: {
         tags = [ "postgres" ];
       });
@@ -43,10 +58,6 @@ let
           dbeaver-bin
         ];
 
-      programs.zsh.initContent = ''
-        export LINEAR_API_KEY="$(cat ${linearKeyPath} 2>/dev/null)"
-      '';
-
       programs.zsh.shellAliases = {
         sail = "[ -f sail ] && sh sail || sh vendor/bin/sail";
         pint = "vendor/bin/pint";
@@ -57,11 +68,18 @@ let
 in
 {
   flake.modules.homeManager.programming = homeModule;
-  flake.modules.nixos.programming = { config, ... }: {
-    sops.secrets."linear-api-key".owner = config.my.user.name;
-  };
+  flake.modules.nixos.programming = platformModule;
+  flake.modules.darwin.programming = platformModule;
 
-  flake.modules.darwin.programming = { config, ... }: {
-    sops.secrets."linear-api-key".owner = config.my.user.name;
+  flake.modules.nixos.programming-credentials = credentialsModule "nixos";
+  flake.modules.darwin.programming-credentials = credentialsModule "darwin";
+  flake.modules.homeManager.programming-credentials = {
+    imports = [
+      registry.homeManager.programming
+      registry.homeManager.sops
+    ];
+    programs.zsh.initContent = ''
+      export LINEAR_API_KEY="$(cat /run/secrets/linear-api-key 2>/dev/null)"
+    '';
   };
 }

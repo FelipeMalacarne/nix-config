@@ -6,6 +6,7 @@ in
   imports = with self.modules.nixos; [
     ./hardware.nix
     server
+    ssh-credentials
     openssh
     tailscale
   ];

@@ -5,7 +5,7 @@
   ...
 }:
 let
-  terminal = lib.getExe config.programs.ghostty.package;
+  terminal = config.my.desktop.terminalCommand;
   uwsm = lib.getExe pkgs.uwsm;
   fastfetchPause = pkgs.writeShellApplication {
     name = "fastfetch-pause";
@@ -78,7 +78,12 @@ in
   options.my.desktop.terminalCommand = lib.mkOption {
     type = lib.types.str;
     internal = true;
-    description = "Terminal executable used by desktop application bindings.";
+    description = "Terminal executable used by desktop application bindings; must support -e and --working-directory. Override terminalDesktopId alongside it.";
+  };
+  options.my.desktop.terminalDesktopId = lib.mkOption {
+    type = lib.types.str;
+    internal = true;
+    description = "Desktop entry ID corresponding to terminalCommand, used by application integrations.";
   };
   options.my.desktop.applicationBindings = lib.mkOption {
     type = lib.types.attrsOf (
@@ -103,7 +108,8 @@ in
     description = "Shared application bindings with terminal wrapping but no session-manager prefix; the compositor supplies Mod.";
   };
   config = {
-    my.desktop.terminalCommand = lib.mkDefault terminal;
+    my.desktop.terminalCommand = lib.mkDefault (lib.getExe config.programs.ghostty.package);
+    my.desktop.terminalDesktopId = lib.mkDefault "com.mitchellh.ghostty.desktop";
     my.desktop.applicationBindings = lib.mapAttrs (_: binding: {
       inherit (binding) key modifiers;
       command =

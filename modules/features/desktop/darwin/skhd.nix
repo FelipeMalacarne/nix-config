@@ -1,3 +1,4 @@
+{ self, ... }:
 {
   flake.modules.darwin.skhd =
     let
@@ -24,11 +25,11 @@
         ${mod} + ctrl - l : yabai -m window --warp east
 
         ${mod} + shift - r : yabai -m space --rotate 270
-        ${mod} + shift - x : yabai -m space --mirror x-axis
+        ${mod} + ctrl + shift - x : yabai -m space --mirror x-axis
         ${mod} + shift - y : yabai -m space --mirror y-axis
         ${mod} + shift - a : yabai -m window --resize left:-48:0
         ${mod} + shift - d : yabai -m window --resize right:48:0
-        ${mod} + shift - w : yabai -m window --resize top:0:-48
+        ${mod} + ctrl - w : yabai -m window --resize top:0:-48
         ${mod} + shift - s : yabai -m window --resize bottom:0:48
 
         cmd + shift - a : yabai -m window --resize left:48:0
@@ -55,7 +56,6 @@
         ${mod} - 1 : yabai -m space --focus 1
         ${mod} - 2 : yabai -m space --focus 2
         ${mod} - 3 : yabai -m space --focus 3
-        ${mod} - 4 : yabai -m space --focus 4
         ${mod} - 4 : yabai -m space --focus 4
         ${mod} - 5 : yabai -m space --focus 5
         ${mod} - 6 : yabai -m space --focus 6
@@ -85,6 +85,15 @@
         ${mod} + shift - i : ${termCmd} --args -e fastfetch
 
         ctrl + ${mod} + cmd - r : launchctl stop org.nixos.yabai && launchctl start org.nixos.yabai & launchctl stop org.nixos.skhd && launchctl start org.nixos.skhd
+      '';
+    };
+
+  perSystem =
+    { pkgs, ... }:
+    {
+      checks.skhd-bindings = pkgs.runCommand "skhd-bindings" { } ''
+        ${pkgs.python3}/bin/python3 ${./config/test_skhd.py} ${pkgs.writeText "skhdrc" self.darwinConfigurations.macbook.config.services.skhd.skhdConfig}
+        touch $out
       '';
     };
 }

@@ -10,8 +10,11 @@
     let
       cfg = config.services.displayManager.noctalia-greeter;
       i3Selected = builtins.elem "i3" config.my.desktop.sessions;
-      monitors = lib.attrValues config.my.desktop.monitors;
-      modeSizes = lib.unique (map (output: { inherit (output.mode) width height; }) monitors);
+      allMonitors = lib.attrValues config.my.desktop.monitors;
+      # X11-only hosts need not declare Wayland identities. Let the greeter use
+      # its native output defaults for monitors that cannot be matched here.
+      monitors = lib.filter (output: output.match.waylandDescription != null) allMonitors;
+      modeSizes = lib.unique (map (output: { inherit (output.mode) width height; }) allMonitors);
       sessionData = config.services.displayManager.sessionData;
       xsession = pkgs.writeShellScriptBin "noctalia-greeter-xsession" ''
         set -eu
@@ -100,7 +103,7 @@
                 ) monitors;
               }
               # Upstream only supports a global size; never apply one monitor's size to others.
-              // lib.optionalAttrs (lib.length modeSizes == 1) (lib.head modeSizes);
+              // lib.optionalAttrs (monitors != [ ] && lib.length modeSizes == 1) (lib.head modeSizes);
           };
         };
       };

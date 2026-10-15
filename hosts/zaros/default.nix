@@ -15,8 +15,10 @@ in
     desktop
     noctalia-greeter
     ./desktop.nix
-    sops
+    ssh-credentials
     development
+    programming-credentials
+    k8s-credentials
     ai
     docker
     artcraft
@@ -36,12 +38,8 @@ in
 
   home-manager.users.${user} = {
     imports = with self.modules.homeManager; [
-      linux-base
-      desktop
       ankama-launcher
-      chatgpt
       scape2011
-      development
       microbot
       office
       webos-dev-manager
@@ -58,6 +56,11 @@ in
   };
 
   programs.chromium.enable = true;
+
+  boot.binfmt = {
+    emulatedSystems = [ "aarch64-linux" ];
+    preferStaticEmulators = true;
+  };
 
   networking.hostName = "zaros";
 

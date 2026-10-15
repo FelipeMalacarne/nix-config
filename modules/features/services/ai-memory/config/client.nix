@@ -48,6 +48,11 @@ let
           --server-url ${lib.escapeShellArg cfg.serverUrl} \
           --apply --config-file "$out"
       '';
+      skills = lib.genAttrs [
+        "ai-memory-retrieval"
+        "ai-memory-handoff"
+        "ai-memory-durable-pages"
+      ] (name: "${inputs.ai-memory}/crates/ai-memory-core/src/routing_skills/${name}");
     in
     {
       options.my.ai-memory.serverUrl = lib.mkOption {
@@ -107,7 +112,14 @@ let
             ];
           };
         };
-        xdg.configFile."opencode/plugins/ai-memory-opencode2.ts".source = plugin;
+        # OpenCode's skills option probes directory paths during evaluation.
+        # Declare the known directories directly so cross-platform evaluation
+        # never has to realize the patched source derivation (IFD).
+        xdg.configFile =
+          lib.mapAttrs' (name: source: lib.nameValuePair "opencode/skills/${name}" { inherit source; }) skills
+          // {
+            "opencode/plugins/ai-memory-opencode2.ts".source = plugin;
+          };
         programs.opencode.settings = {
           instructions = [ "${./workflow.md}" ];
           commands.memory-finish = {
@@ -116,11 +128,6 @@ let
             subagent = false;
           };
         };
-        programs.opencode.skills = lib.genAttrs [
-          "ai-memory-retrieval"
-          "ai-memory-handoff"
-          "ai-memory-durable-pages"
-        ] (name: "${inputs.ai-memory}/crates/ai-memory-core/src/routing_skills/${name}");
       };
     };
 in

@@ -3,7 +3,7 @@ let
   registry = config.flake.modules;
 in
 {
-  flake.modules.nixos.desktop = {
+  flake.modules.nixos.desktop = { config, ... }: {
     imports = [
       registry.nixos.audio
       registry.nixos.network
@@ -16,6 +16,7 @@ in
       registry.nixos.kdeconnect
       registry.nixos.desktop-foundation
     ];
+    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.desktop ];
   };
 
   flake.modules.homeManager.desktop = {

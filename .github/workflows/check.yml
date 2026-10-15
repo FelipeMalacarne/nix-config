@@ -4,9 +4,17 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: flake-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: linux
@@ -18,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v19
-      - run: nix flake check --impure --show-trace path:.
-        env:
-          NIXPKGS_ALLOW_UNFREE: "1"
+      - name: Formatting
+        run: make fmt-check
+      - name: Fast evaluation
+        run: make eval-check
+      - name: Native checks and host closures
+        run: nix flake check --show-trace path:.

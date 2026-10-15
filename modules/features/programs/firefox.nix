@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, self, ... }:
 let
   homeModule =
     {
@@ -53,7 +53,8 @@ let
       programs.firefox = {
         enable = true;
         package = if isMac then null else pkgs.firefox;
-        configPath = ".mozilla/firefox";
+        # Preserve Linux's existing profiles; Darwin uses Home Manager's native path.
+        configPath = lib.mkIf pkgs.stdenv.hostPlatform.isLinux ".mozilla/firefox";
 
         profiles.${config.home.username} = {
           isDefault = true;
@@ -81,4 +82,25 @@ in
   flake.modules.darwin.firefox = {
     nixpkgs.overlays = [ inputs.nur.overlays.default ];
   };
+
+  perSystem =
+    { lib, pkgs, ... }:
+    let
+      firefox = host: host.home-manager.users.${host.my.user.name}.programs.firefox;
+      linux = firefox self.nixosConfigurations.zaros.config;
+      darwin = firefox self.darwinConfigurations.macbook.config;
+    in
+    {
+      checks.firefox-platform =
+        assert lib.assertMsg
+          (
+            linux.configPath == ".mozilla/firefox"
+            && linux.profilesPath == ".mozilla/firefox"
+            && darwin.configPath == "Library/Application Support/Firefox"
+            && darwin.profilesPath == "Library/Application Support/Firefox/Profiles"
+            && darwin.package == null
+          )
+          "Firefox must preserve Linux profiles and use the native Darwin profile path without installing Firefox";
+        pkgs.runCommand "firefox-platform" { } "touch $out";
+    };
 }

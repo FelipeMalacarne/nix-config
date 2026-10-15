@@ -1,3 +1,7 @@
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.nixos.restic =
     { config, lib, ... }:
@@ -6,6 +10,8 @@
       hostName = config.networking.hostName;
     in
     {
+      imports = [ registry.nixos.sops ];
+
       options.my.restic = {
         paths = lib.mkOption {
           type = lib.types.listOf lib.types.str;

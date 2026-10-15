@@ -1,10 +1,46 @@
-{ ... }:
+{ withSystem, ... }:
+let
+  source = ../../../../assets/sketchybar;
+in
 {
+  perSystem =
+    { lib, pkgs, ... }:
+    let
+      helper = pkgs.callPackage ./sketchybar/config/helper.nix { source = source + "/helper"; };
+    in
+    {
+      packages = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+        sketchybar-helper = helper;
+      };
+      checks = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+        sketchybar-helper = pkgs.runCommand "sketchybar-helper-check" { } ''
+          ${pkgs.bash}/bin/bash -n ${source}/sketchybarrc
+          if ${lib.getExe helper} > usage 2>&1; then
+            echo 'The helper must reject invocation without a bootstrap name.' >&2
+            exit 1
+          fi
+          ${pkgs.gnugrep}/bin/grep -F 'Usage: helper' usage
+          if ${pkgs.gnugrep}/bin/grep -E '(^|[[:space:]])make([[:space:]]|$)' ${source}/sketchybarrc; then
+            echo 'SketchyBar must not compile its helper at startup.' >&2
+            exit 1
+          fi
+          touch "$out"
+        '';
+      };
+    };
+
   flake.modules.homeManager.sketchybar =
-    { config, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       p = config.lib.stylix.colors;
-      source = ../../../../assets/sketchybar;
+      helper = withSystem pkgs.stdenv.hostPlatform.system (
+        { config, ... }: config.packages.sketchybar-helper
+      );
     in
     {
       home.file.".config/sketchybar/colors.sh".text = ''
@@ -33,20 +69,18 @@
         export SHADOW_COLOR=$BLACK
       '';
       home.file.".config/sketchybar/sketchybarrc" = {
-        source = source + "/sketchybarrc";
+        source = pkgs.replaceVars (source + "/sketchybarrc") {
+          SKETCHYBAR_HELPER = lib.getExe helper;
+        };
         executable = true;
       };
       home.file.".config/sketchybar/icons.sh".source = source + "/icons.sh";
       home.file.".config/sketchybar/items".source = source + "/items";
       home.file.".config/sketchybar/plugins".source = source + "/plugins";
-      home.file.".config/sketchybar/helper".source = source + "/helper";
     };
 
   flake.modules.darwin.sketchybar =
-    { config, pkgs, ... }:
-    let
-      user = config.my.user.name;
-    in
+    { pkgs, ... }:
     {
       services.sketchybar = {
         enable = true;

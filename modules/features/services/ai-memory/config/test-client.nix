@@ -25,6 +25,7 @@ let
       ];
     }).config;
   plugin = cfg.xdg.configFile."opencode/plugins/ai-memory-opencode2.ts".source;
+  skills = lib.filterAttrs (name: _: lib.hasPrefix "opencode/skills/" name) cfg.xdg.configFile;
 in
 assert cfg.home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE == "false";
 assert cfg.home.file.ai-memory-capture-mode.text == "allowlist\n";
@@ -46,11 +47,12 @@ assert
     "https://memory.example.test:8443"
   ];
 assert
-  builtins.attrNames cfg.programs.opencode.skills == [
-    "ai-memory-durable-pages"
-    "ai-memory-handoff"
-    "ai-memory-retrieval"
+  builtins.attrNames skills == [
+    "opencode/skills/ai-memory-durable-pages"
+    "opencode/skills/ai-memory-handoff"
+    "opencode/skills/ai-memory-retrieval"
   ];
+assert cfg.programs.opencode.skills == { };
 pkgs.runCommand "ai-memory-client"
   {
     nativeBuildInputs = [
@@ -70,7 +72,11 @@ pkgs.runCommand "ai-memory-client"
     grep -q 'const TOKEN: string | null = null' ${plugin}
     grep -q 'allowlist' ${plugin}
     test "$(readlink ${cfg.home.file.ai-memory-auth-token.source})" = /run/secrets/ai-memory-token
-    for skill in ${lib.concatStringsSep " " (lib.attrValues cfg.programs.opencode.skills)}; do
+    for skill in ${
+      lib.concatMapStringsSep " " (skill: lib.escapeShellArg (toString skill.source)) (
+        lib.attrValues skills
+      )
+    }; do
       test -f "$skill/SKILL.md"
     done
     node --experimental-strip-types ${./test-offline.mjs} ${plugin}

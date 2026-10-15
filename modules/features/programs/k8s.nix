@@ -1,10 +1,12 @@
+{ config, ... }:
 let
+  registry = config.flake.modules;
+  platformModule = { config, ... }: {
+    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.k8s ];
+  };
+
   homeModule =
-    { config, pkgs, ... }:
-    let
-      homeDirectory = config.home.homeDirectory;
-      clusters = config.my.infrastructure.kubernetes.clusters;
-    in
+    { pkgs, ... }:
     {
       home.packages = with pkgs; [
         kubectl
@@ -15,13 +17,9 @@ let
         kustomize
         kustomize-sops
       ];
-
-      home.sessionVariables.KUBECONFIG = builtins.concatStringsSep ":" (
-        map (name: "${homeDirectory}/.kube/configs/${name}.yaml") clusters
-      );
     };
 
-  nixosModule =
+  nixosCredentials =
     { config, ... }:
     let
       user = config.my.user.name;
@@ -29,6 +27,13 @@ let
       clusters = config.my.infrastructure.kubernetes.clusters;
     in
     {
+      imports = [
+        registry.nixos.k8s
+        registry.nixos.sops
+      ];
+
+      home-manager.users.${user}.imports = [ registry.homeManager.k8s-credentials ];
+
       sops.secrets = builtins.listToAttrs (
         map (name: {
           name = "${name}-kubeconfig";
@@ -46,7 +51,7 @@ let
       ];
     };
 
-  darwinModule =
+  darwinCredentials =
     { config, ... }:
     let
       user = config.my.user.name;
@@ -54,6 +59,13 @@ let
       clusters = config.my.infrastructure.kubernetes.clusters;
     in
     {
+      imports = [
+        registry.darwin.k8s
+        registry.darwin.sops
+      ];
+
+      home-manager.users.${user}.imports = [ registry.homeManager.k8s-credentials ];
+
       sops.secrets = builtins.listToAttrs (
         map (name: {
           name = "${name}-kubeconfig";
@@ -67,7 +79,21 @@ let
     };
 in
 {
-  flake.modules.nixos.k8s = nixosModule;
-  flake.modules.darwin.k8s = darwinModule;
+  flake.modules.nixos.k8s = platformModule;
+  flake.modules.darwin.k8s = platformModule;
   flake.modules.homeManager.k8s = homeModule;
+
+  flake.modules.nixos.k8s-credentials = nixosCredentials;
+  flake.modules.darwin.k8s-credentials = darwinCredentials;
+  flake.modules.homeManager.k8s-credentials = { config, ... }: {
+    imports = [
+      registry.homeManager.k8s
+      registry.homeManager.sops
+    ];
+    home.sessionVariables.KUBECONFIG = builtins.concatStringsSep ":" (
+      map (
+        name: "${config.home.homeDirectory}/.kube/configs/${name}.yaml"
+      ) config.my.infrastructure.kubernetes.clusters
+    );
+  };
 }
