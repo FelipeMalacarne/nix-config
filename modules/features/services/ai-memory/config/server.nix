@@ -50,6 +50,20 @@ in
           group = service.group;
           restartUnits = [ "ai-memory.service" ];
         };
+        sops.secrets.ai-memory-copilot = {
+          sopsFile = ../../../../../secrets/ai-memory-copilot.yaml;
+          key = "github_token";
+          owner = service.user;
+          group = service.group;
+          mode = "0400";
+        };
+        sops.templates."ai-memory-copilot.env" = {
+          content = "COPILOT_GITHUB_TOKEN=${config.sops.placeholder.ai-memory-copilot}\n";
+          owner = service.user;
+          group = service.group;
+          mode = "0400";
+          restartUnits = [ "ai-memory.service" ];
+        };
         assertions = [
           {
             assertion = config.services.tailscale.enable;
@@ -65,15 +79,27 @@ in
           enable = true;
           bind = "127.0.0.1";
           openFirewall = false;
-          memoryMax = "1G";
+          # Headroom for in-process CPU embeddings; this is a ceiling, not a reservation.
+          memoryMax = "2G";
           tasksMax = 128;
+          environmentFile = config.sops.templates."ai-memory-copilot.env".path;
           settings = {
             allowed_hosts = [
               "localhost"
               "127.0.0.1"
               cfg.hostName
             ];
-            embedding_provider = "none";
+            embedding_provider = "local";
+            # Copilot subscription allowance only: no paid-provider fallback.
+            # Only a runtime SOPS template carries the GitHub bootstrap token.
+            llm_provider = "copilot";
+            llm_reasoning_effort = "low";
+            llm_fallbacks = [ ];
+            consolidate_on_session_end = true;
+            consolidation = {
+              max_input_tokens = 16000;
+              max_output_tokens = 2000;
+            };
             capture_assistant = false;
             auth = {
               bearer_token_file = token;
@@ -81,7 +107,13 @@ in
             };
             auto_improve = {
               require_approval = true;
-              scheduler.enabled = false;
+              on_session_end = false;
+              scheduler = {
+                enabled = true;
+                interval_secs = 3600;
+                max_sessions_per_tick = 1;
+                min_session_age_secs = 600;
+              };
             };
             dream.enabled = false;
             profile.enabled = "off";
@@ -107,8 +139,16 @@ in
           ''}
           # Upstream treats an unreadable/blank token file as no loaded bearer.
           # Fail closed before starting, including for externally managed tokens.
-          test -r ${lib.escapeShellArg token}
-          grep -q '[^[:space:]]' ${lib.escapeShellArg token}
+          if ! test -r ${lib.escapeShellArg token} || ! grep -q '[^[:space:]]' ${lib.escapeShellArg token}; then
+            echo 'ai-memory bearer is missing, unreadable or blank; refusing unauthenticated startup.' >&2
+            exit 1
+          fi
+          case "''${COPILOT_GITHUB_TOKEN:-}" in
+            ""|UNCONFIGURED|*[!A-Za-z0-9_]*)
+              echo 'Copilot token missing or unconfigured; import it with ai-memory-import-copilot before activation.' >&2
+              exit 1
+              ;;
+          esac
         '';
         systemd.services.ai-memory.path = [ pkgs.gnugrep ];
 
@@ -178,12 +218,39 @@ in
       assert !cfg.services.ai-memory.openFirewall;
       assert cfg.services.ai-memory.enableWeb;
       assert lib.hasInfix "--enable-web" cfg.systemd.services.ai-memory.serviceConfig.ExecStart;
-      assert settings.embedding_provider == "none";
+      assert cfg.services.ai-memory.memoryMax == "2G";
+      assert settings.embedding_provider == "local";
+      assert settings.llm_provider == "copilot";
+      assert settings.llm_model == null;
+      assert settings.llm_base_url == null;
+      assert settings.llm_reasoning_effort == "low";
+      assert settings.llm_fallbacks == [ ];
+      assert settings.consolidate_on_session_end;
+      assert settings.consolidation.max_input_tokens == 16000;
+      assert settings.consolidation.max_output_tokens == 2000;
       assert settings.auth.bearer_token_file == cfg.sops.secrets.ai-memory-token.path;
       assert cfg.sops.secrets.ai-memory-token.owner == cfg.services.ai-memory.user;
       assert cfg.sops.secrets.ai-memory-token.mode == "0400";
       assert settings.auth.secure_cookie;
-      assert !settings.auto_improve.scheduler.enabled;
+      assert cfg.sops.secrets.ai-memory-copilot.key == "github_token";
+      assert cfg.sops.secrets.ai-memory-copilot.owner == cfg.services.ai-memory.user;
+      assert cfg.sops.secrets.ai-memory-copilot.mode == "0400";
+      assert cfg.sops.templates."ai-memory-copilot.env".owner == cfg.services.ai-memory.user;
+      assert cfg.sops.templates."ai-memory-copilot.env".mode == "0400";
+      assert cfg.sops.templates."ai-memory-copilot.env".restartUnits == [ "ai-memory.service" ];
+      assert
+        cfg.sops.templates."ai-memory-copilot.env".content
+        == "COPILOT_GITHUB_TOKEN=${cfg.sops.placeholder.ai-memory-copilot}\n";
+      assert !(cfg.systemd.services.ai-memory.environment ? COPILOT_GITHUB_TOKEN);
+      assert cfg.services.ai-memory.environmentFile == cfg.sops.templates."ai-memory-copilot.env".path;
+      assert
+        cfg.systemd.services.ai-memory.serviceConfig.EnvironmentFile
+        == "-${cfg.sops.templates."ai-memory-copilot.env".path}";
+      assert settings.auto_improve.scheduler.enabled;
+      assert settings.auto_improve.scheduler.interval_secs == 3600;
+      assert settings.auto_improve.scheduler.max_sessions_per_tick == 1;
+      assert settings.auto_improve.scheduler.min_session_age_secs == 600;
+      assert !settings.auto_improve.on_session_end;
       assert settings.auto_improve.require_approval;
       assert !settings.dream.enabled;
       assert settings.profile.enabled == "off";
@@ -203,17 +270,29 @@ in
         ''
           export HOME="$TMPDIR/home"
           mkdir -p "$HOME"
-          if FIXTURE_TOKEN="$TMPDIR/missing-token" ${tokenGuard}; then
+          if FIXTURE_TOKEN="$TMPDIR/missing-token" COPILOT_GITHUB_TOKEN=ghu_fixture ${tokenGuard}; then
             echo 'Missing token must block server startup' >&2
             exit 1
           fi
           printf ' \n' > "$TMPDIR/blank-token"
-          if FIXTURE_TOKEN="$TMPDIR/blank-token" ${tokenGuard}; then
+          if FIXTURE_TOKEN="$TMPDIR/blank-token" COPILOT_GITHUB_TOKEN=ghu_fixture ${tokenGuard}; then
             echo 'Blank token must block server startup' >&2
             exit 1
           fi
           printf 'fixture-token\n' > "$TMPDIR/valid-token"
-          FIXTURE_TOKEN="$TMPDIR/valid-token" ${tokenGuard}
+          if FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN=UNCONFIGURED ${tokenGuard}; then
+            echo 'Unconfigured Copilot token must block server startup' >&2
+            exit 1
+          fi
+          if FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN= ${tokenGuard}; then
+            echo 'Missing Copilot token must block server startup' >&2
+            exit 1
+          fi
+          if FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN='invalid token' ${tokenGuard}; then
+            echo 'Invalid Copilot token must block server startup' >&2
+            exit 1
+          fi
+          FIXTURE_TOKEN="$TMPDIR/valid-token" COPILOT_GITHUB_TOKEN=ghu_fixture ${tokenGuard}
           node ${./test-server.mjs} \
             ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory} \
             ${fixtureConfig} "$TMPDIR"

@@ -152,6 +152,19 @@ their native `auth-token` path to that runtime secret. Never copy its plaintext
 into configuration, prompts or the Nix store, or rotate it with queued captures.
 The memory feature owns shared SOPS credential declarations and platform client
 forwarding; hosts retain machine facts such as the endpoint and server hostname.
+The server config selects GitHub Copilot `copilot` summaries (no paid-provider
+fallback) and CPU-local embeddings with a 2 GiB ceiling. Provision its mutable,
+service-owned Copilot cache separately from the bootstrap GitHub token. The
+bootstrap is SOPS-encrypted in `secrets/ai-memory-copilot.yaml`, rendered to a
+service-only runtime environment file, never plaintext in Nix or the store.
+The committed initial marker is deliberately unconfigured and blocks startup;
+the operator must import the real token with `ai-memory-import-copilot --confirm`
+in a private terminal outside captured agent sessions, then commit ciphertext.
+Agents must not read the real local `auth.json` or decrypt provider secrets.
+Never deploy the complete mutable `auth.json` as a SOPS-managed file. Hourly
+improvement proposals require approval; dream/profile stay off. `/memory-finish <memory-UUID>`
+verifies and finalizes one explicit record without deleting its OpenCode chat;
+a handoff alone is not SessionEnd. See the documented login and finish runbooks.
 OpenClaw's module/input are removed. Do not delete its legacy encrypted credential
 or runtime state as part of routine cleanup.
 

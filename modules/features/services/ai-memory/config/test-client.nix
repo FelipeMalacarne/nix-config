@@ -28,6 +28,9 @@ let
 in
 assert cfg.home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE == "false";
 assert cfg.home.file.ai-memory-capture-mode.text == "allowlist\n";
+assert !cfg.programs.opencode.settings.commands.memory-finish.subagent;
+assert lib.hasInfix "--session-id" cfg.programs.opencode.settings.commands.memory-finish.template;
+assert lib.hasInfix "$ARGUMENTS" cfg.programs.opencode.settings.commands.memory-finish.template;
 assert
   cfg.programs.mcp.servers.ai-memory.args == [
     "--data-dir"
@@ -60,7 +63,9 @@ pkgs.runCommand "ai-memory-client"
     export AI_MEMORY_DATA_DIR="$TMPDIR/data"
     mkdir -p "$HOME" "$AI_MEMORY_DATA_DIR"
     jq -e '.mcp["ai-memory"].type == "local" and
-      (.mcp["ai-memory"].command | index("--no-session-id") != null)' \
+      (.mcp["ai-memory"].command | index("--no-session-id") != null) and
+      (.commands["memory-finish"].subagent == false) and
+      (.commands["memory-finish"].template | contains("--session-id"))' \
       ${cfg.xdg.configFile."opencode/opencode.json".source} > /dev/null
     grep -q 'const TOKEN: string | null = null' ${plugin}
     grep -q 'allowlist' ${plugin}

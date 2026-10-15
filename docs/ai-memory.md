@@ -29,15 +29,37 @@ automatic instruction rewriting. The old `/setup-ai-memory` command and
 - A foreground Tailscale Serve unit owns only its dedicated HTTPS listener. It
   refuses an occupied port, never resets Serve, and never enables Funnel.
 - Data: `/var/lib/ai-memory` (wiki, raw data, SQLite, credentials and history).
-- Resource ceiling: 1 GiB, 128 tasks; embeddings explicitly disabled initially.
-- Saradomin enables the built-in web UI. LLM provider is unset; dream, cross-project profile and the
-  auto-improvement scheduler are disabled. Proposals require approval.
+- Resource ceiling: 2 GiB, 128 tasks. CPU-only local embeddings use the pinned
+  `all-MiniLM-L6-v2` model (384 dimensions, approximately 87 MB download).
+- Saradomin enables the built-in web UI. A SOPS-provisioned GitHub Copilot token
+  supplies LLM summaries, with no paid API fallback. Session-end consolidation is enabled;
+  the hourly improvement reviewer stages proposals for manual approval.
+  Dream processing, LLM search reranking and cross-project profiles stay off.
+
+These describe the repository configuration, not proof of deployment. The real
+bootstrap-token import and native activation/acceptance checks below must happen
+separately; the initial encrypted `UNCONFIGURED` marker deliberately blocks
+startup.
 
 `AGENTS.md`, current code and verified tests are authoritative. ai-memory holds
 historical evidence and handoffs, not permissions or a replacement instructions
 hierarchy. Reviewed architecture stays in ordinary repository documentation.
 
 ## Configuration ownership
+
+### Everyday quick reference
+
+| Goal | What to ask or run in OpenCode |
+|---|---|
+| Resume work | "Where did we leave off?" |
+| Find previous context | "Search memory for how we configured X." |
+| Save an intentional decision | "Remember this decision for this project." |
+| Leave useful next-session context | "Wrap up with a handoff." |
+| Also close a memory session | `/memory-finish <ai-memory-session-UUID>` |
+
+The server stores searchable project history across machines; it does not
+transfer uncommitted code or restore a complete native OpenCode chat. Commit and
+push code separately. Repositories without an approved marker are not captured.
 
 ### Private web UI
 
@@ -57,7 +79,8 @@ this authentication flow and must be configured separately.
 
 Home Manager installs the pinned CLI, generates the upstream OpenCode V2 adapter
 **inside the Nix build sandbox**, and installs three upstream skills: retrieval,
-handoff and durable pages. No installer runs against the real home.
+handoff and durable pages. It also installs the `/memory-finish` prompt command.
+No installer runs against the real home.
 
 MCP uses the local `ai-memory mcp-bridge --no-session-id`, reading credentials at
 runtime and connecting to the shared server. This is a **static** client: pass
@@ -80,6 +103,139 @@ there. SOPS owns the credential contents; the client owns its spools.
 Preserve existing data; a conflicting existing config/token requires manual
 review before activation. Do not use environment overrides that route the CLI
 and plugin to different data directories or servers.
+
+### GitHub Copilot login and usage
+
+The LLM provider is `copilot`, using your GitHub Copilot entitlement rather than
+a separately billed model-provider API key. It shares your account's allowance
+and rate limits with coding; it is not unlimited. No paid-provider fallback is
+configured. To avoid extra charges, also keep paid overages disabled in your
+GitHub/Copilot account's billing controls: this Nix configuration cannot enforce
+account-level spending settings. Captured content used for summaries and
+improvement review leaves Saradomin for Copilot and its model providers;
+embeddings and ordinary search stay local. Check your plan's data controls
+before enabling this for another repository, particularly work/client code.
+
+Signing into Copilot in OpenCode, VS Code or the Copilot CLI is not an ai-memory
+provider login. `ai-memory auth login copilot` on the Mac authenticates that
+local data directory. The operator-only importer can encrypt just its GitHub
+bootstrap token for Saradomin; it never copies the complete login file.
+
+**Before activating this server configuration**, run the following in your own
+private terminal from the repository root, outside a captured agent session:
+
+```sh
+# Only if you have not already signed in to ai-memory:
+ai-memory auth login copilot
+
+# Preview reads no credentials. Review the public recipients in .sops.yaml.
+nix run 'path:.#ai-memory-import-copilot'
+nix run 'path:.#ai-memory-import-copilot' -- --confirm
+```
+
+The login prints a browser URL and temporary device code; complete it with your
+Copilot-enabled GitHub account. Never paste a code or credential into an agent
+conversation. The importer uses the native macOS/Linux ai-memory `auth.json`
+path (or explicit `--auth-file`), extracts only `copilot.github_access`, rejects
+missing/expired tokens and environment-file injection, and passes the token to
+SOPS through stdin. It atomically replaces `secrets/ai-memory-copilot.yaml` with
+ciphertext only: no plaintext argument, temporary file, stdout or stderr. It
+does not change the source login, extract other providers, or import the
+short-lived Copilot API token. The initial encrypted value is the intentionally
+invalid `UNCONFIGURED` marker; never activate until it has been replaced.
+
+Review the encrypted file and commit it separately before deployment:
+
+```sh
+git add secrets/ai-memory-copilot.yaml
+git commit -m 'secrets: provision ai-memory Copilot bootstrap token'
+```
+
+Saradomin decrypts the bootstrap to `/run/secrets/ai-memory-copilot` and renders
+`/run/secrets/rendered/ai-memory-copilot.env`, both owned by `ai-memory`, mode
+0400. systemd reads the latter as `EnvironmentFile` to supply
+`COPILOT_GITHUB_TOKEN`; only its placeholder and path enter the Nix store.
+Missing, blank or unconfigured values fail the pre-start guard. Template changes
+schedule a restart during an approved activation, never an agent-initiated live
+restart. No separate interactive login on Saradomin is needed for this path.
+
+The server exchanges the GitHub bootstrap token for short-lived Copilot tokens
+and maintains its own owner-only `/var/lib/ai-memory/auth.json` cache. Do not
+print, commit, copy or SOPS-manage that mutable cache. Expiry or revocation of
+the GitHub bootstrap itself requires another local login/import and separately
+approved deployment; SOPS does not renew it. Existing cached tokens may remain
+valid until expiry, and are not automatically deleted during rotation. The
+SOPS bearer used to access the memory server is separate and unchanged.
+
+After approved native build/deployment, an operator can smoke-test the runtime
+credential without printing or shell-sourcing it on Saradomin:
+
+```sh
+sudo systemd-run --quiet --wait --pipe --collect \
+  -p User=ai-memory -p Group=ai-memory \
+  -p EnvironmentFile=/run/secrets/rendered/ai-memory-copilot.env \
+  /run/current-system/sw/bin/ai-memory --data-dir /var/lib/ai-memory \
+  llm-test --provider copilot --model gpt-5.5 --structured --prompt 'Return a short answer'
+```
+
+This creates a transient test unit and consumes subscription allowance; it does
+not restart the production service. Do not dump its environment or credentials
+for diagnostics. The pinned Copilot default (`gpt-5.5`) depends on your
+entitlement/model policy: verify access rather than assuming a model available
+in OpenCode works through this backend. No paid-provider fallback is configured.
+
+Session-end summaries have a 16,000-token input target and 2,000-token output
+limit, with low reasoning effort. Compaction can also queue a summary. Provider
+work runs outside hook requests; failures can retry, while deterministic
+checkpoints remain available. LLM search reranking is left off so ordinary
+recall does not spend subscription allowance.
+
+The improvement scheduler reviews at most one eligible ended session **per
+project per hour**, after a ten-minute settling period. It can process existing
+eligible sessions too, not just newly captured work. All improvement proposals
+require manual approval; they do not automatically rewrite repository files,
+skills or `AGENTS.md`. From an opted-in client, inspect this project's queue:
+
+```sh
+ai-memory pending-writes list --workspace personal --project nix-config
+```
+
+Use `pending-writes show` / `diff` to review a specific proposal before any
+explicit `approve` or `reject`. Summaries themselves are generated automatically
+and are not approval-gated; treat them as fallible evidence and spot-check them.
+Dream processing and cross-session experience synthesis remain off.
+
+### Local embeddings and resource checks
+
+Only the server enables `embedding_provider = "local"`; clients keep it `none`
+and query Saradomin over MCP. The service downloads checksum-pinned model files
+under `/var/lib/ai-memory/models/` on first start, then performs inference on the
+N95's CPU. No GPU or extra inference server is needed. Initial startup requires
+download access (or verified offline provisioning); an explicit local provider
+fails startup if its model cannot be fetched/loaded rather than silently
+pretending vector search is enabled.
+
+The 2 GiB ceiling provides headroom, not preallocated RAM. After separately
+approved deployment, measure startup, indexing and query load on Saradomin:
+
+```sh
+systemctl show ai-memory -p MemoryCurrent -p MemoryPeak -p MemoryMax
+```
+
+Existing pages are backfilled by the server. For an explicit scoped catch-up
+from a client, preview then run:
+
+```sh
+ai-memory embed --workspace personal --project nix-config --dry-run
+ai-memory embed --workspace personal --project nix-config
+```
+
+Confirm `memory_query` with `explain=true` reports an active vector stream and
+test paraphrases against known pages. The small built-in embedder is English-
+focused and truncates long text to 512 tokens; multilingual models can be
+evaluated later if Portuguese recall is weak. Its 87 MB download is not a
+measurement of peak runtime RAM. Do not run model downloads or real provider
+calls from build-time checks.
 
 ## First deployment checklist — approval required
 
@@ -165,9 +321,45 @@ Typical workflow:
 2. Search narrowly, verify remembered claims against current files, then work.
 3. Ask to save durable knowledge only when intentional; avoid duplicate notes.
 4. Ask to **wrap up with a handoff** before changing machines. Closing a TUI or
-   evicting an idle OpenCode location does not necessarily end the native session.
+    evicting an idle OpenCode location does not necessarily end the native session.
 5. Commit/push code separately. Memory does not transfer uncommitted changes,
-   running processes or the full native OpenCode session.
+    running processes or the full native OpenCode session.
+
+### What "Open" means and how to finish
+
+An **Open** memory session has not received `SessionEnd`; this does not mean its
+activity was unsaved. The pinned OpenCode V2 adapter emits a Stop checkpoint and
+automatic handoff after a completed root turn. Plugin unload is deliberately not
+a session end: OpenCode's shared service can evict an idle location while its
+conversations remain resumable. Native session deletion emits an end, but **do
+not delete your chats just to close their memory records**.
+
+Use `/memory-finish <ai-memory-session-UUID>` in the conversation you are
+finishing. Copy that conversation's memory UUID from the web UI/session metadata
+(not an OpenCode `ses_...` identifier or the previous handoff's source ID). The
+command asks the agent to verify the observations, finalize only that UUID, and
+save a useful handoff. Without an unambiguous user-supplied UUID, it must ask,
+not guess from the latest record or close another terminal's session. It is a
+prompt workflow, not a new native OpenCode lifecycle event.
+
+The equivalent terminal operation for this repository is:
+
+```sh
+ai-memory finalize-session --agent open-code \
+  --workspace personal --project nix-config --session-id <UUID> --json
+```
+
+Replace `<UUID>`; do not paste angle-bracket placeholders into a shell unchanged.
+Verify the reported `finalized` list contains only the intended UUID. A manual
+handoff alone does not finalize a session. A session-end queues LLM consolidation
+when enabled, but the useful handwritten handoff remains a separate step.
+
+If you resume substantive work in the same native chat after finalizing, capture
+can continue under its ended memory ID. Review the new observations and use
+the exact command with `--reopen` **only when intentionally re-finalizing that
+session**; do not apply it blindly or use `--all` / `--all-owners` for routine
+wrap-up. Starting a new OpenCode conversation after finishing avoids this
+ambiguity and receives the saved handoff.
 
 ## Saradomin unavailable
 

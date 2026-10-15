@@ -17,6 +17,11 @@
   automatically rewrite skills/instructions based on sessions.
 - Closing OpenCode does not necessarily end its session. When asked to wrap up,
   use the upstream handoff skill rather than assuming a handoff was created.
+  `/memory-finish <ai-memory-session-UUID>` also finalizes that exact, verified
+  memory record without deleting the native chat. Never finalize "latest" or
+  all sessions to guess which terminal the user means. A handoff and SessionEnd
+  are separate; continued work in an ended chat needs an explicitly reviewed
+  `--reopen` finalization, not another blind close.
 - If memory is unavailable, say so briefly and continue coding from repository
   sources. Recall has no offline cache. Failed hook deliveries may be queued
   locally; `ai-memory status` and `ai-memory recover` are operator diagnostics,

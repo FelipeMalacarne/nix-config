@@ -108,7 +108,14 @@ let
           };
         };
         xdg.configFile."opencode/plugins/ai-memory-opencode2.ts".source = plugin;
-        programs.opencode.settings.instructions = [ "${./workflow.md}" ];
+        programs.opencode.settings = {
+          instructions = [ "${./workflow.md}" ];
+          commands.memory-finish = {
+            description = "Save a handoff and finish one explicitly identified ai-memory session";
+            template = builtins.readFile ./memory-finish.md;
+            subagent = false;
+          };
+        };
         programs.opencode.skills = lib.genAttrs [
           "ai-memory-retrieval"
           "ai-memory-handoff"
