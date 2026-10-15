@@ -89,6 +89,7 @@ let
         ];
         # Never let managed launches rewrite Home Manager's agent configuration.
         home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE = "false";
+        home.shellAliases.oc = "ai-memory run --no-autowire opencode";
         home.activation.aiMemoryPrivateData =
           lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ]
             ''

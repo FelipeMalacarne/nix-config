@@ -50,6 +50,7 @@ let
     in
     client.programs.opencode.enable
     && client.programs.claude-code.enable
+    && client.home.shellAliases.oc == "ai-memory run --no-autowire opencode"
     && client.my.ai.memory.client == host.my.ai.memory.client
     && client.my.ai.memory.client.tokenFile == secret.path
     && client.my.ai.memory.client.serverUrl == "https://saradomin.osiris-fish.ts.net:8443"
@@ -59,6 +60,7 @@ let
 in
 assert !(development.programs.opencode.enable or false);
 assert !(development.programs.claude-code.enable or false);
+assert !(development.home.shellAliases ? oc);
 assert lib.all (name: !(builtins.elem name (packageNames development))) codingClis;
 assert ai.programs.opencode.enable && ai.programs.claude-code.enable;
 assert lib.all (name: builtins.elem name (packageNames ai)) codingClis;
@@ -69,6 +71,7 @@ assert (home zaros).programs.hermes-agent.enable;
 assert !((home mac).programs.hermes-agent.enable or false);
 assert !((home server).programs.opencode.enable or false);
 assert !((home server).home.file ? ai-memory-auth-token);
+assert !((home server).home.shellAliases ? oc);
 assert server.services.ai-memory.enable;
 assert server.sops.secrets.ai-memory-token.owner == "ai-memory";
 assert !(self.modules.homeManager ? openclaw);

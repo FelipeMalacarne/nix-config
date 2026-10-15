@@ -28,6 +28,7 @@ let
   skills = lib.filterAttrs (name: _: lib.hasPrefix "opencode/skills/" name) cfg.xdg.configFile;
 in
 assert cfg.home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE == "false";
+assert cfg.home.shellAliases.oc == "ai-memory run --no-autowire opencode";
 assert cfg.home.file.ai-memory-capture-mode.text == "allowlist\n";
 assert !cfg.programs.opencode.settings.commands.memory-finish.subagent;
 assert lib.hasInfix "--session-id" cfg.programs.opencode.settings.commands.memory-finish.template;

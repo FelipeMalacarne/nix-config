@@ -39,7 +39,8 @@ automatic instruction rewriting. The old `/setup-ai-memory` command and
 - Saradomin enables the built-in web UI. The ChatGPT subscription `openai-oauth`
   backend supplies LLM summaries, with no paid API fallback. Session-end consolidation is enabled;
   the hourly improvement reviewer stages proposals for manual approval.
-  Dream processing, LLM search reranking and cross-project profiles stay off.
+  Dream processing is enabled for idle-time cold-note consolidation; LLM search
+  reranking and cross-project profiles stay off.
 
 These describe the repository configuration, not proof of deployment. Private
 service-user ChatGPT login, provider acceptance and native activation checks must
@@ -54,13 +55,13 @@ hierarchy. Reviewed architecture stays in ordinary repository documentation.
 
 ### Everyday quick reference
 
-| Goal | What to ask or run in OpenCode |
+| Goal | What to ask or run |
 |---|---|
+| Start the daily managed workflow | `oc` (alias for `ai-memory run --no-autowire opencode`) |
 | Resume work | "Where did we leave off?" |
 | Find previous context | "Search memory for how we configured X." |
 | Save an intentional decision | "Remember this decision for this project." |
 | Leave useful next-session context | "Wrap up with a handoff." |
-| Also close a memory session | `/memory-finish <ai-memory-session-UUID>` |
 
 The server stores searchable project history across machines; it does not
 transfer uncommitted code or restore a complete native OpenCode chat. Commit and
@@ -105,6 +106,17 @@ also sets `AI_MEMORY_RUN_AUTOWIRE=false`. Update through flake inputs and rebuil
 Do not substitute an imperative installer or self-update for a Nix change.
 See the backup and coordinated upgrade/rollback requirements below before
 activating an updated server binary.
+
+The [official individual workflow](https://aimemory.sh/pt-br/solutions/individuals/)
+recommends launching through `ai-memory run`; use the command above as the daily
+terminal entrypoint. The memory client alone defines the shell alias `oc`; hosts
+without that client get no alias. Until Home Manager activation installs it, use
+the full command. Direct `opencode` still loads the managed hooks and MCP, but
+does not create the same managed workstream, transcript-import and recovery
+lifecycle. Managed runs import visible transcripts with capture exclusions;
+they are not merely an alternative spelling for direct hook capture. This
+launch path has been checked against upstream documentation and installed CLI
+options, not live-tested here as an interactive managed run.
 
 The managed durable-page skill and always-loaded workflow require optimistic
 concurrency: read a page and pass its `page_id` as `expected_page_id` on an update
@@ -210,7 +222,45 @@ ai-memory pending-writes list --workspace personal --project nix-config
 Use `pending-writes show` / `diff` to review a specific proposal before any
 explicit `approve` or `reject`. Summaries themselves are generated automatically
 and are not approval-gated; treat them as fallible evidence and spot-check them.
-Dream processing and cross-session experience synthesis remain off.
+Dream processing is separately enabled. With the configured LLM and local
+embedder, its upstream scheduler considers a run hourly after five minutes of
+inactivity, skips stores without at least two eligible cold pages, and rewrites
+at most eight clusters per run. Returning activity cancels work at the next
+cluster boundary. These are the pinned upstream defaults, not guarantees that
+every idle period produces work. Dream rewrites are **automatic, not gated by
+the improvement-proposal approval setting**: they rewrite one cluster member and
+supersede the others with merge stubs, preserving the pre-merge versions in
+history. This uses subscription allowance and can send eligible note content to
+the provider. Cross-session experience synthesis and cross-project profiles
+remain off. Dream processing is independent of the session-consolidation queue
+shown by the web health page; enabling it does not retry failed session jobs.
+
+#### Consolidation health is separate from capture health
+
+The web health page's **Consolidation** panel counts persisted background session
+jobs. `last completed: never` with failed jobs means no tracked queue job has
+completed successfully; it does **not** mean hook observations were lost. A
+successful provider test or healthy provider indicator is not proof that a full
+session rewrite has succeeded. OpenCode's ordinary Stop checkpoint is
+deterministic; a real session end or compaction is what can queue LLM work.
+
+Transient failures retry with bounded backoff, up to five worker attempts; an
+attempt may itself retry a transient provider call. Malformed, empty or truncated
+structured responses can terminate a job earlier; the deterministic checkpoint
+remains available. Terminal failures are not automatically reset by enabling
+dream or restarting the service. Inspect the saved error before approving a
+scoped retry; do not blindly finalize open sessions, reset queue tables, increase
+output budgets or change providers. An operator can inspect the redacted worker
+failures in a private terminal:
+
+```sh
+ssh -t saradomin 'sudo journalctl -u ai-memory.service --since "7 days ago" --grep "queued LLM consolidation" --no-pager'
+```
+
+If those logs have rotated away, inspect only the failed queue metadata with a
+service-user read-only database query. Do not dump observations, raw provider
+responses or authentication files. Failed-job counts are retained history, not a
+request to delete the rows to make the health panel green.
 
 ### Retention and storage policy
 
@@ -229,7 +279,8 @@ retention during this repair:
 - Raw-observation pruning remains **off** (`observation_retention_days = 0`):
   raw observations are retained indefinitely. Searchable page retention and raw
   observation retention are separate policies.
-- Cold-page compaction, deduplication, dream and profile harvesting stay off.
+- Zero-LLM cold-page compaction/deduplication and profile harvesting stay off;
+  the separate LLM dream pass is enabled as described above.
 
 The 2 GiB systemd ceiling limits RAM, not disk. Monitor free disk, database/WAL,
 wiki Git history and client spools. The reviewed upstream fixes prevent new
@@ -356,7 +407,8 @@ session. Do not opt sensitive work repositories in without their owner's consent
 
 Typical workflow:
 
-1. Start OpenCode normally; ask for prior context when useful.
+1. Run `oc` (or its full command above) in the opted-in checkout; ask for prior
+   context when useful.
 2. Search narrowly, verify remembered claims against current files, then work.
 3. Ask to save durable knowledge only when intentional; avoid duplicate notes.
 4. Ask to **wrap up with a handoff** before changing machines. Closing a TUI or
@@ -364,7 +416,7 @@ Typical workflow:
 5. Commit/push code separately. Memory does not transfer uncommitted changes,
     running processes or the full native OpenCode session.
 
-### What "Open" means and how to finish
+### OpenCode V2 lifecycle limitation and operator fallback
 
 An **Open** memory session has not received `SessionEnd`; this does not mean its
 activity was unsaved. The pinned OpenCode V2 adapter emits a Stop checkpoint and
@@ -373,8 +425,20 @@ a session end: OpenCode's shared service can evict an idle location while its
 conversations remain resumable. Native session deletion emits an end, but **do
 not delete your chats just to close their memory records**.
 
-Use `/memory-finish <ai-memory-session-UUID>` in the conversation you are
-finishing. Copy that conversation's memory UUID from the web UI/session metadata
+The managed launcher does **not** remove this limitation in the pinned version:
+its exit finalizer covers Command Code, Kiro and Antigravity, not OpenCode V2.
+The shared service also prevents the V2 plugin from reliably receiving a
+launcher's run environment. Upstream documents ordinary handoff delivery as the
+fallback for managed V2 context delivery. See the pinned
+[managed-workstreams guide](https://github.com/akitaonrails/ai-memory/blob/8f6a15b3a2f622959cfc7659b905fb9701b73bfd/docs/managed-workstreams.md).
+Do not equate a completed workstream leg, a saved checkpoint, successful LLM
+consolidation and an ended memory session. Seamless V2 closure remains an
+upstream integration gap, not a reason to add a routine manual UUID ritual or
+blind idle-session finalizer.
+
+Only when an explicit memory-record close is needed, the operator fallback is
+`/memory-finish <ai-memory-session-UUID>` in that conversation. Copy that
+conversation's memory UUID from the web UI/session metadata
 (not an OpenCode `ses_...` identifier or the previous handoff's source ID). The
 command asks the agent to verify the observations, finalize only that UUID, and
 save a useful handoff. Without an unambiguous user-supplied UUID, it must ask,

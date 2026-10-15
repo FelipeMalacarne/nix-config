@@ -183,6 +183,12 @@ source outrank recalled history. If memory is unavailable, continue locally;
 never start a competing server. Nix owns integrations; do not run live ai-memory
 installers or self-updates. The former setup command/wiki skill are retired;
 do not scaffold a parallel `docs/ai/` wiki.
+Follow the upstream managed-launch workflow: the recommended daily terminal
+entrypoint is `ai-memory run --no-autowire opencode`, available as alias `oc`
+only when the Home Manager memory client is selected. Direct OpenCode launch is
+supported hook-only use, not equivalent to a managed workstream. Do not present
+manual UUID finalization as required everyday usage or promise automatic V2
+session closure: verify the pinned harness lifecycle, not just generic examples.
 The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml`; hosts decrypt it
 at `/run/secrets/ai-memory-token` with service/user-only ownership. Clients link
 their native `auth-token` path to that runtime secret. Never copy its plaintext
@@ -199,7 +205,9 @@ file, handle device codes, decrypt provider secrets or run interactive login.
 The legacy encrypted Copilot bootstrap/import helper and existing runtime cache
 entries are preserved, but Copilot secrets are no longer selected for this role.
 Private subscription acceptance and separate deployment approval are required.
-Hourly improvement proposals require approval; dream/profile stay off. `/memory-finish <memory-UUID>`
+Hourly improvement proposals require approval. Dream processing is enabled for
+automatic idle-time cold-note consolidation; its rewrites are not proposal-gated.
+Cross-project profiles stay off. `/memory-finish <memory-UUID>`
 verifies and finalizes one explicit record without deleting its OpenCode chat;
 a handoff alone is not SessionEnd. See the documented login and finish runbooks.
 OpenClaw's module/input are removed. Do not delete its legacy encrypted credential

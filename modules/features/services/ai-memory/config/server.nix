@@ -103,6 +103,7 @@ in
                 min_session_age_secs = 600;
               };
             };
+            # Approved opt-in: idle cold-note rewrites are automatic, not proposal-gated.
             dream.enabled = true;
             profile.enabled = "off";
             # Make the inherited preservation policy visible and stable across updates.
@@ -255,7 +256,7 @@ in
       assert settings.auto_improve.scheduler.min_session_age_secs == 600;
       assert !settings.auto_improve.on_session_end;
       assert settings.auto_improve.require_approval;
-      assert !settings.dream.enabled;
+      assert settings.dream.enabled;
       assert settings.profile.enabled == "off";
       assert settings.decay.observation_retention_days == 0;
       assert settings.decay.hard_delete_after_days == 180;
