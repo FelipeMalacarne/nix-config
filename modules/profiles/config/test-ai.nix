@@ -43,12 +43,13 @@ let
   server = self.nixosConfigurations.saradomin.config;
   home = host: host.home-manager.users.${host.my.user.name};
   workstation =
-    host:
+    host: opencode:
     let
       client = home host;
       secret = host.sops.secrets.ai-memory-token;
     in
     client.programs.opencode.enable
+    && client.programs.opencode.package == opencode
     && client.programs.claude-code.enable
     && client.home.shellAliases.oc == "ai-memory run --no-autowire opencode"
     && client.my.ai.memory.client == host.my.ai.memory.client
@@ -66,7 +67,9 @@ assert ai.programs.opencode.enable && ai.programs.claude-code.enable;
 assert lib.all (name: builtins.elem name (packageNames ai)) codingClis;
 assert ai.programs.claude-code.settings.enabledPlugins."gopls-lsp@claude-plugins-official";
 assert ai.home.file.ai-memory-capture-mode.text == "allowlist\n";
-assert workstation mac && workstation zaros;
+assert
+  workstation mac self.darwinConfigurations.macbook.pkgs.opencode
+  && workstation zaros self.nixosConfigurations.zaros.pkgs.opencode;
 assert (home zaros).programs.hermes-agent.enable;
 assert !((home mac).programs.hermes-agent.enable or false);
 assert !((home server).programs.opencode.enable or false);

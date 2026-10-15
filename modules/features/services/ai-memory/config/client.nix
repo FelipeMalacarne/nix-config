@@ -55,14 +55,23 @@ let
         embedding_provider = "none";
         auth.bearer_token_file = "auth-token";
       };
-      plugin = pkgs.runCommand "ai-memory-opencode2.ts" { nativeBuildInputs = [ package ]; } ''
-        export HOME="$TMPDIR/home"
-        export AI_MEMORY_DATA_DIR="$TMPDIR/data"
-        mkdir -p "$HOME" "$AI_MEMORY_DATA_DIR"
-        ai-memory install-hooks --agent opencode2 --capture-mode allowlist \
-          --server-url ${lib.escapeShellArg cfg.serverUrl} \
-          --apply --config-file "$out"
-      '';
+      plugin =
+        pkgs.runCommand "ai-memory-opencode.ts"
+          {
+            # The upstream installer probes this exact executable for the plugin API.
+            nativeBuildInputs = [
+              package
+              config.programs.opencode.package
+            ];
+          }
+          ''
+            export HOME="$TMPDIR/home"
+            export AI_MEMORY_DATA_DIR="$TMPDIR/data"
+            mkdir -p "$HOME" "$AI_MEMORY_DATA_DIR"
+            ai-memory install-hooks --agent opencode --capture-mode allowlist \
+              --server-url ${lib.escapeShellArg cfg.serverUrl} \
+              --apply --config-file "$out"
+          '';
       skills = lib.genAttrs [
         "ai-memory-retrieval"
         "ai-memory-handoff"
@@ -127,14 +136,14 @@ let
         xdg.configFile =
           lib.mapAttrs' (name: source: lib.nameValuePair "opencode/skills/${name}" { inherit source; }) skills
           // {
-            "opencode/plugins/ai-memory-opencode2.ts".source = plugin;
+            "opencode/plugins/ai-memory.ts".source = plugin;
           };
         programs.opencode.settings = {
           instructions = [ "${./workflow.md}" ];
-          commands.memory-finish = {
+          command.memory-finish = {
             description = "Save a handoff and finish one explicitly identified ai-memory session";
             template = builtins.readFile ./memory-finish.md;
-            subagent = false;
+            subtask = false;
           };
         };
       };

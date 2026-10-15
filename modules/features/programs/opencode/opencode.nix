@@ -1,4 +1,4 @@
-{ self, inputs, ... }:
+{ inputs, ... }:
 let
   module =
     {
@@ -14,7 +14,7 @@ let
       };
     in
     {
-      home.packages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.opencode-desktop ];
+      home.packages = [ pkgs.opencode-desktop ];
 
       programs.mcp = {
         enable = true;
@@ -144,7 +144,7 @@ let
 
       programs.opencode = {
         enable = true;
-        package = self.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+        package = pkgs.opencode;
 
         enableMcpIntegration = true;
 
@@ -189,24 +189,7 @@ in
 
   perSystem =
     { lib, pkgs, ... }:
-    let
-      upstream = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system};
-      restoreScripts = old: {
-        # Upstream's source filter omits script/, which the CLI build imports.
-        postPatch = (old.postPatch or "") + ''
-          cp -R ${inputs.opencode}/script ./script
-        '';
-      };
-      opencode = upstream.opencode.overrideAttrs restoreScripts;
-    in
     {
-      packages.opencode = inputs.wrapper-modules.wrappers.opencode.wrap {
-        inherit pkgs;
-        package = opencode;
-      };
-      packages.opencode-desktop =
-        (upstream.opencode-desktop.override { inherit opencode; }).overrideAttrs
-          restoreScripts;
       checks.opencode-craft = import ./config/test-craft.nix {
         inherit lib pkgs;
         inherit (inputs) home-manager;

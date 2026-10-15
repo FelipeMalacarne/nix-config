@@ -71,6 +71,8 @@ let
     && !(cfg.programs.opencode.skills ? artcraft-editing);
   json = cfg: cfg.xdg.configFile."opencode/opencode.json".source;
 in
+assert standalone.programs.opencode.package == pkgs.opencode;
+assert builtins.elem pkgs.opencode-desktop standalone.home.packages;
 assert lib.assertMsg (lib.all empty [
   standalone
   absent
@@ -105,21 +107,39 @@ assert lib.assertMsg (
   && !(film.programs.opencode.settings.agent.craft-editor ? model)
   && film.programs.opencode.skills ? artcraft-editing
 ) "Editing tools must be scoped to the editor without forcing a model";
-pkgs.runCommand "opencode-craft" { nativeBuildInputs = [ pkgs.jq ]; } ''
-  jq -e --arg cli ${lib.escapeShellArg (lib.getExe' package "filmcraft-cli")} '
-    .mcp["craft-filmcraft"].command == [$cli, "mcp"] and
-    .mcp["craft-filmcraft"].type == "local" and
-    .mcp["craft-filmcraft"].enabled == true and
-    (.mcp | keys) == ["craft-filmcraft", "playwright"] and
-    .tools["craft-*"] == false and
-    .agent["craft-editor"].tools["craft-*"] == true and
-    .agent["craft-editor"].mode == "subagent" and
-    (.agent["craft-editor"].prompt | contains("artcraft-editing"))
-  ' ${json film} > /dev/null
-  jq -e --arg cli ${lib.escapeShellArg (lib.getExe' replacement "filmcraft-cli")} '
-    .mcp["craft-filmcraft"].command == [$cli, "mcp"]
-  ' ${json overridden} > /dev/null
-  jq -e '(.mcp | keys) == ["playwright"] and (has("agent") | not)' ${json absent} > /dev/null
-  test -f ${film.programs.opencode.skills.artcraft-editing}/SKILL.md
-  touch $out
-''
+pkgs.runCommand "opencode-craft"
+  {
+    nativeBuildInputs = [
+      pkgs.jq
+      pkgs.opencode
+    ];
+  }
+  ''
+    export HOME="$TMPDIR/home"
+    export XDG_CONFIG_HOME="$TMPDIR/config"
+    export XDG_DATA_HOME="$TMPDIR/data"
+    export XDG_CACHE_HOME="$TMPDIR/cache"
+    export XDG_STATE_HOME="$TMPDIR/state"
+    export OPENCODE_DISABLE_MODELS_FETCH=true
+    export OPENCODE_DISABLE_AUTOUPDATE=true
+    export OPENCODE_CONFIG=${json film}
+    mkdir -p "$HOME"
+    opencode debug config > "$TMPDIR/resolved.json"
+    jq -e '.lsp == true and .compaction.tail_turns == 20' "$TMPDIR/resolved.json" > /dev/null
+    jq -e --arg cli ${lib.escapeShellArg (lib.getExe' package "filmcraft-cli")} '
+      .mcp["craft-filmcraft"].command == [$cli, "mcp"] and
+      .mcp["craft-filmcraft"].type == "local" and
+      .mcp["craft-filmcraft"].enabled == true and
+      (.mcp | keys) == ["craft-filmcraft", "playwright"] and
+      .tools["craft-*"] == false and
+      .agent["craft-editor"].tools["craft-*"] == true and
+      .agent["craft-editor"].mode == "subagent" and
+      (.agent["craft-editor"].prompt | contains("artcraft-editing"))
+    ' ${json film} > /dev/null
+    jq -e --arg cli ${lib.escapeShellArg (lib.getExe' replacement "filmcraft-cli")} '
+      .mcp["craft-filmcraft"].command == [$cli, "mcp"]
+    ' ${json overridden} > /dev/null
+    jq -e '(.mcp | keys) == ["playwright"] and (has("agent") | not)' ${json absent} > /dev/null
+    test -f ${film.programs.opencode.skills.artcraft-editing}/SKILL.md
+    touch $out
+  ''

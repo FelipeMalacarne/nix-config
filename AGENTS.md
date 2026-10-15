@@ -189,6 +189,11 @@ only when the Home Manager memory client is selected. Direct OpenCode launch is
 supported hook-only use, not equivalent to a managed workstream. Do not present
 manual UUID finalization as required everyday usage or promise automatic V2
 session closure: verify the pinned harness lifecycle, not just generic examples.
+OpenCode CLI/Desktop use `pkgs.opencode` / `pkgs.opencode-desktop` from the locked
+Nixpkgs input, not a separate development flake. The selected V1 client uses the
+upstream-generated `ai-memory.ts` adapter. Before launching after a V2 downgrade,
+review/backup native state and test isolated HOME/XDG directories; a Nix build
+does not establish backward database compatibility or interactive session closure.
 The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml`; hosts decrypt it
 at `/run/secrets/ai-memory-token` with service/user-only ownership. Clients link
 their native `auth-token` path to that runtime secret. Never copy its plaintext

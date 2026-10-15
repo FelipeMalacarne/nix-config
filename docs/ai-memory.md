@@ -9,6 +9,11 @@ automatic instruction rewriting. The old `/setup-ai-memory` command and
 `llm-wiki-memory` skill have been retired; existing project docs are not deleted.
 
 - Server feature: `self.modules.nixos.ai-memory-server`.
+- The server imports the [official NixOS module](https://github.com/akitaonrails/ai-memory#nixos)
+  (`inputs.ai-memory.nixosModules.default`); upstream owns its system user,
+  service, sandbox and TOML generation. Our extra server policy covers private
+  Tailscale HTTPS, SOPS credentials, provider and retention settings. The pinned
+  upstream exports no Home Manager client module, so client wiring stays here.
 - Workstation composition: `self.modules.nixos.ai` / `self.modules.darwin.ai`,
   explicitly selected by zaros/macbook. It combines the Home Manager `ai`
   coding profile (OpenCode, Claude Code, Codex, GitHub Copilot CLI) with the
@@ -83,10 +88,24 @@ this authentication flow and must be configured separately.
 
 ### Managed agent integration
 
-Home Manager installs the pinned CLI, generates the upstream OpenCode V2 adapter
+Home Manager installs the pinned CLI, generates the upstream OpenCode V1 adapter
 **inside the Nix build sandbox**, and installs three upstream skills: retrieval,
 handoff and durable pages. It also installs the `/memory-finish` prompt command.
 No installer runs against the real home.
+
+OpenCode CLI and Desktop come directly from `pkgs.opencode` and
+`pkgs.opencode-desktop` in the repository's locked Nixpkgs input (currently
+1.18.21), not a separate development-branch flake or a local package wrapper.
+The sandboxed hook generator probes the selected CLI to choose its adapter;
+the V1 plugin is installed as `opencode/plugins/ai-memory.ts`. Home Manager
+removes its previously managed V2 plugin link on an approved activation.
+
+**Downgrade safety:** this package/configuration change does not migrate, copy,
+delete or open the existing OpenCode database, credentials or chats. V1 and V2
+can share native storage locations; backward database compatibility is not
+established by a successful Nix build. Before the first V1 launch, separately
+review and back up the V2 state and test V1 with isolated HOME/XDG directories.
+Do not run V1 against a live V2 database or assume all V2 chats can be resumed.
 
 Integration is intentionally **OpenCode-only**. The `ai` profile also installs
 Claude Code, Codex and GitHub Copilot CLI, but does not configure ai-memory hooks,
@@ -117,6 +136,13 @@ lifecycle. Managed runs import visible transcripts with capture exclusions;
 they are not merely an alternative spelling for direct hook capture. This
 launch path has been checked against upstream documentation and installed CLI
 options, not live-tested here as an interactive managed run.
+
+The V1 adapter emits `SessionEnd` for its tracked sessions when OpenCode calls
+its plugin `dispose()` hook. The offline fixture checks delivery/recovery of
+that event; it is not proof of interactive TUI shutdown or successful production
+consolidation. Keep those as separate acceptance checks. The shared-service V2
+lifecycle caveats below describe the previous installation, not the selected
+package. `/memory-finish` remains an explicit recovery command, not daily usage.
 
 The managed durable-page skill and always-loaded workflow require optimistic
 concurrency: read a page and pass its `page_id` as `expected_page_id` on an update
@@ -416,7 +442,10 @@ Typical workflow:
 5. Commit/push code separately. Memory does not transfer uncommitted changes,
     running processes or the full native OpenCode session.
 
-### OpenCode V2 lifecycle limitation and operator fallback
+### Previous OpenCode V2 lifecycle limitation and operator fallback
+
+This describes the previous V2 installation and is retained for existing open
+records and any future V2 migration. The selected Nixpkgs package uses V1.
 
 An **Open** memory session has not received `SessionEnd`; this does not mean its
 activity was unsaved. The pinned OpenCode V2 adapter emits a Stop checkpoint and

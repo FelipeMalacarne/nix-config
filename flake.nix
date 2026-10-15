@@ -21,8 +21,6 @@
 
     nvim-config.url = "github:FelipeMalacarne/nvim";
 
-    opencode.url = "github:anomalyco/opencode/dev";
-
     ai-memory.url = "github:akitaonrails/ai-memory/8f6a15b3a2f622959cfc7659b905fb9701b73bfd";
 
     mac-app-util = {

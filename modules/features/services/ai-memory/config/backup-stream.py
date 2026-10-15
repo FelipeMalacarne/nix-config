@@ -122,7 +122,7 @@ def stream_backup(source, staging, output):
                 "finished_at": time.time(),
                 "database": "online SQLite backup, quick_check passed",
                 "filesystem": "live non-atomic copy; not a whole-dataset point-in-time snapshot",
-                "excluded": sorted(SIDECARS | {".serve.lock", ".serve.lock.*"}),
+                "excluded": sorted(SIDECARS | {".serve.lock", ".serve.lock.*"}),aimem
                 "credentials": "in-directory files only; external SOPS credentials/age keys are not included",
             }).encode()
             info = tarfile.TarInfo("backup-manifest.json")
