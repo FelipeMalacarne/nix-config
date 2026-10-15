@@ -77,7 +77,13 @@ redundant `my.<feature>.enable` selector or default-import optional features int
 `base`. Keep typed options for settings such as `my.wol.interface` and
 `my.restic.paths`; feature-specific settings require the corresponding import.
 Enable flags remain appropriate for optional subfeatures such as
-`my.hermes-agent.web.enable`. The restic namespace is `my.restic`.
+`my.ai.hermes.web.enable`. The restic namespace is `my.restic`.
+
+Custom AI settings share `my.ai`: memory client/server roles use
+`my.ai.memory.client` and `my.ai.memory.server`; Hermes uses `my.ai.hermes`.
+Features own their options. Platform memory clients forward host settings to
+Home Manager. The AI profile composes shared clients; Hermes and Ollama remain
+explicitly selected optional features. Artcraft retains `my.artcraft`.
 
 `hosts/` contains concrete machines. `modules/flake/configurations.nix`
 explicitly constructs all NixOS and nix-darwin outputs from those host

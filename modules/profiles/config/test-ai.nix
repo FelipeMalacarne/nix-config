@@ -27,7 +27,7 @@ let
     # Platform profiles add this via the SOPS-backed system client role.
     self.modules.homeManager.ai-memory-client
     {
-      my.ai-memory = {
+      my.ai.memory.client = {
         serverUrl = "https://fixture.example.test:8443";
         tokenFile = "/run/secrets/ai-memory-token";
       };
@@ -50,7 +50,9 @@ let
     in
     client.programs.opencode.enable
     && client.programs.claude-code.enable
-    && client.my.ai-memory.tokenFile == secret.path
+    && client.my.ai.memory.client == host.my.ai.memory.client
+    && client.my.ai.memory.client.tokenFile == secret.path
+    && client.my.ai.memory.client.serverUrl == "https://saradomin.osiris-fish.ts.net:8443"
     && secret.owner == host.my.user.name
     && secret.mode == "0400"
     && toString secret.sopsFile == toString ../../../secrets/ai-memory.yaml;

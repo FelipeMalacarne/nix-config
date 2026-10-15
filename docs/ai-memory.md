@@ -295,11 +295,18 @@ server/client role declares `sops.secrets.ai-memory-token`, decrypted to
 `/run/secrets/ai-memory-token`:
 
 - saradomin: owner/group `ai-memory`, mode **0400**; the service reads this path
-  through `my.ai-memory-server.tokenFile`. It generates no separate token.
+  through `my.ai.memory.server.tokenFile`. It generates no separate token.
 - macbook and zaros: owner is the configured human user, mode **0400**;
-  `my.ai-memory.tokenFile` forwards the runtime path to Home Manager, which
+  `my.ai.memory.client.tokenFile` forwards the runtime path to Home Manager, which
   creates `<client-data-dir>/auth-token` as an out-of-store symlink. Both the
   OpenCode plugin and MCP bridge follow it. The client data directory is 0700.
+
+Configure workstation endpoints at host level with
+`my.ai.memory.client.serverUrl`; the memory feature forwards the typed client
+settings to Home Manager on NixOS and Darwin. The `ai` profile imports that
+client role alongside the shared coding tools. Server machine facts use
+`my.ai.memory.server`, separately from the workstation profile. Feature import
+names and upstream `services.ai-memory` options are unchanged.
 
 Only ciphertext and runtime path references enter the Nix store, never the
 decrypted token. The service checks that its token file is readable and contains

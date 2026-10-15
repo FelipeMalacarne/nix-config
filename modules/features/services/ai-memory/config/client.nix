@@ -7,19 +7,34 @@
 let
   registry = config.flake.modules;
   systemModule =
-    { config, ... }:
+    { config, lib, ... }:
     let
       user = config.my.user.name;
     in
     {
-      sops.secrets.ai-memory-token = (import ./credential.nix) // {
-        owner = user;
-      };
-      home-manager.users.${user} = {
-        imports = [ registry.homeManager.ai-memory-client ];
-        my.ai-memory.tokenFile = config.sops.secrets.ai-memory-token.path;
+      options.my.ai.memory.client = clientOptions lib;
+
+      config = {
+        sops.secrets.ai-memory-token = (import ./credential.nix) // {
+          owner = user;
+        };
+        home-manager.users.${user} = {
+          imports = [ registry.homeManager.ai-memory-client ];
+          my.ai.memory.client = config.my.ai.memory.client;
+        };
+        my.ai.memory.client.tokenFile = lib.mkDefault config.sops.secrets.ai-memory-token.path;
       };
     };
+  clientOptions = lib: {
+    serverUrl = lib.mkOption {
+      type = lib.types.strMatching "https://[a-zA-Z0-9.-]+(:[0-9]+)?";
+      description = "Private HTTPS base URL shared by MCP, hooks and recovery; no /mcp suffix.";
+    };
+    tokenFile = lib.mkOption {
+      type = lib.types.strMatching "/.+";
+      description = "Private runtime token path; only a symlink, never its contents, enters the Nix store.";
+    };
+  };
   module =
     {
       config,
@@ -28,7 +43,7 @@ let
       ...
     }:
     let
-      cfg = config.my.ai-memory;
+      cfg = config.my.ai.memory.client;
       package = self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory;
       dataDir =
         if pkgs.stdenv.hostPlatform.isDarwin then
@@ -55,14 +70,7 @@ let
       ] (name: "${package.src}/crates/ai-memory-core/src/routing_skills/${name}");
     in
     {
-      options.my.ai-memory.serverUrl = lib.mkOption {
-        type = lib.types.strMatching "https://[a-zA-Z0-9.-]+(:[0-9]+)?";
-        description = "Private HTTPS base URL shared by MCP, hooks and recovery; no /mcp suffix.";
-      };
-      options.my.ai-memory.tokenFile = lib.mkOption {
-        type = lib.types.strMatching "/.+";
-        description = "Private runtime token path provisioned by the host (e.g. SOPS); only a symlink, never its contents, enters the Nix store.";
-      };
+      options.my.ai.memory.client = clientOptions lib;
 
       config = {
         assertions = [

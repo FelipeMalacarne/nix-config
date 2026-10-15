@@ -9,7 +9,7 @@
       assert server.services.ai-memory.enable;
       assert server.services.ai-memory.settings.llm_provider == "openai-oauth";
       assert server.services.ai-memory.settings.llm_model == "gpt-6-luna";
-      assert server.my.ai-memory-server.hostName == "saradomin.osiris-fish.ts.net";
+      assert server.my.ai.memory.server.hostName == "saradomin.osiris-fish.ts.net";
       assert !(server.services.restic.backups ? ai-memory);
       assert !(server.systemd.timers ? restic-backups-ai-memory);
       assert !(vm.services ? ai-memory);

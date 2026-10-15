@@ -23,7 +23,7 @@ in
 
   networking.hostName = "saradomin";
 
-  my.ai-memory-server.hostName = "saradomin.osiris-fish.ts.net";
+  my.ai.memory.server.hostName = "saradomin.osiris-fish.ts.net";
   services.ai-memory.enableWeb = true;
 
   home-manager.users.${user} = {

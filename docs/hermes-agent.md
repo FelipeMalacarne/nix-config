@@ -28,12 +28,12 @@ example SOPS) is caller-managed; this feature does not create or change it.
 
 ## Private web access over Tailscale
 
-Zaros also enables `my.hermes-agent.web`. The implementation is in
+Zaros also enables `my.ai.hermes.web`. The implementation is in
 `modules/features/programs/hermes-agent/config/web.nix`. This optional subfeature
 defaults to disabled when Hermes is imported. Its host declaration is:
 
 ```nix
-my.hermes-agent.web = {
+my.ai.hermes.web = {
   enable = true;
   publicUrl = "https://zaros.osiris-fish.ts.net";
   environmentFile = config.sops.secrets.hermes-web.path;
@@ -52,7 +52,7 @@ name; the proxy checks it rather than silently serving a different machine URL.
   the same shared token and desktop launcher.
 - A second **user** `hermes-web.service` runs the same Nix-built Hermes package
   against the same writable `~/.hermes`, on `127.0.0.1:9120` by default. It has
-  password authentication. `my.hermes-agent.web.port` changes this internal port.
+  password authentication. `my.ai.hermes.web.port` changes this internal port.
 - The **system** `hermes-tailnet.service` runs Tailscale Serve in the foreground.
   It forwards tailnet-only HTTPS to the authenticated web listener. It does not
   run another agent account, open a LAN/public firewall port, or enable Funnel.
@@ -68,7 +68,7 @@ An omitted URL port means HTTPS port 443. To leave 443 available for another
 application, change only:
 
 ```nix
-my.hermes-agent.web.publicUrl = "https://zaros.osiris-fish.ts.net:8443";
+my.ai.hermes.web.publicUrl = "https://zaros.osiris-fish.ts.net:8443";
 ```
 
 This configures HTTPS on 8443 while the internal listener remains on 9120.
@@ -90,7 +90,7 @@ The unit restarts even after a clean foreground Serve exit because Tailscale can
 report watcher EOF as success while the daemon continues running. Explicit
 manager stops still suppress restarts. The unit also follows Tailscale daemon
 restarts. Setting
-`my.hermes-agent.web.enable = false` and activating removes both web units and
+`my.ai.hermes.web.enable = false` and activating removes both web units and
 Zaros's decrypted web secret, while preserving the desktop backend and encrypted
 credential source. Actual HTTPS access requires the machine to be awake.
 

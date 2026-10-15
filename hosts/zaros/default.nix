@@ -49,8 +49,6 @@ in
 
     my.infrastructure.ssh.hosts.saradomin.HostName = "10.10.0.10";
 
-    my.ai-memory.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
-
     home.packages = with pkgs; [
       google-chrome
     ];
@@ -83,15 +81,18 @@ in
 
       ];
     };
-    hermes-agent.web = {
-      enable = true;
-      publicUrl = "https://zaros.osiris-fish.ts.net";
-      restartTriggers = [ ../../secrets/hermes-web.yaml ];
-      environmentFile = lib.mkIf config.my.hermes-agent.web.enable config.sops.secrets.hermes-web.path;
+    ai = {
+      memory.client.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
+      hermes.web = {
+        enable = true;
+        publicUrl = "https://zaros.osiris-fish.ts.net";
+        restartTriggers = [ ../../secrets/hermes-web.yaml ];
+        environmentFile = lib.mkIf config.my.ai.hermes.web.enable config.sops.secrets.hermes-web.path;
+      };
     };
   };
 
-  sops.secrets.hermes-web = lib.mkIf config.my.hermes-agent.web.enable {
+  sops.secrets.hermes-web = lib.mkIf config.my.ai.hermes.web.enable {
     sopsFile = ../../secrets/hermes-web.yaml;
     key = "environment";
     owner = user;

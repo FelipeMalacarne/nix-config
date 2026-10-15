@@ -179,7 +179,7 @@
           self.modules.nixos.hermes-agent
           self.modules.nixos.tailscale
           {
-            my.hermes-agent.web = {
+            my.ai.hermes.web = {
               enable = true;
               publicUrl = "https://hermes-check.example.ts.net";
               environmentFile = "/run/hermes-check/environment";
@@ -203,7 +203,7 @@
             let
               assertions = map (a: a.assertion) (candidate.assertions ++ (homeOf candidate).assertions);
             in
-            builtins.deepSeq candidate.my.hermes-agent.web.port (
+            builtins.deepSeq candidate.my.ai.hermes.web.port (
               builtins.deepSeq assertions (lib.all lib.id assertions)
             )
           );
@@ -211,7 +211,7 @@
         !result.success || !result.value;
       webCheck =
         assert lib.assertMsg (
-          zaros.my.hermes-agent.web.enable
+          zaros.my.ai.hermes.web.enable
           && zarosHome.systemd.user.services ? hermes-web
           && builtins.elem "HERMES_DASHBOARD_PUBLIC_URL=https://zaros.osiris-fish.ts.net" zarosHome.systemd.user.services.hermes-web.Service.Environment
           &&
@@ -271,7 +271,7 @@
             privatePort = h.services.hermes-agent.backend.port;
             stateDirectories =
               (import "${inputs.hermes-agent}/nix/moduleCommon.nix" { inherit lib; }).stateSubdirs;
-            publicUrl = host.my.hermes-agent.web.publicUrl;
+            publicUrl = host.my.ai.hermes.web.publicUrl;
             preStart = host.systemd.services.hermes-tailnet.preStart;
             tailscale = lib.getExe host.services.tailscale.package;
             curl = lib.getExe pkgs.curl;

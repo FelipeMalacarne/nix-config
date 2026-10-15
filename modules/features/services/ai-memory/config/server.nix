@@ -16,7 +16,7 @@ in
       ...
     }:
     let
-      cfg = config.my.ai-memory-server;
+      cfg = config.my.ai.memory.server;
       service = config.services.ai-memory;
       defaultToken = "${service.dataDir}/auth-tokens/default";
       token = cfg.tokenFile;
@@ -27,7 +27,7 @@ in
         registry.nixos.sops
       ];
 
-      options.my.ai-memory-server = {
+      options.my.ai.memory.server = {
         hostName = lib.mkOption {
           type = lib.types.strMatching "[a-z0-9-]+([.][a-z0-9-]+)+";
           description = "This server's full MagicDNS name, allowed by the HTTP host guard.";
@@ -195,7 +195,7 @@ in
           self.modules.nixos.tailscale
           self.modules.nixos.ai-memory-server
           {
-            my.ai-memory-server.hostName = "fixture.example.test";
+            my.ai.memory.server.hostName = "fixture.example.test";
             services.ai-memory.enableWeb = true;
           }
         ];
@@ -219,7 +219,7 @@ in
         tokenGuard = pkgs.writeShellScript "ai-memory-fixture-token-guard" (
           lib.replaceStrings
             [
-              (lib.escapeShellArg cfg.my.ai-memory-server.tokenFile)
+              (lib.escapeShellArg cfg.my.ai.memory.server.tokenFile)
               (lib.escapeShellArg "${cfg.services.ai-memory.dataDir}/auth.json")
             ]
             [ ''"$FIXTURE_TOKEN"'' ''"$FIXTURE_PROVIDER_AUTH"'' ]

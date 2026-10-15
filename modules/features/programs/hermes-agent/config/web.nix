@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.hermes-agent.web;
+  cfg = config.my.ai.hermes.web;
   user = config.my.user.name;
   origin = builtins.match "https://([a-z0-9-]+\\.[a-z0-9-]+\\.ts\\.net)(:([1-9][0-9]*))?" cfg.publicUrl;
   hostname = if origin == null then "" else builtins.elemAt origin 0;
@@ -16,7 +16,7 @@ let
       lib.toInt (builtins.elemAt origin 2);
 in
 {
-  options.my.hermes-agent.web = {
+  options.my.ai.hermes.web = {
     enable = lib.mkEnableOption "private Hermes web access through Tailscale";
     publicUrl = lib.mkOption {
       type = lib.types.str;

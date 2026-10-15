@@ -97,7 +97,10 @@ Typed options configure imported features, such as `my.wol.interface` and
 `my.restic.paths`. Feature-specific options are available only when the module
 is imported; removing a feature also means removing its settings. There is no
 additional `my.<feature>.enable` selector. Enable flags remain appropriate for
-optional subfeatures such as `my.hermes-agent.web.enable`.
+optional subfeatures such as `my.ai.hermes.web.enable`. Custom AI settings share
+`my.ai`: memory uses `memory.client`/`memory.server`, and Hermes uses `hermes`.
+Configure memory clients at host level; the feature forwards settings to Home
+Manager. Hermes and Ollama remain explicitly selected optional features.
 
 The optional [Craft suite](docs/artcraft.md#available-apps) documents every app,
 its purpose, and its `my.artcraft.<app>.enable` flag. Configure these selectors

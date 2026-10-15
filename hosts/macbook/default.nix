@@ -30,6 +30,7 @@ in
   services.openssh.enable = true;
 
   my = {
+    ai.memory.client.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
     user.name = "felipeautentique";
 
     infrastructure.ssh.hosts = {
@@ -55,8 +56,6 @@ in
       ];
 
       my.infrastructure.ssh.hosts = config.my.infrastructure.ssh.hosts;
-
-      my.ai-memory.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
 
       home.activation.installZarosAuthorizedKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 700 -d "$HOME/.ssh"

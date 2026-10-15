@@ -14,8 +14,8 @@ let
           home.username = "memory-check";
           home.homeDirectory = "/tmp/memory-check";
           home.stateVersion = "24.11";
-          my.ai-memory.serverUrl = "https://memory.example.test:8443";
-          my.ai-memory.tokenFile = "/run/secrets/ai-memory-token";
+          my.ai.memory.client.serverUrl = "https://memory.example.test:8443";
+          my.ai.memory.client.tokenFile = "/run/secrets/ai-memory-token";
           programs.opencode = {
             enable = true;
             enableMcpIntegration = true;

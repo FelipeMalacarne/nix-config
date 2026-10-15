@@ -11,7 +11,7 @@ let
     self.modules.nixos.tailscale
     self.modules.nixos.ai-memory-server
     self.modules.nixos.ai-memory-backup
-    { my.ai-memory-server.hostName = "fixture.example.test"; }
+    { my.ai.memory.server.hostName = "fixture.example.test"; }
   ];
   unconfigured = mkFeatureConfig modules;
   fixture = mkFeatureConfig (
