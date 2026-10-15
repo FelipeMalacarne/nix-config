@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, self, ... }:
 let
   registry = config.flake.modules;
 in
@@ -15,10 +15,12 @@ in
       registry.darwin.k8s
     ];
   };
-  flake.modules.homeManager.development = {
+  flake.modules.homeManager.development = { lib, pkgs, ... }: {
     imports = with registry.homeManager; [
+      neovim
       programming
       k8s
     ];
+    my.neovim.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.neovim-full;
   };
 }

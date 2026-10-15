@@ -2,25 +2,7 @@ vim.lsp.config("*", {
 	root_markers = { ".git" },
 })
 
-vim.lsp.enable({
-	"lua_ls",
-	"nixd",
-	"gopls",
-	-- "intelephense",
-	"phpantom-lsp",
-	"tsgo",
-	"superhtml",
-	"tailwindcss",
-	"cssls",
-	"jsonls",
-	"marksman",
-	"yamlls",
-	"tofu_ls",
-	"sqls",
-	"docker-language-server",
-	"helm_ls",
-	"texlab",
-})
+vim.lsp.enable(require(vim.g.nix_info_plugin_name).info.servers)
 
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("config.lsp.keymaps", { clear = true }),

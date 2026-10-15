@@ -20,7 +20,3 @@ require("snacks").setup({
 	--   enabled = true,
 	-- },
 })
-
-if Snacks.statusline then
-	vim.o.statusline = "%{v:lua.Snacks.statusline()}"
-end

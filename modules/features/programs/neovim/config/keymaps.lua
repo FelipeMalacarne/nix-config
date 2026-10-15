@@ -35,8 +35,10 @@ keybind("n", "n", "nzzzv", "Next search result (centered)")
 keybind("n", "N", "Nzzzv", "Prev search result (centered)")
 
 local ui = require("config.ui")
-keybind("n", "<leader>gg", ui.open_win("lazygit"), "Opens LazyGit in a floating window")
-keybind("n", "<leader>gd", ui.open_win("lazydocker"), "Opens LazyDocker in a floating window")
-keybind("n", "<leader>gs", ui.open_win("lazysql"), "Opens LazySQL in a floating window")
-keybind("n", "<leader>gt", ui.open_win("tuxedo"), "Opens Tuxedo in a floating window")
+if vim.g.neovim_variant == "full" then
+	keybind("n", "<leader>gg", ui.open_win("lazygit"), "Opens LazyGit in a floating window")
+	keybind("n", "<leader>gd", ui.open_win("lazydocker"), "Opens LazyDocker in a floating window")
+	keybind("n", "<leader>gs", ui.open_win("lazysql"), "Opens LazySQL in a floating window")
+	keybind("n", "<leader>gt", ui.open_win("tuxedo"), "Opens Tuxedo in a floating window")
+end
 keybind({ "n", "t" }, "<C-/>", ui.open_win(vim.o.shell, { terminal = true }), "Toggle terminal")

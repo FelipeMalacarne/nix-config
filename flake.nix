@@ -23,7 +23,6 @@
 
     opencode.url = "github:anomalyco/opencode/dev";
 
-    # Keep upstream's Rust toolchain/nixpkgs pairing; flake.lock pins updates.
     ai-memory.url = "github:akitaonrails/ai-memory";
 
     mac-app-util = {

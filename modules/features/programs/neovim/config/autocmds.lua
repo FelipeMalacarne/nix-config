@@ -45,6 +45,9 @@ autocmd("VimEnter", {
 	group = augroup("open_dir", { clear = true }),
 	once = true,
 	callback = function()
+		if vim.g.neovim_variant ~= "full" then
+			return
+		end
 		local arg = vim.fn.argv(0)
 		if arg and arg ~= "" and vim.fn.isdirectory(arg) == 1 then
 			vim.cmd("cd " .. vim.fn.fnameescape(arg))
@@ -58,6 +61,9 @@ autocmd("VimEnter", {
 	group = augroup("check_lazy_tools", { clear = true }),
 	once = true,
 	callback = function()
+		if vim.g.neovim_variant ~= "full" then
+			return
+		end
 		if vim.fn.executable("lazygit") == 0 then
 			vim.notify("lazygit not found in PATH — install it via your package manager", vim.log.levels.WARN)
 		end
