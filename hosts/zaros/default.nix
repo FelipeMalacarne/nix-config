@@ -47,6 +47,8 @@ in
       signal
     ];
 
+    my.infrastructure.ssh.hosts.saradomin.HostName = "10.10.0.10";
+
     my.ai-memory.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
 
     home.packages = with pkgs; [
