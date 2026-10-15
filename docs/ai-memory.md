@@ -136,7 +136,7 @@ nix run 'path:.#ai-memory-import-copilot' -- --confirm
 The login prints a browser URL and temporary device code; complete it with your
 Copilot-enabled GitHub account. Never paste a code or credential into an agent
 conversation. The importer uses the native macOS/Linux ai-memory `auth.json`
-path (or explicit `--auth-file`), extracts only `copilot.github_access`, rejects
+path (or explicit `--auth-file`), extracts only `copilot.githubAccess`, rejects
 missing/expired tokens and environment-file injection, and passes the token to
 SOPS through stdin. It atomically replaces `secrets/ai-memory-copilot.yaml` with
 ciphertext only: no plaintext argument, temporary file, stdout or stderr. It

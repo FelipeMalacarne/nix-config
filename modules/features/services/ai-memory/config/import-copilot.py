@@ -36,8 +36,11 @@ def import_token(auth_file, root):
             raise ImportFailure("Auth file is unexpectedly large; no file changed.")
         auth = json.loads(raw)
         entry = auth.get("copilot", {})
-        token = entry.get("github_access")
-        expires = entry.get("github_expires")
+        if entry.get("type") != "oauth":
+            raise ImportFailure("No Copilot OAuth login; run ai-memory auth login copilot first.")
+        # Match CopilotEntry's serialized names, not its internal Rust fields.
+        token = entry.get("githubAccess")
+        expires = entry.get("githubExpires")
         if not isinstance(token, str) or not re.fullmatch(r"(?:gh[opu]_|github_pat_)[A-Za-z0-9_]+", token):
             raise ImportFailure("No valid GitHub bootstrap token; run ai-memory auth login copilot first.")
         if expires is not None and (

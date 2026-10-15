@@ -7,7 +7,7 @@
     ./config/client.nix
   ];
 
-  perSystem = { pkgs, ... }: {
+  perSystem = { lib, pkgs, ... }: {
     packages.ai-memory = inputs.ai-memory.packages.${pkgs.stdenv.hostPlatform.system}.default;
     packages.ai-memory-import-copilot = pkgs.writeShellApplication {
       name = "ai-memory-import-copilot";
@@ -31,7 +31,8 @@
         ''
           export HOME="$TMPDIR/home"
           mkdir -p "$HOME"
-          python3 ${./config/test-import-copilot.py} ${./config/import-copilot.py}
+          python3 ${./config/test-import-copilot.py} ${./config/import-copilot.py} \
+            ${lib.getExe inputs.ai-memory.packages.${pkgs.stdenv.hostPlatform.system}.default}
           touch "$out"
         '';
   };

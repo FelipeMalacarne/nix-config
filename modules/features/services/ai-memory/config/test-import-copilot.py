@@ -10,6 +10,7 @@ import unittest
 
 
 IMPORTER = Path(sys.argv.pop(1))
+NATIVE_CLI = Path(sys.argv.pop(1))
 TOKEN = "ghu_fixtureBootstrapToken123"
 OTHER = "fixtureOtherProviderDoNotImport"
 CACHED = "fixtureShortLivedCopilotToken"
@@ -38,8 +39,11 @@ class ImportTests(unittest.TestCase):
     def write_auth(self, entry=None):
         self.auth.write_text(json.dumps({
             "openai": {"refresh": OTHER},
-            "copilot": entry if entry is not None else {
-                "type": "oauth", "github_access": TOKEN, "copilot_access": CACHED,
+            "copilot": {
+                "type": "oauth",
+                **(entry if entry is not None else {
+                    "githubAccess": TOKEN, "copilotAccess": CACHED,
+                }),
             },
         }))
 
@@ -80,22 +84,49 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(list((self.root / "secrets").glob(".ai-memory-copilot-*")), [])
 
     def test_rejects_cached_token_without_bootstrap(self):
-        self.write_auth({"copilot_access": CACHED})
+        self.write_auth({"copilotAccess": CACHED})
         self.assert_preserved(self.run_import())
 
     def test_accepts_oauth_app_token(self):
-        self.write_auth({"github_access": "gho_fixtureOAuthApp"})
+        self.write_auth({"githubAccess": "gho_fixtureOAuthApp"})
         result = self.run_import()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("gho_fixtureOAuthApp", result.stdout + result.stderr + self.destination.read_text())
 
     def test_rejects_expired_bootstrap(self):
-        self.write_auth({"github_access": TOKEN, "github_expires": 1})
+        self.write_auth({"githubAccess": TOKEN, "githubExpires": 1})
         self.assert_preserved(self.run_import())
 
     def test_rejects_environment_injection(self):
-        self.write_auth({"github_access": TOKEN + "\nOTHER=value"})
+        self.write_auth({"githubAccess": TOKEN + "\nOTHER=value"})
         self.assert_preserved(self.run_import())
+
+    def test_rejects_non_oauth_entry(self):
+        self.write_auth({"type": "api_key", "githubAccess": TOKEN})
+        self.assert_preserved(self.run_import())
+
+    def test_rejects_wrong_snake_case_expiry_schema(self):
+        self.write_auth({"github_access": TOKEN, "github_expires": 1})
+        self.assert_preserved(self.run_import())
+
+    def test_imports_native_cli_login_without_network(self):
+        # The explicit invented token skips device auth; upstream serializes it.
+        # This catches field-name drift that hand-written JSON fixtures cannot.
+        self.auth.unlink()
+        login = subprocess.run([
+            str(NATIVE_CLI), "--data-dir", str(self.root), "auth", "login", "copilot",
+            "--github-token", TOKEN,
+        ], cwd=self.root, env=self.env, capture_output=True, text=True)
+        self.assertEqual(login.returncode, 0, "isolated native fixture login failed")
+        self.assertNotIn(TOKEN, login.stdout + login.stderr)
+        native = json.loads(self.auth.read_text())["copilot"]
+        self.assertIn("githubAccess", native)
+        result = self.run_import()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        decoded = subprocess.run([
+            "sops", "--decrypt", "--output-type", "json", str(self.destination),
+        ], env=self.env, check=True, capture_output=True, text=True)
+        self.assertEqual(json.loads(decoded.stdout), {"github_token": TOKEN})
 
     def test_malformed_json_never_echoes_content(self):
         self.auth.write_text("malformed " + TOKEN)
