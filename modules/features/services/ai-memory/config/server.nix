@@ -103,7 +103,7 @@ in
                 min_session_age_secs = 600;
               };
             };
-            dream.enabled = false;
+            dream.enabled = true;
             profile.enabled = "off";
             # Make the inherited preservation policy visible and stable across updates.
             decay = {
