@@ -10,6 +10,7 @@ in
 {
   imports = [
     self.modules.darwin.base
+    self.modules.darwin.mac-app-util
     self.modules.darwin.yabai
     self.modules.darwin.skhd
     self.modules.darwin.borders

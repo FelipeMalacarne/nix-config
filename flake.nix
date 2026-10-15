@@ -23,6 +23,11 @@
 
     opencode.url = "github:anomalyco/opencode/dev";
 
+    mac-app-util = {
+      url = "github:hraban/mac-app-util";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     phpantom-lsp = {
       url = "github:PHPantom-dev/phpantom_lsp";
       inputs.nixpkgs.follows = "nixpkgs";
