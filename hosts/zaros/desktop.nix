@@ -2,7 +2,7 @@
 {
   my.desktop = {
     shell = "noctalia";
-    defaultSession = "umbriel";
+    defaultSession = "hyprland";
 
     sessions = [
       "umbriel"
