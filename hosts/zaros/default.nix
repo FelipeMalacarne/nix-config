@@ -38,6 +38,7 @@ in
       linux-base
       desktop
       ankama-launcher
+      chatgpt
       scape2011
       development
       microbot
