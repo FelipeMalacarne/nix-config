@@ -287,6 +287,14 @@ under `config/` where useful. Shared synthetic fixtures live in
 hardware-preservation expectations. Do not hide required integrations by adding
 them to every fixture.
 
+## Issue backlog
+
+The [configuration issue backlog](docs/issues/README.md) tracks review findings,
+cleanup decisions, upgrades, and deferred operational work as independent Markdown
+issues. Each issue records evidence, scope, acceptance criteria, verification, and
+approval boundaries. Assess and resolve issues individually; the backlog does not
+authorize deployment, credential changes, destructive storage work, or live tests.
+
 ## Validation and deferred work
 
 Use `make eval-check` for evaluation, `make fmt-check` for formatting, and
