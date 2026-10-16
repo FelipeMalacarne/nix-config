@@ -71,10 +71,46 @@ let
     && !(cfg.programs.opencode.settings ? agent)
     && !(cfg.programs.opencode.skills ? artcraft-editing);
   json = cfg: cfg.xdg.configFile."opencode/opencode.json".source;
+  inputBudgets = cfg: cfg.programs.opencode.settings.providers.openai.models;
+  budgetedModels = [
+    "gpt-6-astra"
+    "gpt-6-astra-fast"
+    "gpt-6-luna"
+    "gpt-6-luna-fast"
+    "gpt-6-sol"
+    "gpt-6-sol-fast"
+    "gpt-6.1-sol"
+    "gpt-6.1-sol-fast"
+  ];
 in
 assert standalone.programs.opencode.package == opencode;
 assert !(lib.any (package: lib.getName package == "opencode-desktop") standalone.home.packages);
 assert lib.versions.major (lib.getVersion opencode) == "2";
+assert lib.assertMsg (lib.all
+  (
+    cfg:
+    cfg.programs.opencode.settings.compaction == {
+      auto = true;
+      keep.tokens = 15000;
+    }
+  )
+  [
+    standalone
+    film
+  ]
+) "OpenCode must compact automatically with a 15k recent tail and no oversized global buffer";
+assert lib.assertMsg
+  (
+    builtins.attrNames (inputBudgets standalone) == budgetedModels
+    &&
+      lib.all
+        (cfg: lib.all (model: (inputBudgets cfg).${model} == { limit.input = 272000; }) budgetedModels)
+        [
+          standalone
+          film
+        ]
+  )
+  "Only the selected GPT-6 models should receive an input budget, preserving catalog context/output limits";
 assert lib.assertMsg (lib.all empty [
   standalone
   absent
@@ -134,6 +170,9 @@ pkgs.runCommand "opencode-craft"
       [.[] | select(.type == "document" and .path == $path) | .info] as $docs |
       ($docs | length) == 1 and ($docs[0] |
         .lsp == true and
+        .compaction == {auto: true, keep: {tokens: 15000}} and
+        (.providers.openai.models | length) == 8 and
+        (.providers.openai.models | all(.limit == {input: 272000})) and
         .mcp.servers["craft-filmcraft"].disabled == false)
     ' "$TMPDIR/config-entries.json" > /dev/null
     jq -e --arg cli ${lib.escapeShellArg (lib.getExe' package "filmcraft-cli")} '

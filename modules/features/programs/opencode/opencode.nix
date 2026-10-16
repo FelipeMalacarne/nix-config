@@ -161,7 +161,27 @@ let
 
           compaction = {
             auto = true;
+            keep.tokens = 15000;
           };
+
+          # Operational input budget, not advertised capacity. V2 reserves 10%,
+          # so these GPT-6 models compact at about 245k tokens. A global buffer
+          # sized for their 1M windows would break smaller models.
+          providers.openai.models =
+            lib.genAttrs
+              [
+                "gpt-6-astra"
+                "gpt-6-astra-fast"
+                "gpt-6-luna"
+                "gpt-6-luna-fast"
+                "gpt-6-sol"
+                "gpt-6-sol-fast"
+                "gpt-6.1-sol"
+                "gpt-6.1-sol-fast"
+              ]
+              (_: {
+                limit.input = 272000;
+              });
 
           # plugin = [ "oh-my-opencode-slim@latest" ];
 
