@@ -104,6 +104,18 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
 
+OpenCode and Claude Code import the shared Home Manager `playwright-mcp` aspect
+and consume the native shared MCP registry. Keep client-specific settings and
+plugins in their client features. The memory client owns its upstream routing
+skills and workflow rules for both clients; lifecycle hooks remain client-specific.
+Only add skills with concrete, specialized procedures or reference material;
+do not package generic coding advice or duplicate `AGENTS.md` as skills.
+The shared `ai-skills` aspect publishes portable global skills through each
+enabled client's native Home Manager option, from a single source under
+`modules/features/programs/ai-skills/skills/`. Repository-specific skills stay
+in `.claude/skills/`, discovered by both clients, with distinct IDs when a global
+skill covers the same topic.
+
 Generic SSH, programming and Kubernetes tooling do not provision credentials.
 Hosts explicitly select `ssh-credentials`, `programming-credentials` and
 `k8s-credentials` where needed. These companion aspects own their SOPS

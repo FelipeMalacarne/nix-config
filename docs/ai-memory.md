@@ -117,10 +117,17 @@ The isolated client check verifies `opencode debug paths db` resolves to
 `$XDG_DATA_HOME/opencode/opencode.db`, matching the pinned ai-memory transcript
 reader without a downstream database-path patch.
 
-Integration is intentionally **OpenCode-only**. The `ai` profile also installs
-Claude Code, Codex and GitHub Copilot CLI, but does not configure ai-memory hooks,
-MCP or skills for them. Hermes's own memory is separate. Those clients do not
-participate in cross-client capture/recall merely by being installed.
+Automatic hook capture is currently **OpenCode-only**. Claude Code shares the
+MCP registry, three upstream memory routing skills and workflow rules through
+Home Manager, so it can explicitly query memory and use handoffs. It has no
+Nix-managed ai-memory lifecycle hooks here. Codex and GitHub Copilot CLI remain
+installed without this memory wiring; Hermes's own memory is separate. MCP
+availability alone does not establish automatic capture or session closure.
+
+Repository-specific diagnostics and feature integration procedures live in
+`.claude/skills/ai-client-diagnostics/` and
+`.claude/skills/nix-feature-integration/`. Both Claude Code and OpenCode discover
+this project-local skill location; these procedures are not installed globally.
 
 MCP uses the local `ai-memory mcp-bridge --no-session-id`, reading credentials at
 runtime and connecting to the shared server. This is a **static** client: pass

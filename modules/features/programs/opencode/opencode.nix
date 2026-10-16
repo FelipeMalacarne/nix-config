@@ -1,4 +1,9 @@
-{ self, inputs, ... }:
+{
+  config,
+  self,
+  inputs,
+  ...
+}:
 let
   module =
     {
@@ -14,18 +19,13 @@ let
       };
     in
     {
+      imports = with config.flake.modules.homeManager; [
+        ai-skills
+        playwright-mcp
+      ];
       programs.mcp = {
         enable = true;
-
-        servers = craft.servers // {
-          playwright = {
-            command = lib.getExe' pkgs.nodejs "npx";
-            args = [
-              "-y"
-              "@playwright/mcp"
-            ];
-          };
-        };
+        servers = craft.servers;
       };
 
       home.sessionVariables.OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = "true";
@@ -189,15 +189,7 @@ let
         }
         // craft.settings;
 
-        skills = {
-          browser-automation = ./skills/browser-automation;
-          development-workflow = ./skills/development-workflow;
-          nix-home-manager = ./skills/nix-home-manager;
-          product-engineering = ./skills/product-engineering;
-          project-harness = ./skills/project-harness;
-          token-discipline = ./skills/token-discipline;
-        }
-        // craft.skills;
+        skills = craft.skills;
       };
     };
 in

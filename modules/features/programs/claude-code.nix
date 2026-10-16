@@ -1,7 +1,12 @@
-{
+{ config, ... }: {
   flake.modules.homeManager.claude-code = { pkgs, ... }: {
+    imports = with config.flake.modules.homeManager; [
+      ai-skills
+      playwright-mcp
+    ];
     programs.claude-code = {
       enable = true;
+      enableMcpIntegration = true;
       plugins = [
         (pkgs.fetchFromGitHub {
           owner = "obra";

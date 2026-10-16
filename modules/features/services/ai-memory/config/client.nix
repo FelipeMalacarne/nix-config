@@ -97,18 +97,29 @@ let
             ''
               $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -d -m 700 ${lib.escapeShellArg dataDir}
             '';
-        home.file.ai-memory-config = {
-          target = "${dataDir}/config.toml";
-          source = toml;
-        };
-        home.file.ai-memory-capture-mode = {
-          target = "${dataDir}/capture-mode";
-          text = "allowlist\n";
-        };
-        home.file.ai-memory-auth-token = {
-          target = "${dataDir}/auth-token";
-          source = config.lib.file.mkOutOfStoreSymlink cfg.tokenFile;
-        };
+        home.file = {
+          ai-memory-config = {
+            target = "${dataDir}/config.toml";
+            source = toml;
+          };
+          ai-memory-capture-mode = {
+            target = "${dataDir}/capture-mode";
+            text = "allowlist\n";
+          };
+          ai-memory-auth-token = {
+            target = "${dataDir}/auth-token";
+            source = config.lib.file.mkOutOfStoreSymlink cfg.tokenFile;
+          };
+        }
+        // lib.optionalAttrs config.programs.claude-code.enable (
+          lib.mapAttrs' (
+            name: source:
+            lib.nameValuePair "claude-${name}" {
+              target = "${config.programs.claude-code.configDir}/skills/${name}";
+              inherit source;
+            }
+          ) skills
+        );
         programs.mcp = {
           enable = true;
           servers.ai-memory = {
@@ -132,6 +143,7 @@ let
             "opencode/plugins/ai-memory-opencode2.ts".source = plugin;
           };
         programs.opencode.settings.instructions = [ "${./workflow.md}" ];
+        programs.claude-code.rules.ai-memory = lib.mkIf config.programs.claude-code.enable ./workflow.md;
       };
     };
 in

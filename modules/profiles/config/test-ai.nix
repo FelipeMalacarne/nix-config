@@ -33,6 +33,8 @@ let
       };
     }
   ];
+  claudeOnly = evaluate [ self.modules.homeManager.claude-code ];
+  opencodeOnly = evaluate [ self.modules.homeManager.opencode ];
   packageNames = home: map lib.getName home.home.packages;
   codingClis = map lib.getName [
     pkgs.codex
@@ -67,6 +69,26 @@ assert lib.all (name: !(builtins.elem name (packageNames development))) codingCl
 assert ai.programs.opencode.enable && ai.programs.claude-code.enable;
 assert lib.all (name: builtins.elem name (packageNames ai)) codingClis;
 assert ai.programs.claude-code.settings.enabledPlugins."gopls-lsp@claude-plugins-official";
+assert !(claudeOnly.programs.opencode.enable or false);
+assert !(opencodeOnly.programs.claude-code.enable or false);
+assert claudeOnly.programs.claude-code.enableMcpIntegration;
+assert claudeOnly.programs.mcp.servers ? playwright;
+assert
+  claudeOnly.programs.claude-code.skills.ai-client-troubleshooting
+  == opencodeOnly.programs.opencode.skills.ai-client-troubleshooting;
+assert
+  ai.programs.claude-code.skills.ai-client-troubleshooting
+  == ai.programs.opencode.skills.ai-client-troubleshooting;
+assert
+  builtins.readFile ai.programs.claude-code.rules.ai-memory
+  == builtins.readFile (builtins.head ai.programs.opencode.settings.instructions);
+assert lib.all
+  (name: ai.home.file."claude-${name}".source == ai.xdg.configFile."opencode/skills/${name}".source)
+  [
+    "ai-memory-retrieval"
+    "ai-memory-handoff"
+    "ai-memory-durable-pages"
+  ];
 assert ai.home.file.ai-memory-capture-mode.text == "allowlist\n";
 assert
   workstation mac self.packages.aarch64-darwin.opencode
