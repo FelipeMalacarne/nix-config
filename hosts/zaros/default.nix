@@ -20,6 +20,7 @@ in
     programming-credentials
     k8s-credentials
     ai
+    claude-remote-control
     docker
     artcraft
     flatpak
