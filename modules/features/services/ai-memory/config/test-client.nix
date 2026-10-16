@@ -30,12 +30,11 @@ let
 in
 assert cfg.home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE == "false";
 assert cfg.home.shellAliases.oc == "ai-memory run --no-autowire opencode";
+assert cfg.home.shellAliases.am == "ai-memory run --no-autowire";
 assert cfg.home.file.ai-memory-capture-mode.text == "allowlist\n";
 assert lib.versions.major (lib.getVersion cfg.programs.opencode.package) == "2";
 assert !(cfg.xdg.configFile ? "opencode/plugins/ai-memory.ts");
-assert !cfg.programs.opencode.settings.commands.memory-finish.subagent;
-assert lib.hasInfix "--session-id" cfg.programs.opencode.settings.commands.memory-finish.template;
-assert lib.hasInfix "$ARGUMENTS" cfg.programs.opencode.settings.commands.memory-finish.template;
+assert !((cfg.programs.opencode.settings.commands or { }) ? memory-finish);
 assert
   cfg.programs.mcp.servers.ai-memory.args == [
     "--data-dir"
@@ -87,8 +86,7 @@ pkgs.runCommand "ai-memory-client"
     test "$(opencode debug paths db)" = "$XDG_DATA_HOME/opencode/opencode.db"
     jq -e '.mcp["ai-memory"].type == "local" and
       (.mcp["ai-memory"].command | index("--no-session-id") != null) and
-      (.commands["memory-finish"].subagent == false) and
-      (.commands["memory-finish"].template | contains("--session-id")) and
+      (.commands // {} | has("memory-finish") | not) and
       (has("command") | not)' \
       "$OPENCODE_CONFIG" > /dev/null
     timeout 60s opencode debug config > "$TMPDIR/config-entries.json"
@@ -97,8 +95,7 @@ pkgs.runCommand "ai-memory-client"
       ($docs | length) == 1 and ($docs[0] |
         .mcp.servers["ai-memory"].type == "local" and
         (.mcp.servers["ai-memory"].command | index("--no-session-id") != null) and
-        .commands["memory-finish"].subagent == false and
-        (.commands["memory-finish"].template | contains("--session-id")))
+        (.commands // {} | has("memory-finish") | not))
     ' "$TMPDIR/config-entries.json" > /dev/null
     grep -q 'const TOKEN: string | null = null' ${plugin}
     grep -q 'allowlist' ${plugin}

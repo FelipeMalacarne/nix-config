@@ -90,8 +90,8 @@ this authentication flow and must be configured separately.
 
 Home Manager installs the pinned CLI, generates the upstream OpenCode V2 adapter
 **inside the Nix build sandbox**, and installs three upstream skills: retrieval,
-handoff and durable pages. It also installs the `/memory-finish` prompt command.
-No installer runs against the real home.
+handoff and durable pages. No repository-specific session-finishing command is
+installed, and no installer runs against the real home.
 
 The OpenCode CLI tracks `github:anomalyco/opencode/production`, with
 reproducible revisions managed by `flake.lock`, not an explicit commit in the
@@ -149,8 +149,7 @@ The V2 adapter deliberately does not emit `SessionEnd` when its location unloads
 The offline fixture checks delivery/recovery and this non-finalizing unload
 behavior; it is not proof of interactive managed capture or production
 consolidation. The shared-service V2 lifecycle caveats below still apply with
-managed launch. `/memory-finish` remains an explicit recovery command, not daily
-usage.
+managed launch.
 
 The managed durable-page skill and always-loaded workflow require optimistic
 concurrency: read a page and pass its `page_id` as `expected_page_id` on an update
@@ -450,7 +449,25 @@ Typical workflow:
 5. Commit/push code separately. Memory does not transfer uncommitted changes,
     running processes or the full native OpenCode session.
 
-### OpenCode V2 lifecycle limitation and operator fallback
+For parallel tasks, the client also supplies `am = ai-memory run --no-autowire`.
+Unlike `oc`, it leaves the harness name explicit so wrapper options stay before
+it:
+
+```sh
+am --new review opencode          # create an independent named workstream
+am --workstream review opencode   # return to it after its launcher exits
+ai-memory workstreams             # list this checkout's workstreams
+```
+
+Use one active launcher per workstream. `--new` requires a name and must precede
+`opencode`; `oc --new ...` forwards it as a native argument instead. `--fresh`
+starts a new chat in the same workstream, not a separate concurrent workstream.
+OpenCode's `--auto` auto-approves permissions; it is not a memory automation flag.
+For concurrent edits, use separate Git worktrees too: workstream leases do not
+protect shared files. Normal launcher exit releases its workstream lease even
+when the saved chat remains resumable; never force-unlock a live launcher.
+
+### OpenCode V2 lifecycle and downstream consolidation
 
 An **Open** memory session has not received `SessionEnd`; this does not mean its
 activity was unsaved. The pinned OpenCode V2 adapter emits a Stop checkpoint and
@@ -465,38 +482,38 @@ The shared service also prevents the V2 plugin from reliably receiving a
 launcher's run environment. Upstream documents ordinary handoff delivery as the
 fallback for managed V2 context delivery. See the pinned
 [managed-workstreams guide](https://github.com/akitaonrails/ai-memory/blob/8f6a15b3a2f622959cfc7659b905fb9701b73bfd/docs/managed-workstreams.md).
+
+This repository packages a **downstream opt-in**, separate from upstream's
+default behavior: the feature's
+[`opencode-turn-consolidation.patch`](../modules/features/services/ai-memory/config/opencode-turn-consolidation.patch)
+adds `consolidate_on_turn_checkpoint`, enabled by the server feature. Completed,
+substantive OpenCode root turns queue LLM rewrites through the existing durable
+open-session worker. Managed hooks are covered without generating legacy
+handoffs; ordinary hooks retain their automatic handoffs. Lifecycle-only
+sessions, subagent, unmarked and other-harness Stop events do not trigger this
+path. Agent-written session pages are preserved. No native chat is closed and no finishing command
+is installed. PreCompact and true SessionEnd keep their existing paths.
+
+Pending older generations coalesce; completed-event replay is deduplicated.
+Provider failures use the worker's bounded retries and restart recovery, with
+the basic summary retained on failure. This can spend a subscription completion
+after each turn: it is not free, and queued work is not proof of a successful
+provider rewrite. The isolated `ai-memory-consolidation` check uses a synthetic
+loopback provider and private fixture data, never real provider credentials.
+Subscription-backed and interactive managed-run acceptance remain separate gates.
+
 Do not equate a completed workstream leg, a saved checkpoint, successful LLM
-consolidation and an ended memory session. Seamless V2 closure remains an
-upstream integration gap, not a reason to add a routine manual UUID ritual or
-blind idle-session finalizer.
+consolidation and an ended memory session. This patch addresses automatic LLM
+summary availability, **not** the Open label or upstream's managed-context
+acknowledgement limitation. When upstream supplies a supported equivalent,
+review the new pin, remove/adapt this patch and its opt-in together, and rerun
+short-session, replay, resume, compaction and restart-recovery checks before
+deployment. Do not add a manual UUID ritual or blind idle-session finalizer.
 
-Only when an explicit memory-record close is needed, the operator fallback is
-`/memory-finish <ai-memory-session-UUID>` in that conversation. Copy that
-conversation's memory UUID from the web UI/session metadata
-(not an OpenCode `ses_...` identifier or the previous handoff's source ID). The
-command asks the agent to verify the observations, finalize only that UUID, and
-save a useful handoff. Without an unambiguous user-supplied UUID, it must ask,
-not guess from the latest record or close another terminal's session. It is a
-prompt workflow, not a new native OpenCode lifecycle event.
-
-The equivalent terminal operation for this repository is:
-
-```sh
-ai-memory finalize-session --agent open-code \
-  --workspace personal --project nix-config --session-id <UUID> --json
-```
-
-Replace `<UUID>`; do not paste angle-bracket placeholders into a shell unchanged.
-Verify the reported `finalized` list contains only the intended UUID. A manual
-handoff alone does not finalize a session. A session-end queues LLM consolidation
-when enabled, but the useful handwritten handoff remains a separate step.
-
-If you resume substantive work in the same native chat after finalizing, capture
-can continue under its ended memory ID. Review the new observations and use
-the exact command with `--reopen` **only when intentionally re-finalizing that
-session**; do not apply it blindly or use `--all` / `--all-owners` for routine
-wrap-up. Starting a new OpenCode conversation after finishing avoids this
-ambiguity and receives the saved handoff.
+Use the upstream lifecycle and handoff mechanisms rather than a local finishing
+command. A handoff preserves continuity but does not finalize a session; a real
+session end can queue LLM consolidation when enabled. Do not manually finalize
+sessions or delete native chats merely to clear Open labels.
 
 ## Saradomin unavailable
 

@@ -15,13 +15,30 @@
           src = pkgs.applyPatches {
             name = "ai-memory-reviewed-source";
             src = inputs.ai-memory;
-            patches = [ ./config/upstream-client-fixes.patch ];
+            patches = [
+              ./config/upstream-client-fixes.patch
+              ./config/opencode-turn-consolidation.patch
+            ];
             patchFlags = [
               "-p1"
               "--fuzz=0"
             ];
           };
         };
+    checks.ai-memory-consolidation =
+      pkgs.runCommand "ai-memory-consolidation"
+        {
+          nativeBuildInputs = [
+            pkgs.nodejs
+            pkgs.git
+          ];
+          __darwinAllowLocalNetworking = true;
+        }
+        ''
+          node ${./config/test-consolidation.mjs} \
+            ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory} "$TMPDIR"
+          touch "$out"
+        '';
     packages.ai-memory-import-copilot = pkgs.writeShellApplication {
       name = "ai-memory-import-copilot";
       runtimeInputs = [

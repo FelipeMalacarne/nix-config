@@ -185,10 +185,20 @@ installers or self-updates. The former setup command/wiki skill are retired;
 do not scaffold a parallel `docs/ai/` wiki.
 Follow the upstream managed-launch workflow: the recommended daily terminal
 entrypoint is `ai-memory run --no-autowire opencode`, available as alias `oc`
-only when the Home Manager memory client is selected. Direct OpenCode launch is
-supported hook-only use, not equivalent to a managed workstream. Do not present
-manual UUID finalization as required everyday usage or promise automatic V2
-session closure: verify the pinned harness lifecycle, not just generic examples.
+only when the Home Manager memory client is selected. The client also defines
+`am = ai-memory run --no-autowire`; use `am --new NAME opencode` for parallel
+tasks and `am --workstream NAME opencode` to return. Named wrapper options must
+precede the harness; one launcher owns each workstream. Direct OpenCode launch is
+supported hook-only use, not equivalent to a managed workstream. Do not add
+repository-specific session-finishing commands or require manual UUID workflows.
+Do not promise automatic V2 session closure: verify the pinned harness lifecycle,
+not just generic examples.
+The server explicitly enables the reviewed downstream
+`consolidate_on_turn_checkpoint` patch: substantive OpenCode root turns enqueue
+the existing durable open-session LLM worker without fabricating SessionEnd.
+This can use subscription quota per turn; summaries do not close native chats.
+Keep it separate from upstream defaults and remove/adapt the patch and setting
+together when upstream supplies an equivalent, retaining regression coverage.
 OpenCode is CLI-only and tracks the upstream `opencode` flake's `production`
 branch, locked through `flake.lock`, with the matching upstream-generated V2
 `ai-memory-opencode2.ts` adapter. Keep the CLI and adapter aligned;
@@ -214,9 +224,8 @@ entries are preserved, but Copilot secrets are no longer selected for this role.
 Private subscription acceptance and separate deployment approval are required.
 Hourly improvement proposals require approval. Dream processing is enabled for
 automatic idle-time cold-note consolidation; its rewrites are not proposal-gated.
-Cross-project profiles stay off. `/memory-finish <memory-UUID>`
-verifies and finalizes one explicit record without deleting its OpenCode chat;
-a handoff alone is not SessionEnd. See the documented login and finish runbooks.
+Cross-project profiles stay off. A handoff alone is not SessionEnd; use upstream
+lifecycle and handoff mechanisms. See the documented login runbook.
 OpenClaw's module/input are removed. Do not delete its legacy encrypted credential
 or runtime state as part of routine cleanup.
 

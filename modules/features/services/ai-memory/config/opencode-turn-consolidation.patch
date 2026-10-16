@@ -1,0 +1,178 @@
+# Reviewed downstream opt-in for pinned ai-memory 8f6a15b3.
+# Reuse its durable open-session queue, never fake SessionEnd on unload/exit.
+# Remove/adapt this patch and its setting when upstream covers this lifecycle.
+diff --git a/crates/ai-memory-cli/src/config.rs b/crates/ai-memory-cli/src/config.rs
+--- a/crates/ai-memory-cli/src/config.rs
++++ b/crates/ai-memory-cli/src/config.rs
+@@ -412,6 +412,11 @@
+     /// happens on PreCompact and via manual `memory_consolidate`. Set with
+     /// `AI_MEMORY_CONSOLIDATE_ON_SESSION_END=true`.
+     pub consolidate_on_session_end: bool,
++    /// Downstream opt-in: enqueue an open-session LLM checkpoint after a
++    /// substantive OpenCode root turn. Does not end the resumable session.
++    /// Uses the existing durable worker; may spend a completion per turn.
++    /// Set with `AI_MEMORY_CONSOLIDATE_ON_TURN_CHECKPOINT=true`.
++    pub consolidate_on_turn_checkpoint: bool,
+     /// Server-side opt-in for assistant/Stop capture (#196). When true, the
+     /// server honors a client's sanitized `_ai_memory_assistant` marker on a
+     /// `Stop` event and persists the excerpt as the Stop body. Off by default;
+@@ -1345,6 +1350,7 @@
+             llm_fallback_configs: Vec::new(),
+             llm_fallback_unresolved: Vec::new(),
+             consolidate_on_session_end: false,
++            consolidate_on_turn_checkpoint: false,
+             capture_assistant: false,
+             backfill_on_start: true,
+             run_autowire: true,
+diff --git a/crates/ai-memory-cli/src/commands/serve.rs b/crates/ai-memory-cli/src/commands/serve.rs
+--- a/crates/ai-memory-cli/src/commands/serve.rs
++++ b/crates/ai-memory-cli/src/commands/serve.rs
+@@ -1566,6 +1566,7 @@
+                 )),
+                 ingest_gates: ai_memory_hooks::IngestGates::default(),
+                 consolidate_on_session_end: config.consolidate_on_session_end,
++                consolidate_on_turn_checkpoint: config.consolidate_on_turn_checkpoint,
+                 session_consolidation_notify,
+                 profile_notify: Some(profile_notify.clone()),
+                 capture_assistant_enabled: config.capture_assistant,
+diff --git a/crates/ai-memory-hooks/src/router.rs b/crates/ai-memory-hooks/src/router.rs
+--- a/crates/ai-memory-hooks/src/router.rs
++++ b/crates/ai-memory-hooks/src/router.rs
+@@ -494,6 +494,9 @@
+     /// session close stays cheap. PreCompact / PostCompaction enqueue
+     /// whenever a consolidator is present, independent of this flag.
+     pub consolidate_on_session_end: bool,
++    /// Downstream opt-in for substantive OpenCode root-turn LLM checkpoints.
++    /// Independent of SessionEnd: native chats remain open and resumable.
++    pub consolidate_on_turn_checkpoint: bool,
+     /// Coalescing wake-up for the durable session-consolidation worker
+     /// (opt-in SessionEnd jobs and PreCompact / PostCompaction checkpoints).
+     /// The database is the queue; notifications only reduce pickup latency.
+@@ -3374,7 +3377,7 @@
+     let Some(notify) = state.session_consolidation_notify.as_ref() else {
+         warn!(
+             session = %session_id,
+-            "PreCompact/PostCompaction LLM consolidation has no queue worker"
++            "checkpoint LLM consolidation has no queue worker"
+         );
+         return Ok(false);
+     };
+@@ -3389,7 +3392,7 @@
+     debug!(
+         session = %session_id,
+         inserted,
+-        "PreCompact/PostCompaction LLM consolidation queued"
++        "checkpoint LLM consolidation queued"
+     );
+     Ok(inserted)
+ }
+@@ -3970,7 +3973,7 @@
+             .get("turn_checkpoint")
+             .and_then(serde_json::Value::as_bool)
+             == Some(true)
+-        && !managed
++        && (!managed || state.consolidate_on_turn_checkpoint)
+         && !body_is_subagent(&env.raw);
+     if matches!(env.event, HookEvent::SessionEnd) || turn_checkpoint {
+         let mut observations = state.reader.observations_for_session(session_id).await?;
+@@ -4044,10 +4047,27 @@
+         } else {
+             None
+         };
++        // A delivery interrupted after enqueue may resume after its worker
++        // already wrote the LLM page. Do not put the heuristic over it: the
++        // queue deduplicates this generation and would not rewrite it again.
++        let consolidated_page_id = if turn_checkpoint
++            && outcome == HookProcessingOutcome::Resumed
++            && state
++                .reader
++                .session_generation_consolidating_or_done(session_id)
++                .await?
++        {
++            state
++                .reader
++                .latest_page_id_by_ids(page_ws, page_proj, new_page.path.as_str().to_owned())
++                .await?
++        } else {
++            None
++        };
++        let agent_page_id =
++            agent_session_page_id(state, page_ws, page_proj, session_id, &new_page.path).await?;
+         let page_id =
+-            match agent_session_page_id(state, page_ws, page_proj, session_id, &new_page.path)
+-                .await?
+-            {
++            match agent_page_id.or(consolidated_page_id) {
+                 Some(page_id) => page_id,
+                 None => {
+                     state
+@@ -4213,6 +4233,9 @@
+         // their git snapshot. Stale redelivery above repairs cancellation in
+         // the narrow window after `end_session`.
+         if turn_checkpoint {
++            if state.consolidate_on_turn_checkpoint && agent_page_id.is_none() {
++                enqueue_session_checkpoint_consolidation(state, session_id, page_ws, page_proj).await?;
++            }
+             info!(session = %session_id, page = %new_page.path, "turn checkpoint written; native session remains open");
+         } else {
+             enqueue_session_end_consolidation(state, session_id, ws, proj).await?;
+@@ -6054,6 +6077,7 @@
+             project_cache: Arc::new(tokio::sync::Mutex::new(ProjectCacheStore::default())),
+             active_project: ActiveProject::new(),
+             consolidate_on_session_end: false,
++            consolidate_on_turn_checkpoint: false,
+             session_consolidation_notify: None,
+             profile_notify: None,
+             capture_assistant_enabled: false,
+diff --git a/crates/ai-memory-cli/src/commands/backfill.rs b/crates/ai-memory-cli/src/commands/backfill.rs
+--- a/crates/ai-memory-cli/src/commands/backfill.rs
++++ b/crates/ai-memory-cli/src/commands/backfill.rs
+@@ -1706,6 +1706,7 @@
+             ingest_gates: IngestGates::default(),
+             ingest_rate: Arc::new(tokio::sync::Mutex::new(IngestRateLimiter::disabled())),
+             consolidate_on_session_end: false,
++            consolidate_on_turn_checkpoint: false,
+             session_consolidation_notify: None,
+             profile_notify: None,
+             capture_assistant_enabled: false,
+@@ -1906,6 +1907,7 @@
+             ingest_gates: IngestGates::default(),
+             ingest_rate: Arc::new(tokio::sync::Mutex::new(IngestRateLimiter::disabled())),
+             consolidate_on_session_end: false,
++            consolidate_on_turn_checkpoint: false,
+             session_consolidation_notify: None,
+             profile_notify: None,
+             capture_assistant_enabled: false,
+diff --git a/crates/ai-memory-mcp/tests/suite/admin_metrics.rs b/crates/ai-memory-mcp/tests/suite/admin_metrics.rs
+--- a/crates/ai-memory-mcp/tests/suite/admin_metrics.rs
++++ b/crates/ai-memory-mcp/tests/suite/admin_metrics.rs
+@@ -82,6 +82,7 @@
+         ingest_semaphore: ingest_semaphore.clone(),
+         ingest_gates: ai_memory_hooks::IngestGates::default(),
+         consolidate_on_session_end: false,
++        consolidate_on_turn_checkpoint: false,
+         session_consolidation_notify: None,
+         profile_notify: None,
+         capture_assistant_enabled: false,
+diff --git a/crates/ai-memory-mcp/tests/suite/autoscope_multiuser.rs b/crates/ai-memory-mcp/tests/suite/autoscope_multiuser.rs
+--- a/crates/ai-memory-mcp/tests/suite/autoscope_multiuser.rs
++++ b/crates/ai-memory-mcp/tests/suite/autoscope_multiuser.rs
+@@ -174,6 +174,7 @@
+             ingest_semaphore: ingest_semaphore.clone(),
+             ingest_gates: ai_memory_hooks::IngestGates::default(),
+             consolidate_on_session_end: false,
++            consolidate_on_turn_checkpoint: false,
+             session_consolidation_notify: None,
+             profile_notify: None,
+             capture_assistant_enabled: false,
+diff --git a/crates/ai-memory-mcp/tests/suite/stress_autoscope.rs b/crates/ai-memory-mcp/tests/suite/stress_autoscope.rs
+--- a/crates/ai-memory-mcp/tests/suite/stress_autoscope.rs
++++ b/crates/ai-memory-mcp/tests/suite/stress_autoscope.rs
+@@ -162,6 +162,7 @@
+             )),
+             ingest_gates: ai_memory_hooks::IngestGates::default(),
+             consolidate_on_session_end: false,
++            consolidate_on_turn_checkpoint: false,
+             session_consolidation_notify: None,
+             profile_notify: None,
+             capture_assistant_enabled: false,

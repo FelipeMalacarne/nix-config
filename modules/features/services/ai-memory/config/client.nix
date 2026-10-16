@@ -90,6 +90,8 @@ let
         # Never let managed launches rewrite Home Manager's agent configuration.
         home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE = "false";
         home.shellAliases.oc = "ai-memory run --no-autowire opencode";
+        # Keep wrapper options before the harness: am --new review opencode.
+        home.shellAliases.am = "ai-memory run --no-autowire";
         home.activation.aiMemoryPrivateData =
           lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ]
             ''
@@ -129,14 +131,7 @@ let
           // {
             "opencode/plugins/ai-memory-opencode2.ts".source = plugin;
           };
-        programs.opencode.settings = {
-          instructions = [ "${./workflow.md}" ];
-          commands.memory-finish = {
-            description = "Save a handoff and finish one explicitly identified ai-memory session";
-            template = builtins.readFile ./memory-finish.md;
-            subagent = false;
-          };
-        };
+        programs.opencode.settings.instructions = [ "${./workflow.md}" ];
       };
     };
 in

@@ -84,6 +84,9 @@ in
             llm_reasoning_effort = "low";
             llm_fallbacks = [ ];
             consolidate_on_session_end = true;
+            # Reviewed downstream opt-in until upstream covers resumable V2 chats.
+            # Queue after root turns; never fabricate SessionEnd on plugin unload.
+            consolidate_on_turn_checkpoint = true;
             consolidation = {
               max_input_tokens = 16000;
               max_output_tokens = 2000;
@@ -240,6 +243,7 @@ in
       assert settings.llm_reasoning_effort == "low";
       assert settings.llm_fallbacks == [ ];
       assert settings.consolidate_on_session_end;
+      assert settings.consolidate_on_turn_checkpoint;
       assert settings.consolidation.max_input_tokens == 16000;
       assert settings.consolidation.max_output_tokens == 2000;
       assert settings.auth.bearer_token_file == cfg.sops.secrets.ai-memory-token.path;
