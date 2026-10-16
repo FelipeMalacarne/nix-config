@@ -712,6 +712,22 @@
     },
     "nixpkgs_10": {
       "locked": {
+        "lastModified": 1790510107,
+        "narHash": "sha256-EVMNYv7hYDDD9TGVT/hIyTYgpiXA8y3m5xIEIxuGNU0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "3181085bfd08663b6b9e60bc7a8395c2aaa741bd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_11": {
+      "locked": {
         "lastModified": 1770107345,
         "narHash": "sha256-tbS0Ebx2PiA1FRW8mt8oejR0qMXmziJmPaU1d4kYY9g=",
         "owner": "nixos",
@@ -1002,6 +1018,25 @@
         "type": "github"
       }
     },
+    "opencode": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_10"
+      },
+      "locked": {
+        "lastModified": 1792158170,
+        "narHash": "sha256-1hLWb5yoH1PSLEmq2+j3shEoNCk7IZPqrcGdpG2oiYc=",
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "rev": "c3a73eca343b1868b0b5706771bbd7b26f6d4fab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "ref": "production",
+        "repo": "opencode",
+        "type": "github"
+      }
+    },
     "phpantom-lsp": {
       "inputs": {
         "flake-utils": "flake-utils_4",
@@ -1113,6 +1148,7 @@
         "nur": "nur",
         "nvf": "nvf",
         "nvim-config": "nvim-config",
+        "opencode": "opencode",
         "phpantom-lsp": "phpantom-lsp",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
@@ -1403,7 +1439,7 @@
     },
     "treefmt-nix_3": {
       "inputs": {
-        "nixpkgs": "nixpkgs_10"
+        "nixpkgs": "nixpkgs_11"
       },
       "locked": {
         "lastModified": 1786901030,

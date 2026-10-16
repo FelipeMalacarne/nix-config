@@ -88,31 +88,39 @@ this authentication flow and must be configured separately.
 
 ### Managed agent integration
 
-Home Manager installs the pinned CLI, generates the upstream OpenCode V1 adapter
+Home Manager installs the pinned CLI, generates the upstream OpenCode V2 adapter
 **inside the Nix build sandbox**, and installs three upstream skills: retrieval,
 handoff and durable pages. It also installs the `/memory-finish` prompt command.
 No installer runs against the real home.
 
-OpenCode CLI and Desktop come directly from `pkgs.opencode` and
-`pkgs.opencode-desktop` in the repository's locked Nixpkgs input (currently
-1.18.21), not a separate development-branch flake or a local package wrapper.
-The sandboxed hook generator probes the selected CLI to choose its adapter;
-the V1 plugin is installed as `opencode/plugins/ai-memory.ts`. Home Manager
-removes its previously managed V2 plugin link on an approved activation.
+The OpenCode CLI tracks `github:anomalyco/opencode/production`, with
+reproducible revisions managed by `flake.lock`, not an explicit commit in the
+input URL or the development branch. Update this input deliberately and keep
+its V2 adapter aligned.
+The feature exports only the CLI, restores the upstream source filter's omitted
+`script/` directory, and wraps the CLI through `wrapper-modules`. The sandboxed
+hook generator explicitly selects `--agent opencode2`; the V2 plugin is installed
+as `opencode/plugins/ai-memory-opencode2.ts`. Home Manager removes its previously
+managed V1 plugin link on an approved activation.
+The Desktop client is not installed; an approved activation removes its managed
+package without deleting its native application data.
 
-**Downgrade safety:** this package/configuration change does not migrate, copy,
-delete or open the existing OpenCode database, credentials or chats. V1 and V2
-can share native storage locations; backward database compatibility is not
-established by a successful Nix build. Before the first V1 launch, separately
-review and back up the V2 state and test V1 with isolated HOME/XDG directories.
-Do not run V1 against a live V2 database or assume all V2 chats can be resumed.
+**Native-state safety:** this restoration does not migrate, copy, delete or open
+existing OpenCode databases, credentials or chats. The temporary Nixpkgs V1
+selection used a separate stable-channel database; this configuration does not
+merge those chats into V2. Preserve both stores. Before using existing chats
+after a package/channel change, separately review/back up native state and test
+with isolated HOME/XDG directories. Successful Nix builds do not establish
+database compatibility or successful interactive managed capture.
+
+The isolated client check verifies `opencode debug paths db` resolves to
+`$XDG_DATA_HOME/opencode/opencode.db`, matching the pinned ai-memory transcript
+reader without a downstream database-path patch.
 
 Integration is intentionally **OpenCode-only**. The `ai` profile also installs
 Claude Code, Codex and GitHub Copilot CLI, but does not configure ai-memory hooks,
 MCP or skills for them. Hermes's own memory is separate. Those clients do not
-participate in cross-client capture/recall merely by being installed. OpenCode
-Desktop shares the intended configuration, but its native loading and lifecycle
-still require separate acceptance testing.
+participate in cross-client capture/recall merely by being installed.
 
 MCP uses the local `ai-memory mcp-bridge --no-session-id`, reading credentials at
 runtime and connecting to the shared server. This is a **static** client: pass
@@ -137,12 +145,12 @@ they are not merely an alternative spelling for direct hook capture. This
 launch path has been checked against upstream documentation and installed CLI
 options, not live-tested here as an interactive managed run.
 
-The V1 adapter emits `SessionEnd` for its tracked sessions when OpenCode calls
-its plugin `dispose()` hook. The offline fixture checks delivery/recovery of
-that event; it is not proof of interactive TUI shutdown or successful production
-consolidation. Keep those as separate acceptance checks. The shared-service V2
-lifecycle caveats below describe the previous installation, not the selected
-package. `/memory-finish` remains an explicit recovery command, not daily usage.
+The V2 adapter deliberately does not emit `SessionEnd` when its location unloads.
+The offline fixture checks delivery/recovery and this non-finalizing unload
+behavior; it is not proof of interactive managed capture or production
+consolidation. The shared-service V2 lifecycle caveats below still apply with
+managed launch. `/memory-finish` remains an explicit recovery command, not daily
+usage.
 
 The managed durable-page skill and always-loaded workflow require optimistic
 concurrency: read a page and pass its `page_id` as `expected_page_id` on an update
@@ -442,10 +450,7 @@ Typical workflow:
 5. Commit/push code separately. Memory does not transfer uncommitted changes,
     running processes or the full native OpenCode session.
 
-### Previous OpenCode V2 lifecycle limitation and operator fallback
-
-This describes the previous V2 installation and is retained for existing open
-records and any future V2 migration. The selected Nixpkgs package uses V1.
+### OpenCode V2 lifecycle limitation and operator fallback
 
 An **Open** memory session has not received `SessionEnd`; this does not mean its
 activity was unsaved. The pinned OpenCode V2 adapter emits a Stop checkpoint and

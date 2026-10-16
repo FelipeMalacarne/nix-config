@@ -50,6 +50,7 @@ let
     in
     client.programs.opencode.enable
     && client.programs.opencode.package == opencode
+    && !(builtins.elem "opencode-desktop" (packageNames client))
     && client.programs.claude-code.enable
     && client.home.shellAliases.oc == "ai-memory run --no-autowire opencode"
     && client.my.ai.memory.client == host.my.ai.memory.client
@@ -68,8 +69,8 @@ assert lib.all (name: builtins.elem name (packageNames ai)) codingClis;
 assert ai.programs.claude-code.settings.enabledPlugins."gopls-lsp@claude-plugins-official";
 assert ai.home.file.ai-memory-capture-mode.text == "allowlist\n";
 assert
-  workstation mac self.darwinConfigurations.macbook.pkgs.opencode
-  && workstation zaros self.nixosConfigurations.zaros.pkgs.opencode;
+  workstation mac self.packages.aarch64-darwin.opencode
+  && workstation zaros self.packages.x86_64-linux.opencode;
 assert (home zaros).programs.hermes-agent.enable;
 assert !((home mac).programs.hermes-agent.enable or false);
 assert !((home server).programs.opencode.enable or false);

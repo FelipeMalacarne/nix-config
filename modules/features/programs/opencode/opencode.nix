@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ self, inputs, ... }:
 let
   module =
     {
@@ -14,8 +14,6 @@ let
       };
     in
     {
-      home.packages = [ pkgs.opencode-desktop ];
-
       programs.mcp = {
         enable = true;
 
@@ -144,7 +142,7 @@ let
 
       programs.opencode = {
         enable = true;
-        package = pkgs.opencode;
+        package = self.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
 
         enableMcpIntegration = true;
 
@@ -163,7 +161,6 @@ let
 
           compaction = {
             auto = true;
-            tail_turns = 20;
           };
 
           # plugin = [ "oh-my-opencode-slim@latest" ];
@@ -189,10 +186,25 @@ in
 
   perSystem =
     { lib, pkgs, ... }:
+    let
+      upstream = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system};
+      restoreScripts = old: {
+        # Upstream's source filter omits script/, which the CLI build imports.
+        postPatch = (old.postPatch or "") + ''
+          cp -R ${inputs.opencode}/script ./script
+        '';
+      };
+      opencode = upstream.opencode.overrideAttrs restoreScripts;
+    in
     {
+      packages.opencode = inputs.wrapper-modules.wrappers.opencode.wrap {
+        inherit pkgs;
+        package = opencode;
+      };
       checks.opencode-craft = import ./config/test-craft.nix {
         inherit lib pkgs;
         inherit (inputs) home-manager;
+        inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) opencode;
         inherit module;
       };
     };

@@ -3,6 +3,7 @@
   pkgs,
   home-manager,
   module,
+  opencode,
 }:
 let
   # Deliberately give the mock package a GUI mainProgram. The integration must
@@ -71,8 +72,9 @@ let
     && !(cfg.programs.opencode.skills ? artcraft-editing);
   json = cfg: cfg.xdg.configFile."opencode/opencode.json".source;
 in
-assert standalone.programs.opencode.package == pkgs.opencode;
-assert builtins.elem pkgs.opencode-desktop standalone.home.packages;
+assert standalone.programs.opencode.package == opencode;
+assert !(lib.any (package: lib.getName package == "opencode-desktop") standalone.home.packages);
+assert lib.versions.major (lib.getVersion opencode) == "2";
 assert lib.assertMsg (lib.all empty [
   standalone
   absent
@@ -111,7 +113,7 @@ pkgs.runCommand "opencode-craft"
   {
     nativeBuildInputs = [
       pkgs.jq
-      pkgs.opencode
+      opencode
     ];
   }
   ''
@@ -122,10 +124,18 @@ pkgs.runCommand "opencode-craft"
     export XDG_STATE_HOME="$TMPDIR/state"
     export OPENCODE_DISABLE_MODELS_FETCH=true
     export OPENCODE_DISABLE_AUTOUPDATE=true
+    export OPENCODE_CONFIG_PROJECT_DISABLE=true
     export OPENCODE_CONFIG=${json film}
-    mkdir -p "$HOME"
-    opencode debug config > "$TMPDIR/resolved.json"
-    jq -e '.lsp == true and .compaction.tail_turns == 20' "$TMPDIR/resolved.json" > /dev/null
+    mkdir -p "$HOME" "$XDG_CONFIG_HOME/opencode"
+    cp ${pkgs.writeText "opencode-service-prod.json" ''{"disabled":true}''} \
+      "$XDG_CONFIG_HOME/opencode/service-prod.json"
+    timeout 60s opencode debug config > "$TMPDIR/config-entries.json"
+    jq -e --arg path "$OPENCODE_CONFIG" '
+      [.[] | select(.type == "document" and .path == $path) | .info] as $docs |
+      ($docs | length) == 1 and ($docs[0] |
+        .lsp == true and
+        .mcp.servers["craft-filmcraft"].disabled == false)
+    ' "$TMPDIR/config-entries.json" > /dev/null
     jq -e --arg cli ${lib.escapeShellArg (lib.getExe' package "filmcraft-cli")} '
       .mcp["craft-filmcraft"].command == [$cli, "mcp"] and
       .mcp["craft-filmcraft"].type == "local" and
