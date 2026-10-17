@@ -54,6 +54,9 @@ let
     && client.programs.opencode.package == opencode
     && !(builtins.elem "opencode-desktop" (packageNames client))
     && client.programs.claude-code.enable
+    &&
+      client.programs.claude-code.package
+      == inputs.nix-claude-code.packages.${host.nixpkgs.hostPlatform.system}.latest
     && client.home.shellAliases.oc == "ai-memory run --no-autowire opencode"
     && client.my.ai.memory.client == host.my.ai.memory.client
     && client.my.ai.memory.client.tokenFile == secret.path
@@ -72,6 +75,9 @@ assert ai.programs.claude-code.settings.enabledPlugins."gopls-lsp@claude-plugins
 assert !(claudeOnly.programs.opencode.enable or false);
 assert !(opencodeOnly.programs.claude-code.enable or false);
 assert claudeOnly.programs.claude-code.enableMcpIntegration;
+assert
+  claudeOnly.programs.claude-code.package
+  == inputs.nix-claude-code.packages.${pkgs.stdenv.hostPlatform.system}.latest;
 assert claudeOnly.programs.mcp.servers ? playwright;
 assert
   claudeOnly.programs.claude-code.skills.ai-client-troubleshooting

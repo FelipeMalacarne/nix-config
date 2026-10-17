@@ -4,30 +4,33 @@ Zaros explicitly selects `claude-remote-control`, a lingering systemd user servi
 It runs the upstream Claude Code package in `~/repos`, with normal permission
 checks and no inbound listener. MacBook and server hosts do not select it.
 Override `my.ai.claude.remoteControl.directory` in Home Manager to use a different
-existing directory. Remote sessions share that directory; avoid concurrent edits
+existing directory. Selecting this feature explicitly trusts that directory and
+accepts Remote Control consent. A pre-start merge sets only
+`projects[<directory>].hasTrustDialogAccepted` and `remoteDialogSeen` in mutable
+Claude state, preserving login metadata, other projects and permission settings.
+It refuses malformed state, symlinks and active writer locks rather than
+overwriting them. No credentials are put in the Nix store.
+Remote sessions share that directory; avoid concurrent edits
 to the same files. Claude can access files as your user, so review permissions
 carefully. Remote transcripts are synced through Anthropic.
 
 The service bypasses Home Manager's CLI plugin wrapper: server mode cannot
-forward its injected `--plugin-dir` arguments. Shared on-disk Claude settings,
-MCP configuration and skills still apply, but wrapper-only plugins do not.
+forward its injected `--plugin-dir` arguments. On-disk settings and skills still
+apply, but wrapper-provided plugins (including the shared MCP registry plugin)
+do not. Do not assume those MCP servers are available remotely.
 
 ## First-time setup
 
 In a private terminal on Zaros, sign into Claude Code with your eligible Claude
-subscription. Build the unwrapped, pinned CLI and run it directly (the usual
-`claude` command injects plugin flags):
+subscription:
 
 ```sh
-# From the nix-config checkout:
-claude_bin=$(nix build --no-link --print-out-paths --impure --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.claude-code')
-cd ~/repos
-"$claude_bin/bin/claude" remote-control --name zaros --no-create-session-in-dir
+claude auth login
 ```
 
-Accept Remote Control consent and directory trust yourself. Confirm that the
-server connects, then stop it with Ctrl-C before starting the background service.
-Do not use API-key auth or a restricted `claude setup-token` token for this.
+Directory trust and Remote Control consent are managed by the feature; no
+interactive trust setup is needed. Do not use API-key auth or a restricted
+`claude setup-token` token for this.
 No credentials are managed or copied by this feature.
 
 After an explicitly approved configuration activation, inspect the service with:

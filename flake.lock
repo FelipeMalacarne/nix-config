@@ -679,6 +679,26 @@
         "type": "github"
       }
     },
+    "nix-claude-code": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792170126,
+        "narHash": "sha256-5m7FTwyCnmFRnZOgB1c/Xx/u7q5rphqtKiZnLvUrm8Q=",
+        "owner": "ryoppippi",
+        "repo": "nix-claude-code",
+        "rev": "647c19399dff80ea816eb7280fe800104096dbd8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ryoppippi",
+        "repo": "nix-claude-code",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1787070829,
@@ -1142,6 +1162,7 @@
         "jagex-launcher": "jagex-launcher",
         "mac-app-util": "mac-app-util",
         "millennium": "millennium",
+        "nix-claude-code": "nix-claude-code",
         "nixpkgs": "nixpkgs_7",
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
