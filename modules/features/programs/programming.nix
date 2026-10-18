@@ -52,6 +52,7 @@ let
           obsidian
 
           dig
+          lazysql
         ]
         ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           bubblewrap
