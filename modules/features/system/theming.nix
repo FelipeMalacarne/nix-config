@@ -81,7 +81,7 @@ in
         my.colors = palette config.lib.stylix.colors;
         stylix = {
           enable = true;
-          base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+          base16Scheme = "${inputs.stylix.inputs.tinted-schemes}/base16/catppuccin-mocha.yaml";
           opacity = {
             desktop = 0.93;
             popups = 1.0;
@@ -127,7 +127,7 @@ in
         stylix = {
           enable = true;
           polarity = "dark";
-          base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+          base16Scheme = "${inputs.stylix.inputs.tinted-schemes}/base16/catppuccin-mocha.yaml";
           fonts = {
             emoji = {
               name = "Noto Color Emoji";
