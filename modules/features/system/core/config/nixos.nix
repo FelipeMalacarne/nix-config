@@ -28,8 +28,6 @@ in
           "flakes"
         ];
         auto-optimise-store = true;
-        substituters = [ "https://nvf.cachix.org" ];
-        trusted-public-keys = [ "nvf.cachix.org-1:GMQWiUhZ6ux9D5CvFFMwnc2nFrUHTeGaXRlVBXo+naI=" ];
       };
 
       nix.gc = {
@@ -39,9 +37,6 @@ in
       };
 
       nixpkgs.config.allowUnfree = true;
-      nixpkgs.config.permittedInsecurePackages = [
-        "electron-39.8.10"
-      ];
       programs.nix-ld.enable = true;
       nix.registry.nixpkgs.flake = inputs.nixpkgs;
 
