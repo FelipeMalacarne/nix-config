@@ -11,6 +11,7 @@
       enable = true;
       package = inputs.nix-claude-code.packages.${pkgs.stdenv.hostPlatform.system}.latest;
       enableMcpIntegration = true;
+      settings.model = "claude-opus-5-5";
       plugins = [
         # placeholder
       ];
