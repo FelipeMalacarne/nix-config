@@ -185,7 +185,7 @@ countdown_seconds = 10
 shortcut = "1"
 
 [[shell.session.actions]]
-action = "suspend"
+action = "lock_and_suspend"
 countdown_seconds = 10
 shortcut = "2"
 
