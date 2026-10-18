@@ -25,14 +25,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
-      # Match the upstream Nix used by the hosts; Determinate Nix's lazy
-      # trees break evaluation of several inputs under --no-build.
+      # Match the upstream Nix used by the hosts.
       - uses: cachix/install-nix-action@v31
         with:
           install_url: https://releases.nixos.org/nix/nix-2.34.8/install
       - name: Formatting
         run: make fmt-check
-      - name: Fast evaluation
-        run: make eval-check
+      # No separate `make eval-check`: on a fresh store `--no-build` does not
+      # write the source copies that evaluation later imports, so it fails.
       - name: Native checks and host closures
         run: nix flake check --show-trace path:.
