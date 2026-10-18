@@ -24,8 +24,12 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v19
+      - uses: actions/checkout@v5
+      # Match the upstream Nix used by the hosts; Determinate Nix's lazy
+      # trees break evaluation of several inputs under --no-build.
+      - uses: cachix/install-nix-action@v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.34.8/install
       - name: Formatting
         run: make fmt-check
       - name: Fast evaluation
