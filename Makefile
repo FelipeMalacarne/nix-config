@@ -33,7 +33,7 @@ help:
 		'  build-darwin       Build native nix-darwin closures (Darwin only)' \
 		'  (activation is local-host-only by default)' \
 		'  (dangerous cross-host use: make switch HOST=other-host DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1)' \
-		'  (on Darwin, use darwin-rebuild switch --flake path:.#macbook; these are NixOS-only targets)' \
+		'  (on Darwin, use darwin-rebuild switch --flake .#macbook; these are NixOS-only targets)' \
 		'  fmt                Format the flake with the pinned formatter' \
 		'  noctalia-export    Capture portable Noctalia UI preferences into the TOML baseline' \
 		'  secrets            Edit SOPS secrets' \
@@ -53,7 +53,7 @@ help:
 
 .PHONY: build build-all build-darwin switch test boot rollback check eval-check fmt fmt-check host-validation host-safety local-host-safety platform-safety darwin-platform-safety secrets
 build: host-validation platform-safety
-	nix build "path:.#nixosConfigurations.$${HOST}.config.system.build.toplevel"
+	nix build ".#nixosConfigurations.$${HOST}.config.system.build.toplevel"
 
 host-validation:
 	@if [[ ! "$${HOST}" =~ ^[[:alnum:]]([[:alnum:]-]*[[:alnum:]])?$$ ]]; then \
@@ -77,27 +77,27 @@ local-host-safety: host-validation
 
 platform-safety:
 	@if [[ "$$(uname -s)" == Darwin ]]; then \
-		printf '%s\n' 'NixOS targets are unavailable on Darwin. Use darwin-rebuild switch --flake path:.#macbook (or the applicable Darwin command).' >&2; \
+		printf '%s\n' 'NixOS targets are unavailable on Darwin. Use darwin-rebuild switch --flake .#macbook (or the applicable Darwin command).' >&2; \
 		exit 1; \
 	fi
 
 switch: host-safety platform-safety
-	sudo nixos-rebuild switch --flake "path:.#$${HOST}"
+	sudo nixos-rebuild switch --flake ".#$${HOST}"
 
 test: host-safety platform-safety
-	sudo nixos-rebuild test --flake "path:.#$${HOST}"
+	sudo nixos-rebuild test --flake ".#$${HOST}"
 
 boot: host-safety platform-safety
-	sudo nixos-rebuild boot --flake "path:.#$${HOST}"
+	sudo nixos-rebuild boot --flake ".#$${HOST}"
 
 rollback: local-host-safety platform-safety
 	sudo nixos-rebuild switch --no-reexec --rollback
 
 check:
-	nix flake check 'path:.'
+	nix flake check '.'
 
 eval-check:
-	nix flake check --no-build 'path:.'
+	nix flake check --no-build '.'
 
 build-all: platform-safety
 build-darwin: darwin-platform-safety
@@ -111,19 +111,19 @@ darwin-platform-safety:
 # generated shell source or maintaining another host list.
 build-all build-darwin:
 	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
-	nix build "path:.#packages.$${system}.host-closures" --no-link
+	nix build ".#packages.$${system}.host-closures" --no-link
 
 fmt:
 	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
-	nix run "path:.#formatter.$${system}"
+	nix run ".#formatter.$${system}"
 
 fmt-check:
 	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
-	nix run "path:.#formatter.$${system}" -- --ci
+	nix run ".#formatter.$${system}" -- --ci
 
 .PHONY: noctalia-export
 noctalia-export: platform-safety
-	nix run 'path:.#noctalia-export' -- modules/features/desktop/noctalia/config/settings.toml
+	nix run '.#noctalia-export' -- modules/features/desktop/noctalia/config/settings.toml
 
 .PHONY: artcraft-updates artcraft-update artcraft-check
 artcraft-updates artcraft-update:
@@ -149,13 +149,13 @@ artcraft-updates artcraft-update:
 		craft_args+=(--version "$${VERSION}"); \
 	fi; \
 	if [[ "$@" == artcraft-update ]]; then craft_args+=(--write); else craft_args+=(--check); fi; \
-	nix run 'path:.#artcraft-update' -- "$${craft_args[@]}"
+	nix run '.#artcraft-update' -- "$${craft_args[@]}"
 
 artcraft-check:
 	@craft_system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
-	craft_checks=("path:.#checks.$${craft_system}.artcraft-updater"); \
+	craft_checks=(".#checks.$${craft_system}.artcraft-updater"); \
 	case "$${craft_system}" in \
-		*-linux) craft_checks+=("path:.#checks.$${craft_system}.artcraft-selection" "path:.#checks.$${craft_system}.artcraft-cli") ;; \
+		*-linux) craft_checks+=(".#checks.$${craft_system}.artcraft-selection" ".#checks.$${craft_system}.artcraft-cli") ;; \
 	esac; \
 	nix build "$${craft_checks[@]}" --no-link -L
 

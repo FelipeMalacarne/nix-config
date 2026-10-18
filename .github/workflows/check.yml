@@ -34,4 +34,4 @@ jobs:
       # No separate `make eval-check`: on a fresh store `--no-build` does not
       # write the source copies that evaluation later imports, so it fails.
       - name: Native checks and host closures
-        run: nix flake check --show-trace path:.
+        run: nix flake check --show-trace .
