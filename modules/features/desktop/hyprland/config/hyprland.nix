@@ -8,6 +8,8 @@
       ...
     }:
     lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
+      # The Lua session exports LC_CTYPE=pt_BR.UTF-8 for the cedilla compose map.
+      i18n.extraLocales = [ "pt_BR.UTF-8/UTF-8" ];
       programs.hyprland = {
         enable = true;
         withUWSM = true;
