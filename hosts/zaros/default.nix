@@ -39,7 +39,7 @@ in
 
   home-manager.users.${user} = {
     imports = with self.modules.homeManager; [
-      ankama-launcher
+      # ankama-launcher
       scape2011
       microbot
       office
