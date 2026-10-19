@@ -48,6 +48,17 @@ host selection, and ai-usagebar is not included. `server` provides headless
 base/server policy. `server` does not
 implicitly enable optional services: hosts select them through feature imports.
 
+OpenCode and Claude Code share the `playwright-mcp`, `linear-mcp` and `github-mcp`
+Home Manager aspects through the native MCP registry. Linear connects directly
+to `https://mcp.linear.app/mcp`; after activation, authorize it in OpenCode's
+`/mcps` or Claude Code's `/mcp` menu (separately for each client and machine).
+GitHub runs the official Nix-packaged MCP server locally, without Docker. Its
+launcher obtains a token at runtime from the active `gh` account on `github.com`;
+credentials are never embedded in Nix configuration or the store. Run
+`gh auth login --hostname github.com` in a private terminal if needed. Existing
+GitHub/organization permissions still apply; no extra scopes are granted by this
+configuration. Codex and GitHub Copilot CLI remain package-only selections.
+
 Platform profiles forward their Home Manager composition to the primary user.
 Hosts select a platform profile once; additional Home Manager imports are for
 independently selected user-only features, not a second copy of the profile.

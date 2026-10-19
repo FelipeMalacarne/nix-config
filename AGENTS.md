@@ -104,9 +104,13 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
 
-OpenCode and Claude Code import the shared Home Manager `playwright-mcp` aspect
-and consume the native shared MCP registry. Keep client-specific settings and
-plugins in their client features. The memory client owns its upstream routing
+OpenCode and Claude Code import the shared Home Manager `playwright-mcp`,
+`linear-mcp` and `github-mcp` aspects and consume the native shared MCP registry.
+Linear uses its official remote endpoint with client-managed OAuth. GitHub uses
+the official local server with a token obtained from `gh` at runtime; never embed
+credentials in Nix or the store. Codex and Copilot CLI remain package-only.
+Keep client-specific settings and plugins in their client features.
+The memory client owns its upstream routing
 skills and workflow rules for both clients; lifecycle hooks remain client-specific.
 Only add skills with concrete, specialized procedures or reference material;
 do not package generic coding advice or duplicate `AGENTS.md` as skills.

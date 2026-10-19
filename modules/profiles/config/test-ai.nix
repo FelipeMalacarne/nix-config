@@ -34,6 +34,17 @@ let
     }
   ];
   claudeOnly = evaluate [ self.modules.homeManager.claude-code ];
+  claudeRender = evaluate [
+    self.modules.homeManager.claude-code
+    {
+      # Exercise Home Manager's real wrapper/plugin generation without logging in.
+      programs.claude-code.package = lib.mkForce (
+        pkgs.writeShellScriptBin "claude" ''
+          printf '%s\n' "$@"
+        ''
+      );
+    }
+  ];
   opencodeOnly = evaluate [ self.modules.homeManager.opencode ];
   packageNames = home: map lib.getName home.home.packages;
   codingClis = map lib.getName [
@@ -57,6 +68,10 @@ let
     &&
       client.programs.claude-code.package
       == inputs.nix-claude-code.packages.${host.nixpkgs.hostPlatform.system}.latest
+    && client.programs.mcp.servers.github.command != null
+    && client.programs.mcp.servers.linear.url == "https://mcp.linear.app/mcp"
+    && !(client.programs.codex.enable or false)
+    && !(client.programs.github-copilot-cli.enable or false)
     && client.home.shellAliases.oc == "ai-memory run --no-autowire opencode"
     && client.my.ai.memory.client == host.my.ai.memory.client
     && client.my.ai.memory.client.tokenFile == secret.path
@@ -68,6 +83,8 @@ in
 assert !(development.programs.opencode.enable or false);
 assert !(development.programs.claude-code.enable or false);
 assert !(development.home.shellAliases ? oc);
+assert !(development.programs.mcp.servers ? github);
+assert !(development.programs.mcp.servers ? linear);
 assert lib.all (name: !(builtins.elem name (packageNames development))) codingClis;
 assert ai.programs.opencode.enable && ai.programs.claude-code.enable;
 assert lib.all (name: builtins.elem name (packageNames ai)) codingClis;
@@ -79,6 +96,19 @@ assert
   claudeOnly.programs.claude-code.package
   == inputs.nix-claude-code.packages.${pkgs.stdenv.hostPlatform.system}.latest;
 assert claudeOnly.programs.mcp.servers ? playwright;
+assert lib.all
+  (
+    client:
+    client.programs.mcp.servers.github.command != null
+    && client.programs.mcp.servers.github.env == { }
+    && client.programs.mcp.servers.linear.url == "https://mcp.linear.app/mcp"
+    && client.programs.mcp.servers.linear.headers == { }
+  )
+  [
+    claudeOnly
+    opencodeOnly
+    ai
+  ];
 assert
   claudeOnly.programs.claude-code.skills.ai-client-troubleshooting
   == opencodeOnly.programs.opencode.skills.ai-client-troubleshooting;
@@ -109,4 +139,13 @@ assert server.sops.secrets.ai-memory-token.owner == "ai-memory";
 assert !(self.modules.homeManager ? openclaw);
 assert !(inputs ? nix-openclaw);
 assert !(inputs ? ai-usagebar);
-pkgs.runCommand "ai-profile" { } "touch $out"
+pkgs.runCommand "ai-profile" { nativeBuildInputs = [ pkgs.jq ]; } ''
+  readarray -t args < <(${claudeRender.programs.claude-code.finalPackage}/bin/claude)
+  test "''${args[0]}" = --plugin-dir
+  jq -e --arg launcher ${lib.escapeShellArg claudeOnly.programs.mcp.servers.github.command} '
+    (.mcpServers | keys) == ["github", "linear", "playwright"] and
+    .mcpServers.github == {type: "stdio", command: $launcher} and
+    .mcpServers.linear == {type: "http", url: "https://mcp.linear.app/mcp"}
+  ' "''${args[1]}/.mcp.json" > /dev/null
+  touch "$out"
+''

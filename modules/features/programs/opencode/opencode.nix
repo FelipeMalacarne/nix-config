@@ -21,6 +21,8 @@ let
     {
       imports = with config.flake.modules.homeManager; [
         ai-skills
+        github-mcp
+        linear-mcp
         playwright-mcp
       ];
       programs.mcp = {

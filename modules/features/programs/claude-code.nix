@@ -5,6 +5,8 @@
     key = "nix-config/homeManager/claude-code";
     imports = with config.flake.modules.homeManager; [
       ai-skills
+      github-mcp
+      linear-mcp
       playwright-mcp
     ];
     programs.claude-code = {

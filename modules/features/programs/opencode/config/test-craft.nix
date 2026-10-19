@@ -67,7 +67,11 @@ let
   servers = cfg: builtins.attrNames cfg.programs.mcp.servers;
   empty =
     cfg:
-    servers cfg == [ "playwright" ]
+    servers cfg == [
+      "github"
+      "linear"
+      "playwright"
+    ]
     && !(cfg.programs.opencode.settings ? agent)
     && !(cfg.programs.opencode.skills ? artcraft-editing);
   json = cfg: cfg.xdg.configFile."opencode/opencode.json".source;
@@ -119,6 +123,8 @@ assert lib.assertMsg (lib.all empty [
 assert lib.assertMsg (
   servers film == [
     "craft-filmcraft"
+    "github"
+    "linear"
     "playwright"
   ]
 ) "Only selected apps should be registered alongside existing MCP servers";
@@ -126,6 +132,8 @@ assert lib.assertMsg (
   servers multiple == [
     "craft-filmcraft"
     "craft-photocraft"
+    "github"
+    "linear"
     "playwright"
   ]
 ) "Craft MCP selection must work independently for multiple apps";
@@ -166,20 +174,24 @@ pkgs.runCommand "opencode-craft"
     cp ${pkgs.writeText "opencode-service-prod.json" ''{"disabled":true}''} \
       "$XDG_CONFIG_HOME/opencode/service-prod.json"
     timeout 60s opencode debug config > "$TMPDIR/config-entries.json"
-    jq -e --arg path "$OPENCODE_CONFIG" '
+    jq -e --arg path "$OPENCODE_CONFIG" \
+      --arg github ${lib.escapeShellArg film.programs.mcp.servers.github.command} '
       [.[] | select(.type == "document" and .path == $path) | .info] as $docs |
       ($docs | length) == 1 and ($docs[0] |
         .lsp == true and
         .compaction == {auto: true, keep: {tokens: 15000}} and
         (.providers.openai.models | length) == 8 and
         (.providers.openai.models | all(.limit == {input: 272000})) and
-        .mcp.servers["craft-filmcraft"].disabled == false)
+        .mcp.servers["craft-filmcraft"].disabled == false and
+        .mcp.servers.github.type == "local" and
+        .mcp.servers.github.command == [$github] and
+        .mcp.servers.linear == {type: "remote", url: "https://mcp.linear.app/mcp"})
     ' "$TMPDIR/config-entries.json" > /dev/null
     jq -e --arg cli ${lib.escapeShellArg (lib.getExe' package "filmcraft-cli")} '
       .mcp["craft-filmcraft"].command == [$cli, "mcp"] and
       .mcp["craft-filmcraft"].type == "local" and
       .mcp["craft-filmcraft"].enabled == true and
-      (.mcp | keys) == ["craft-filmcraft", "playwright"] and
+      (.mcp | keys) == ["craft-filmcraft", "github", "linear", "playwright"] and
       .tools["craft-*"] == false and
       .agent["craft-editor"].tools["craft-*"] == true and
       .agent["craft-editor"].mode == "subagent" and
@@ -188,7 +200,7 @@ pkgs.runCommand "opencode-craft"
     jq -e --arg cli ${lib.escapeShellArg (lib.getExe' replacement "filmcraft-cli")} '
       .mcp["craft-filmcraft"].command == [$cli, "mcp"]
     ' ${json overridden} > /dev/null
-    jq -e '(.mcp | keys) == ["playwright"] and (has("agent") | not)' ${json absent} > /dev/null
+    jq -e '(.mcp | keys) == ["github", "linear", "playwright"] and (has("agent") | not)' ${json absent} > /dev/null
     test -f ${film.programs.opencode.skills.artcraft-editing}/SKILL.md
     touch $out
   ''
