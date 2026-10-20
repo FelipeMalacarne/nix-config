@@ -86,6 +86,8 @@
             keyboard = {
               inherit (config.services.xserver.xkb) layout variant options;
             };
+            # Upstream never blanks by default; match the sessions' 240-second DPMS timeout.
+            idle.timeout = lib.mkDefault 240;
             output =
               lib.optionalAttrs (monitors != [ ]) {
                 layout = lib.concatMapStringsSep "; " (

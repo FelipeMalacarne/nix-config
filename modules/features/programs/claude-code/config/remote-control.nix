@@ -46,7 +46,7 @@ in
         Service = {
           ExecStartPre = lib.escapeShellArgs [
             "${pkgs.python3}/bin/python3"
-            ./prepare.py
+            "${./prepare.py}"
             (
               if config.programs.claude-code.configDir == "${config.home.homeDirectory}/.claude" then
                 "${config.home.homeDirectory}/.claude.json"
