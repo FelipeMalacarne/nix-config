@@ -90,6 +90,11 @@ assert lib.all (name: !(builtins.elem name (packageNames development))) codingCl
 assert ai.programs.opencode.enable && ai.programs.claude-code.enable;
 assert lib.all (name: builtins.elem name (packageNames ai)) codingClis;
 assert ai.programs.claude-code.settings.enabledPlugins."gopls-lsp@claude-plugins-official";
+assert
+  ai.home.file."${ai.programs.claude-code.configDir}/settings.json".target
+  == ".claude/settings.nix.json";
+assert !(development.home.activation ? claudeSettings);
+assert !(opencodeOnly.home.activation ? claudeSettings);
 assert !(claudeOnly.programs.opencode.enable or false);
 assert !(opencodeOnly.programs.claude-code.enable or false);
 assert claudeOnly.programs.claude-code.enableMcpIntegration;

@@ -110,6 +110,11 @@ Linear uses its official remote endpoint with client-managed OAuth. GitHub uses
 the official local server with a token obtained from `gh` at runtime; never embed
 credentials in Nix or the store. Codex and Copilot CLI remain package-only.
 Keep client-specific settings and plugins in their client features.
+Claude's native `programs.claude-code.settings` renders a `settings.nix.json`
+baseline; the feature rebases it into writable user `settings.json` on activation.
+Unchanged defaults follow Nix, while local changes and deletions survive rebuilds.
+Do not relink the writable file into the store or force-overwrite user preferences.
+See `docs/claude-code.md` for migration, concurrency and rollback boundaries.
 The memory client owns its upstream routing
 skills and workflow rules for both clients; lifecycle hooks remain client-specific.
 Only add skills with concrete, specialized procedures or reference material;

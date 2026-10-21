@@ -3,7 +3,10 @@ let
   configFlake = config.flake.modules.homeManager;
 in
 {
-  imports = [ ./claude-code/config/remote-control.nix ];
+  imports = [
+    ./claude-code/config/remote-control.nix
+    ./claude-code/config/writable-settings.nix
+  ];
 
   # Opt-in per host: the shared AI profile keeps using its normal Claude login.
   flake.modules.darwin.claude-gateway = { config, ... }: {
