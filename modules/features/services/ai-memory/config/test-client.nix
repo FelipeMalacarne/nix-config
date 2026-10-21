@@ -31,7 +31,7 @@ in
 assert cfg.home.sessionVariables.AI_MEMORY_RUN_AUTOWIRE == "false";
 assert cfg.home.shellAliases.oc == "ai-memory run --no-autowire opencode";
 assert cfg.home.shellAliases.am == "ai-memory run --no-autowire";
-assert cfg.home.file.ai-memory-capture-mode.text == "allowlist\n";
+assert cfg.home.file.ai-memory-capture-mode.text == "denylist\n";
 assert lib.versions.major (lib.getVersion cfg.programs.opencode.package) == "2";
 assert !(cfg.xdg.configFile ? "opencode/plugins/ai-memory.ts");
 assert !((cfg.programs.opencode.settings.commands or { }) ? memory-finish);
@@ -61,6 +61,7 @@ pkgs.runCommand "ai-memory-client"
     nativeBuildInputs = [
       pkgs.nodejs
       pkgs.jq
+      pkgs.git
       opencode
     ];
   }
@@ -72,6 +73,18 @@ pkgs.runCommand "ai-memory-client"
     export XDG_DATA_HOME="$TMPDIR/xdg-data"
     export XDG_CACHE_HOME="$TMPDIR/cache"
     export XDG_STATE_HOME="$TMPDIR/state"
+    cp ${cfg.home.file.ai-memory-capture-mode.source} "$AI_MEMORY_DATA_DIR/capture-mode"
+    mkdir -p "$HOME/native-unmarked"
+    git init --quiet "$HOME/native-unmarked"
+    git -C "$HOME/native-unmarked" remote add origin https://github.com/fixture/native-project.git
+    printf '{"cwd":"%s","prompt":"synthetic native capture"}\n' "$HOME/native-unmarked" | \
+      ${cfg.programs.mcp.servers.ai-memory.command} hook --agent opencode2 \
+        --event user-prompt-submit --check-capture > "$TMPDIR/capture-policy.json"
+    jq -e '.capture_mode == "denylist" and .marker_present == false and
+      .admits_capture == true and .policy_admits_capture == true and
+      .scope.identity == "github.com/fixture/native-project" and
+      .scope.identity_style == "path"' "$TMPDIR/capture-policy.json" > /dev/null
+    test ! -e "$AI_MEMORY_DATA_DIR/hook-spool"
     export OPENCODE_DISABLE_MODELS_FETCH=true
     export OPENCODE_DISABLE_AUTOUPDATE=true
     export OPENCODE_CONFIG_PROJECT_DISABLE=true
@@ -98,7 +111,7 @@ pkgs.runCommand "ai-memory-client"
         (.commands // {} | has("memory-finish") | not))
     ' "$TMPDIR/config-entries.json" > /dev/null
     grep -q 'const TOKEN: string | null = null' ${plugin}
-    grep -q 'allowlist' ${plugin}
+    grep -Fq 'const CAPTURE_MODE: "allowlist" | "denylist" = "denylist";' ${plugin}
     grep -q 'setup: async' ${plugin}
     test "$(readlink ${cfg.home.file.ai-memory-auth-token.source})" = /run/secrets/ai-memory-token
     for skill in ${

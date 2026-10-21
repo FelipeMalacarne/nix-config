@@ -19,7 +19,8 @@ for login. Experimental Umbriel and i3/Xorg remain selectable alternatives.
 Saradomin's DNS architecture and router setup are documented in
 [`docs/adguard-home.md`](docs/adguard-home.md).
 
-The shared, opt-in AI memory workflow and outage/recovery plan are documented in
+The shared AI memory workflow captures unmarked repositories by default;
+optional markers customize scope and exclusions. Its privacy and recovery plan is in
 [`docs/ai-memory.md`](docs/ai-memory.md).
 
 ## Architecture

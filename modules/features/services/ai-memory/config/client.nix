@@ -45,6 +45,8 @@ let
     let
       cfg = config.my.ai.memory.client;
       package = self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory;
+      # Keep native hooks/managed runs and the generated adapter in agreement.
+      captureMode = "denylist";
       dataDir =
         if pkgs.stdenv.hostPlatform.isDarwin then
           "${config.home.homeDirectory}/Library/Application Support/ai-memory"
@@ -59,7 +61,7 @@ let
         export HOME="$TMPDIR/home"
         export AI_MEMORY_DATA_DIR="$TMPDIR/data"
         mkdir -p "$HOME" "$AI_MEMORY_DATA_DIR"
-        ai-memory install-hooks --agent opencode2 --capture-mode allowlist \
+        ai-memory install-hooks --agent opencode2 --capture-mode ${captureMode} \
           --server-url ${lib.escapeShellArg cfg.serverUrl} \
           --apply --config-file "$out"
       '';
@@ -104,7 +106,7 @@ let
           };
           ai-memory-capture-mode = {
             target = "${dataDir}/capture-mode";
-            text = "allowlist\n";
+            text = "${captureMode}\n";
           };
           ai-memory-auth-token = {
             target = "${dataDir}/auth-token";

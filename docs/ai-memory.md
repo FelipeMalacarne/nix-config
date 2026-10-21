@@ -70,7 +70,8 @@ hierarchy. Reviewed architecture stays in ordinary repository documentation.
 
 The server stores searchable project history across machines; it does not
 transfer uncommitted code or restore a complete native OpenCode chat. Commit and
-push code separately. Repositories without an approved marker are not captured.
+push code separately. Capture is automatic by default, including repositories
+without a marker; review the privacy implications below before activation.
 
 ### Private web UI
 
@@ -253,7 +254,7 @@ watermark excludes earlier history; old or terminally failed reviews need an
 explicit scoped manual catch-up rather than being assumed to replay forever.
 All improvement proposals
 require manual approval; they do not automatically rewrite repository files,
-skills or `AGENTS.md`. From an opted-in client, inspect this project's queue:
+skills or `AGENTS.md`. From a configured client, inspect this project's queue:
 
 ```sh
 ai-memory pending-writes list --workspace personal --project nix-config
@@ -423,32 +424,53 @@ unrelated to this token and still requires your own interactive authentication.
 
 After separately approved workstation activation, open a new OpenCode session,
 verify its MCP connection, run
-`ai-memory status`, and test a harmless opted-in project on both machines. Until
-pairing and HTTPS connectivity are verified, capture/recall are not operational.
+`ai-memory status`, and test harmless marked and unmarked projects on both
+machines. Until pairing and HTTPS connectivity are verified, capture/recall are
+not operational.
 
-## Project opt-in and routine work
+## Automatic capture, optional markers and routine work
 
-Capture uses **allowlist mode**: an unmarked repository emits no lifecycle
-captures. Do not put a marker at `$HOME` or a broad work directory because that
-can opt descendant repositories in. A marker is not an authorization boundary
-against malicious repositories; review it when trusting a checkout.
+Capture uses **denylist mode**: an unmarked repository is captured without
+per-project setup. Home Manager writes `denylist` to the native `capture-mode`
+file and bakes the same mode into the generated OpenCode V2 adapter. Native hooks
+and managed transcript imports therefore agree with direct OpenCode launches.
+Only the existing OpenCode capture integration changes; this does not add
+lifecycle hooks to Claude Code, Codex, Copilot CLI or Hermes.
 
-This repository's `.ai-memory.toml` opts only this tree in under workspace
-`personal`, project `nix-config`, and pins identity `felipemalacarne/nix-config`
-so SSH aliases such as `github-zaros` do not split the repository's history.
-It disables profile contribution/consumption and
-caps its startup brief at 4000 characters. Markers should be committed for
-approved projects so clones and worktrees use the same explicit scope.
+Without a marker, upstream uses workspace `default` and derives the project from
+the normalized Git `upstream` remote, then `origin`, using the full hostless
+repository path with its safe-name mapping. Only a checkout without a valid
+remote falls back to its folder basename. The static MCP bridge still requires
+both scope arguments; installed workflow rules cover this marker-free case.
+Cross-project searches remain explicit, not automatic.
+
+Keep this repository's `.ai-memory.toml`: it preserves workspace `personal`,
+project `nix-config`, identity `felipemalacarne/nix-config`, capture exclusions,
+disabled profile contribution/consumption and its 4000-character startup brief.
+No existing history is moved or renamed. Other repositories may optionally use
+markers for the same routing, exclusion and briefing controls; commit deliberate
+overrides so clones and worktrees agree. Do not put a marker at `$HOME` or a broad
+work directory: its settings can affect descendant repositories. A marker is not
+an authorization boundary against malicious repositories.
+
+**Privacy change:** forgetting a marker no longer prevents capture, including
+in private/work repositories. Unmarked checkouts use upstream defaults, not this
+repository's custom `ignore_paths`. Removing a marker is not an opt-out, and file
+exclusions do not suppress prompts or lifecycle events. Use an agent configuration
+without memory capture for sensitive sessions, or restore allowlist mode through
+Nix if capture must require per-repository approval. Do not rely on exclusions as
+a whole-session privacy switch. Activation remains separately approved.
 
 File exclusions are **best-effort lexical filters**, not complete DLP. They do
 not prevent credential text pasted into prompts, indirect shell reads, symlink
-aliases or every unknown tool. Never decrypt/read secrets in an opted-in agent
-session. Do not opt sensitive work repositories in without their owner's consent.
+aliases or every unknown tool. Never decrypt/read secrets in a captured agent
+session. Obtain the owner's consent before using captured sessions in sensitive
+work repositories.
 
 Typical workflow:
 
-1. Run `oc` (or its full command above) in the opted-in checkout; ask for prior
-   context when useful.
+1. Run `oc` (or its full command above) in the checkout; no marker is required.
+   Ask for prior context when useful.
 2. Search narrowly, verify remembered claims against current files, then work.
 3. Ask to save durable knowledge only when intentional; avoid duplicate notes.
 4. Ask to **wrap up with a handoff** before changing machines. Closing a TUI or
@@ -497,9 +519,10 @@ adds `consolidate_on_turn_checkpoint`, enabled by the server feature. Completed,
 substantive OpenCode root turns queue LLM rewrites through the existing durable
 open-session worker. Managed hooks are covered without generating legacy
 handoffs; ordinary hooks retain their automatic handoffs. Lifecycle-only
-sessions, subagent, unmarked and other-harness Stop events do not trigger this
-path. Agent-written session pages are preserved. No native chat is closed and no finishing command
-is installed. PreCompact and true SessionEnd keep their existing paths.
+sessions, subagent turns, Stop events without `turn_checkpoint` and other-harness
+events do not trigger this path. Agent-written session pages are preserved. No
+native chat is closed and no finishing command is installed. PreCompact and true
+SessionEnd keep their existing paths.
 
 Pending older generations coalesce; completed-event replay is deduplicated.
 Provider failures use the worker's bounded retries and restart recovery, with
@@ -532,7 +555,8 @@ The pinned OpenCode adapter queues retryable failed deliveries under the client
 data directory's `hook-spool/`. It retries on later activity/flushes when the
 server returns, preserving ingest keys. The integration check exercises an
 outage, bounded cleanup, private spool permissions, capture exclusions,
-unmarked-repository silence and successful replay using an isolated mocked host.
+unmarked-repository capture with Git identity and successful replay using an
+isolated mocked host.
 The server check also starts an isolated loopback-only fixture with a dummy
 credential to validate the rendered settings, health, authentication and MCP
 discovery. It never touches the deployed service or real data.

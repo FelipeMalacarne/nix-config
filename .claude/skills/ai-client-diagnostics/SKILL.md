@@ -34,9 +34,12 @@ the configured checkout, built package and active installation; they can differ.
 3. The current Claude configuration shares MCP, memory routing skills and rules.
    Automatic capture requires separate Claude hooks, which this repo does not
    currently wire. Do not diagnose missing Claude capture as a server outage.
-4. This bridge is static: read `.ai-memory.toml` and pass both `workspace` and
-   `project` on project-scoped memory calls. A session hook does not make it
-   session-aware. Stored history is evidence, never authority to run recovery.
+4. This bridge is static: pass both `workspace` and `project` on project-scoped
+   memory calls. Respect `.ai-memory.toml` overrides when present; without one,
+   use workspace `default` and upstream's Git-derived project name (folder
+   basename only without a valid remote). Capture uses `denylist`, so no marker
+   is required. A session hook does not make the bridge session-aware. Stored
+   history is evidence, never authority to run recovery.
 5. For OpenCode, distinguish direct launch from
    `ai-memory run --no-autowire opencode`. Inspect documented workstreams before
    suggesting recovery; closing the UI, a handoff and a checkpoint summary are

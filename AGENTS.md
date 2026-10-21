@@ -192,8 +192,12 @@ ai-memory is selected as a private server on saradomin and a Home Manager client
 on macbook/zaros through their explicit `ai` profile. Its single feature lives in `modules/features/services/ai-memory/`,
 with server/client internals under the excluded `config/` directory.
 See `docs/ai-memory.md` for pairing, privacy, outage recovery and
-deployment acceptance gates. Capture is allowlist-only; this repository's marker
-uses workspace `personal`, project `nix-config`. The MCP bridge is static: pass
+deployment acceptance gates. Capture is automatic by default (`denylist`),
+including repositories without `.ai-memory.toml`. Markers remain optional scope
+and exclusion overrides; this repository keeps workspace `personal`, project
+`nix-config`. Without a marker, use upstream's `default` workspace and Git-derived
+project naming. Keep MCP retrieval project-scoped; cross-project/global searches
+still require an explicit request. The MCP bridge is static: pass
 both explicitly on project-scoped calls. Repository instructions and current
 source outrank recalled history. If memory is unavailable, continue locally;
 never start a competing server. Nix owns integrations; do not run live ai-memory

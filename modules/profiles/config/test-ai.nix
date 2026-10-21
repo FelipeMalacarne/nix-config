@@ -125,7 +125,7 @@ assert lib.all
     "ai-memory-handoff"
     "ai-memory-durable-pages"
   ];
-assert ai.home.file.ai-memory-capture-mode.text == "allowlist\n";
+assert ai.home.file.ai-memory-capture-mode.text == "denylist\n";
 assert
   workstation mac self.packages.aarch64-darwin.opencode
   && workstation zaros self.packages.x86_64-linux.opencode;

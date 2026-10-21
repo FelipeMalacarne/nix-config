@@ -1,4 +1,4 @@
-# Explicit opt-in for this repository, shared across machines and worktrees.
+# Optional scope and capture overrides, shared across machines and worktrees.
 workspace = "personal"
 project = "nix-config"
 identity = "felipemalacarne/nix-config"
