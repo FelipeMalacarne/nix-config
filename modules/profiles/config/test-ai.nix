@@ -34,6 +34,7 @@ let
     }
   ];
   claudeOnly = evaluate [ self.modules.homeManager.claude-code ];
+  claudeGateway = evaluate [ self.modules.homeManager.claude-gateway ];
   claudeRender = evaluate [
     self.modules.homeManager.claude-code
     {
@@ -92,6 +93,11 @@ assert ai.programs.claude-code.settings.enabledPlugins."gopls-lsp@claude-plugins
 assert !(claudeOnly.programs.opencode.enable or false);
 assert !(opencodeOnly.programs.claude-code.enable or false);
 assert claudeOnly.programs.claude-code.enableMcpIntegration;
+assert !(claudeOnly.programs.claude-code.settings ? apiKeyHelper);
+assert !((claudeOnly.programs.claude-code.settings.env or { }) ? ANTHROPIC_BASE_URL);
+assert claudeGateway.programs.claude-code.settings.env.ANTHROPIC_BASE_URL == "https://llm.attq";
+assert
+  claudeGateway.programs.claude-code.settings.apiKeyHelper == "cat /run/secrets/claude-gateway-key";
 assert
   claudeOnly.programs.claude-code.package
   == inputs.nix-claude-code.packages.${pkgs.stdenv.hostPlatform.system}.latest;
@@ -136,6 +142,16 @@ assert !((home server).home.file ? ai-memory-auth-token);
 assert !((home server).home.shellAliases ? oc);
 assert server.services.ai-memory.enable;
 assert server.sops.secrets.ai-memory-token.owner == "ai-memory";
+assert mac.sops.secrets.claude-gateway-key.owner == mac.my.user.name;
+assert mac.sops.secrets.claude-gateway-key.mode == "0400";
+assert
+  toString mac.sops.secrets.claude-gateway-key.sopsFile
+  == toString ../../../secrets/claude-gateway.yaml;
+assert (home mac).programs.claude-code.settings.env.ANTHROPIC_BASE_URL == "https://llm.attq";
+assert
+  (home mac).programs.claude-code.settings.apiKeyHelper == "cat /run/secrets/claude-gateway-key";
+assert !(zaros.sops.secrets ? claude-gateway-key);
+assert !((home zaros).programs.claude-code.settings ? apiKeyHelper);
 assert !(self.modules.homeManager ? openclaw);
 assert !(inputs ? nix-openclaw);
 assert !(inputs ? ai-usagebar);
