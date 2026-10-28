@@ -92,6 +92,7 @@ authorization to execute high-risk work.
 | ISSUE-042 | [Review Disko device-selection safety](042-disko-device-safety.md) | P1 | deferred |
 | ISSUE-043 | [Define the Darwin SOPS bootstrap procedure](043-darwin-sops-bootstrap.md) | P2 | deferred |
 | ISSUE-044 | [Complete or retire the dormant OpenClaw token integration](044-openclaw-token-provider.md) | P2 | resolved |
+| ISSUE-045 | [Move Saradomin storage to ZFS with bounded datasets](045-saradomin-zfs-storage.md) | P2 | needs-decision |
 
 ## Suggested Sequence
 
