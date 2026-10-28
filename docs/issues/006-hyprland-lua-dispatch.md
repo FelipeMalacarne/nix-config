@@ -1,6 +1,6 @@
 # ISSUE-006: Replace legacy dispatch commands in Hyprland Lua
 
-- Status: open
+- Status: in-progress
 - Priority: P2
 - Kind: source-confirmed command incompatibility with the pinned Lua manager
 - Scope: Hyprland next-monitor movement and keyboard resizing bindings
@@ -50,6 +50,6 @@ activation, or monitor operation is authorized by this issue.
 
 ## Resolution
 
-Not resolved.
+Replaced `hyprctl dispatch movewindow mon:+1` with `hl.dsp.window.move({ monitor = "+1" })` and the four `resizeactive` bindings with `hl.dsp.window.resize({ x, y, relative = true })` (same 80-pixel steps, still repeating). Accepted by the pinned 0.56.2 `Hyprland --verify-config`, which also rejects malformed arguments. `generated-lua` now fails if a legacy `movewindow`/`resizeactive` dispatch string reappears. Open: native movement/resize test under ISSUE-037.
 
 [Back to backlog](README.md)

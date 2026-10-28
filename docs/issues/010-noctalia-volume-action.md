@@ -1,6 +1,6 @@
 # ISSUE-010: Make the Noctalia volume action executable
 
-- Status: open
+- Status: in-progress
 - Priority: P2
 - Kind: source-confirmed undeclared executable dependency
 - Scope: Noctalia volume widget's middle-click action
@@ -49,6 +49,6 @@ devices/volume, reload the shell, or activate a configuration without approval.
 
 ## Resolution
 
-Not resolved.
+Chose the no-override option: removed `[widget.volume.actions].middle` so the widget uses Noctalia's default, with no external mixer to declare. `noctalia config validate` does not check action strings, so no built-in panel id was introduced. Saved GUI overrides in the live state are untouched. Open: confirm the default behavior in the approved UI test (ISSUE-037).
 
 [Back to backlog](README.md)

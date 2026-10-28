@@ -183,6 +183,9 @@
             import pathlib, sys, tomllib
             expected, exported = (tomllib.loads(pathlib.Path(path).read_text()) for path in sys.argv[1:])
             assert exported == expected, "Generated config must export back to the portable TOML baseline"
+            actions = [a["action"] for a in exported["shell"]["session"]["actions"]]
+            assert exported["lockscreen"]["lock_before_suspend"], "Suspend must lock first"
+            assert "lock_and_suspend" in actions and "suspend" not in actions, "Session menu must use the lock-ready suspend action"
             PY
             touch $out
           '';
@@ -204,6 +207,11 @@
         mkdir -p $out
         ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: file: "cp ${file} $out/${name}") luaFiles)}
         ${pkgs.lua5_4}/bin/luac -p $out/*.lua
+        # Legacy hyprctl dispatchers are rejected by the Lua config manager.
+        if ${pkgs.gnugrep}/bin/grep -nE 'dispatch (movewindow|resizeactive)' $out/*.lua; then
+          echo "legacy hyprctl dispatcher found in generated Lua" >&2
+          exit 1
+        fi
       '';
       desktopChecks = import ./config/test_sessions.nix {
         inherit

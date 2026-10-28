@@ -51,6 +51,11 @@
           ''
             mkdir -p "$out/share"
             cp -rs --no-preserve=mode ${sessionData.desktops}/share/. "$out/share/"
+            # Hypridle and locking are bound to UWSM's wayland-session target, so the plain
+            # entry is hidden here; the system-wide hyprland.desktop stays for UWSM to launch.
+            if [ -e "$out/share/wayland-sessions/hyprland-uwsm.desktop" ]; then
+              rm -f "$out/share/wayland-sessions/hyprland.desktop"
+            fi
             ${lib.optionalString i3Selected ''
               source=${sessionData.desktops}/share/xsessions/none+i3.desktop
               client=$(sed -n 's/^Exec=//p' "$source")

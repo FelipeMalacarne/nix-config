@@ -50,6 +50,6 @@ activation, greeter restart, or service/session action is authorized here.
 
 ## Resolution
 
-Changed the Noctalia session action from `suspend` to `lock_and_suspend` in `settings.toml`. Evaluation checks pass. Open: native suspend/resume test under ISSUE-037.
+Changed the Noctalia session action from `suspend` to `lock_and_suspend` in `settings.toml`. `noctalia-export` now asserts `lock_before_suspend` is set and the session menu uses `lock_and_suspend` and not `suspend`. Evaluation checks pass. Open: native suspend/resume test under ISSUE-037.
 
 [Back to backlog](README.md)

@@ -1,6 +1,6 @@
 # ISSUE-011: Supply KUBECONFIG to Hermes background services
 
-- Status: open
+- Status: wont-fix
 - Priority: P2
 - Kind: source-confirmed service-environment gap, corroborated by review evaluation
 - Scope: Zaros Hermes backend and web user-service environments
@@ -46,6 +46,6 @@ restarts are authorized here; obtain approval before any operational verificatio
 
 ## Resolution
 
-Not resolved.
+Hermes is no longer used on Zaros, so the missing `KUBECONFIG` in its background services has no consumer. The Hermes feature and its secrets are left in the repository unchanged; revisit only if Hermes is re-adopted.
 
 [Back to backlog](README.md)

@@ -1,6 +1,6 @@
 # ISSUE-003: Cover the plain Hyprland login path with locking
 
-- Status: open
+- Status: in-progress
 - Priority: P1
 - Kind: source-confirmed lifecycle gap; runtime exposure unverified
 - Scope: Hyprland login discovery, idle locking, and session lifecycle
@@ -50,6 +50,6 @@ logout, reboot, greeter restart, or service/session action is authorized here.
 
 ## Resolution
 
-Not resolved.
+Hid the plain `hyprland` entry from the Noctalia greeter's projected `wayland-sessions`; the system-wide `hyprland.desktop` stays for UWSM. `greeter-sessions` now asserts the plain entry is absent from native discovery, present system-wide, and that `Hyprland (uwsm-managed)` is still discovered. Formatting and the desktop/greeter checks pass. Open: Zaros closure build and native login/lock test under ISSUE-037.
 
 [Back to backlog](README.md)

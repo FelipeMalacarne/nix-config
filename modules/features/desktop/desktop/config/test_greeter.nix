@@ -134,13 +134,19 @@ pkgs.runCommandCC "greeter-sessions"
     test "$(sed -n 's/^TryExec=//p' "$session")" = ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
     grep -F '${wrapper}' ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
     grep -F '${rawExec}' ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
+    # Plain Hyprland is hidden from the greeter (its idle/lock lifecycle is UWSM-bound) but the
+    # system-wide entry that UWSM launches must remain.
+    test -e ${zaros.services.displayManager.sessionData.desktops}/share/wayland-sessions/hyprland.desktop
+    test ! -e ${projectedSessions zaros}/share/wayland-sessions/hyprland.desktop
     for desktop in ${zaros.services.displayManager.sessionData.desktops}/share/wayland-sessions/*.desktop; do
+      test "$(basename "$desktop")" = hyprland.desktop && continue
       cmp "$desktop" ${projectedSessions zaros}/share/wayland-sessions/$(basename "$desktop")
     done
     XDG_DATA_DIRS=${projectedSessions zaros}/share noctalia-greeter sessions > discovered-sessions
     test "$(grep -xc i3 discovered-sessions)" -eq 1
     grep -x Umbriel discovered-sessions
     grep -x 'Hyprland (uwsm-managed)' discovered-sessions
+    ! grep -x Hyprland discovered-sessions
     XDG_DATA_DIRS=${projectedSessions zaros}/share ./native-session-check ${projectedSessions zaros} inspect
     test "$(readlink -f ${zaros.system.path}/bin/noctalia-greeter-xsession)" = ${xsessionFor zaros}/bin/noctalia-greeter-xsession
     export PATH=${xsessionFor mock}/bin:${mockXinit}/bin:${startx}/bin:$PATH

@@ -68,13 +68,13 @@ end
 bind(key("TAB"), hl.dsp.focus({ workspace = "previous" }))
 bind(key("BRACKETRIGHT"), hl.dsp.focus({ workspace = "e+1" }))
 bind(key("BRACKETLEFT"), hl.dsp.focus({ workspace = "e-1" }))
-bind(key("SHIFT + PERIOD"), exec(hyprctl .. " dispatch movewindow mon:+1"))
+bind(key("SHIFT + PERIOD"), hl.dsp.window.move({ monitor = "+1" }))
 for i = 1, 9 do
 	bind(key(tostring(i)), hl.dsp.focus({ workspace = i }))
 	bind(key("SHIFT + " .. i), hl.dsp.window.move({ workspace = i }))
 end
-for _, pair in ipairs({ { "H", "-80 0" }, { "L", "80 0" }, { "K", "0 -80" }, { "J", "0 80" } }) do
-	bind(key("ALT + " .. pair[1]), exec(hyprctl .. " dispatch resizeactive " .. pair[2]), { repeating = true })
+for _, step in ipairs({ { "H", -80, 0 }, { "L", 80, 0 }, { "K", 0, -80 }, { "J", 0, 80 } }) do
+	bind(key("ALT + " .. step[1]), hl.dsp.window.resize({ x = step[2], y = step[3], relative = true }), { repeating = true })
 end
 bind(key("mouse:272"), hl.dsp.window.drag(), { mouse = true })
 bind(key("mouse:273"), hl.dsp.window.resize(), { mouse = true })

@@ -320,9 +320,6 @@ hide_passive = false
 [widget.volume]
 show_label = false
 
-[widget.volume.actions]
-middle = "exec pwvucontrol || pavucontrol"
-
 [widget.weather]
 capsule = false
 show_condition = false

@@ -50,15 +50,15 @@ authorization to execute high-risk work.
 |---|---|---|---|
 | ISSUE-001 | [Clean flake sources for formatting and CI](001-clean-flake-sources.md) | P1 | in-progress |
 | ISSUE-002 | [Align desktop checks and documentation with host selections](002-desktop-selection-checks.md) | P1 | resolved |
-| ISSUE-003 | [Cover the plain Hyprland login path with locking](003-plain-hyprland-locking.md) | P1 | open |
+| ISSUE-003 | [Cover the plain Hyprland login path with locking](003-plain-hyprland-locking.md) | P1 | in-progress |
 | ISSUE-004 | [Decide whether to retain i3 and provide locking if retained](004-i3-selection-and-locking.md) | P1 | needs-decision |
 | ISSUE-005 | [Decouple LAN DNS from Tailscale address availability](005-adguard-dns-availability.md) | P1 | open |
-| ISSUE-006 | [Replace legacy dispatch commands in Hyprland Lua](006-hyprland-lua-dispatch.md) | P2 | open |
+| ISSUE-006 | [Replace legacy dispatch commands in Hyprland Lua](006-hyprland-lua-dispatch.md) | P2 | in-progress |
 | ISSUE-007 | [Align Hyprland's locale with generated locales](007-hyprland-locale.md) | P2 | resolved |
 | ISSUE-008 | [Use Noctalia's lock-ready suspend action](008-noctalia-suspend-locking.md) | P2 | in-progress |
 | ISSUE-009 | [Decide and provision external-monitor DDC controls](009-noctalia-ddc-controls.md) | P2 | needs-decision |
-| ISSUE-010 | [Make the Noctalia volume action executable](010-noctalia-volume-action.md) | P2 | open |
-| ISSUE-011 | [Supply KUBECONFIG to Hermes background services](011-hermes-kubeconfig.md) | P2 | open |
+| ISSUE-010 | [Make the Noctalia volume action executable](010-noctalia-volume-action.md) | P2 | in-progress |
+| ISSUE-011 | [Supply KUBECONFIG to Hermes background services](011-hermes-kubeconfig.md) | P2 | wont-fix |
 | ISSUE-012 | [Choose a consistent SOPS editing and key-access workflow](012-sops-editing-permissions.md) | P2 | needs-decision |
 | ISSUE-013 | [Make base's secret-backed SSH dependency explicit](013-base-sops-dependency.md) | P2 | resolved |
 | ISSUE-014 | [Align Neovim LSP names and packaged servers](014-neovim-lsp-configuration.md) | P2 | resolved |
