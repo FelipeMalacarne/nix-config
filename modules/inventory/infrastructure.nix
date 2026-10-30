@@ -103,7 +103,7 @@ in
     {
       checks.infrastructure =
         assert inventory.ssh.hosts."github.com".IdentityFile == "~/.ssh/fixture";
-        assert inventory.ssh.hosts."github.com".Port == 443;
+        assert inventory.ssh.hosts."github.com".Port == 22;
         assert inventory.ssh.hosts."github.com".User == "git";
         assert inventory.ssh.hosts.saradomin == sshDefaults.saradomin;
         assert inventory.ssh.hosts.fixture.HostName == "fixture.example.test";
