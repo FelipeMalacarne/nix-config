@@ -56,6 +56,10 @@ See the reference for a small standalone Home Manager fixture.
 
 ## 4. Validate the affected outputs
 
+The flake only sees files Git tracks. `git add` new files (no commit needed)
+before evaluating, including in a fresh worktree; otherwise evaluation fails
+with a missing path or a missing `flake.modules` attribute.
+
 ```sh
 make fmt
 make fmt-check

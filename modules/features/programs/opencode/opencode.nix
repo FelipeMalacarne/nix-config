@@ -156,6 +156,7 @@ let
           permission = {
             external_directory = {
               "~/repos/**" = "allow";
+              "~/orca/workspaces/**" = "allow";
             };
           };
 
