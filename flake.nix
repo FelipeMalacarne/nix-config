@@ -92,6 +92,11 @@
       inputs.flake-parts.follows = "flake-parts";
     };
 
+    artcraft = {
+      url = "github:FelipeMalacarne/artcraft-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     orca = {
       url = "github:FelipeMalacarne/orca-flake";
       inputs.nixpkgs.follows = "nixpkgs";

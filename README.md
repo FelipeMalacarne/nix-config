@@ -114,13 +114,12 @@ optional subfeatures such as `my.ai.hermes.web.enable`. Custom AI settings share
 Configure memory clients at host level; the feature forwards settings to Home
 Manager. Hermes and Ollama remain explicitly selected optional features.
 
-The optional [Craft suite](docs/artcraft.md#available-apps) documents every app,
-its purpose, and its `my.artcraft.<app>.enable` flag. Configure these selectors
-after importing `self.modules.nixos.artcraft`. Every app defaults to
-disabled; Zaros selects only FilmCraft. Packages can also be tested independently
-with `nix run 'path:.#filmcraft'`.
-Use `make artcraft-updates`, `make artcraft-update APPS=filmcraft`, and
-`make artcraft-check` to maintain the pinned suite.
+The optional [Craft suite](docs/artcraft.md) comes from the auto-updated
+[`artcraft-flake`](https://github.com/FelipeMalacarne/artcraft-flake) input.
+Import the Home Manager `artcraft` aspect and select apps with
+`programs.artcraft.apps.<app>.enable`; every app defaults to disabled, and
+Zaros selects only FilmCraft with `programs.artcraft.mcp.enable`. Pick up new
+releases with `nix flake update artcraft`.
 
 Desktop sessions are selected with `my.desktop.sessions`; `my.desktop.defaultSession`
 must be a member of that list. Zaros selects `[ "umbriel" "hyprland" "i3" ]`

@@ -3,6 +3,7 @@
   pkgs,
   home-manager,
   module,
+  artcraft,
   opencode,
 }:
 let
@@ -12,11 +13,11 @@ let
     meta.mainProgram = "filmcraft";
   });
   replacement = pkgs.writeShellScriptBin "filmcraft-cli" "exit 1";
+  # null evaluates OpenCode without the ArtCraft module (e.g. Darwin).
   evaluate =
-    osConfig:
+    settings:
     (home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
-      extraSpecialArgs = lib.optionalAttrs (osConfig != null) { inherit osConfig; };
       modules = [
         module
         {
@@ -24,18 +25,29 @@ let
           home.homeDirectory = "/tmp/craft-check";
           home.stateVersion = "24.11";
         }
+      ]
+      ++ lib.optionals (settings != null) [
+        artcraft
+        { programs.artcraft = settings; }
       ];
     }).config;
   standalone = evaluate null;
   absent = evaluate { };
   disabled = evaluate {
-    my.artcraft.filmcraft = {
+    apps.filmcraft = {
       enable = false;
+      inherit package;
+    };
+    mcp.enable = true;
+  };
+  mcpOff = evaluate {
+    apps.filmcraft = {
+      enable = true;
       inherit package;
     };
   };
   film = evaluate {
-    my.artcraft = {
+    apps = {
       filmcraft = {
         enable = true;
         inherit package;
@@ -45,15 +57,17 @@ let
         inherit package;
       };
     };
+    mcp.enable = true;
   };
   overridden = evaluate {
-    my.artcraft.filmcraft = {
+    apps.filmcraft = {
       enable = true;
       package = replacement;
     };
+    mcp.enable = true;
   };
   multiple = evaluate {
-    my.artcraft = {
+    apps = {
       filmcraft = {
         enable = true;
         inherit package;
@@ -63,6 +77,7 @@ let
         inherit package;
       };
     };
+    mcp.enable = true;
   };
   servers = cfg: builtins.attrNames cfg.programs.mcp.servers;
   empty =
@@ -119,7 +134,8 @@ assert lib.assertMsg (lib.all empty [
   standalone
   absent
   disabled
-]) "OpenCode must not require ArtCraft or install editing integration without a selection";
+  mcpOff
+]) "OpenCode must not require ArtCraft or add editing integration without selected MCP apps";
 assert lib.assertMsg (
   servers film == [
     "craft-filmcraft"

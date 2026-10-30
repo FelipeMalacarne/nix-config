@@ -83,7 +83,8 @@ Custom AI settings share `my.ai`: memory client/server roles use
 `my.ai.memory.client` and `my.ai.memory.server`; Hermes uses `my.ai.hermes`.
 Features own their options. Platform memory clients forward host settings to
 Home Manager. The AI profile composes shared clients; Hermes and Ollama remain
-explicitly selected optional features. Artcraft retains `my.artcraft`.
+explicitly selected optional features. ArtCraft uses the `artcraft-flake`
+input's native Home Manager `programs.artcraft` options.
 
 `hosts/` contains concrete machines. `modules/flake/configurations.nix`
 explicitly constructs all NixOS and nix-darwin outputs from those host

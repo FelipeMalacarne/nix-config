@@ -22,7 +22,6 @@ in
     ai
     claude-remote-control
     docker
-    artcraft
     flatpak
     gaming
     recording
@@ -40,6 +39,7 @@ in
   home-manager.users.${user} = {
     imports = with self.modules.homeManager; [
       # ankama-launcher
+      artcraft
       scape2011
       microbot
       office
@@ -50,6 +50,11 @@ in
     ];
 
     my.infrastructure.ssh.hosts.saradomin.HostName = "10.10.0.10";
+
+    programs.artcraft = {
+      apps.filmcraft.enable = true;
+      mcp.enable = true;
+    };
 
     home.packages = with pkgs; [
       google-chrome
@@ -72,7 +77,6 @@ in
   };
 
   my = {
-    artcraft.filmcraft.enable = true;
     wol.interface = "enp12s0";
     rgb.color = config.my.colors.secondary;
     restic = {

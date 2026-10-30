@@ -1,22 +1,11 @@
-{ lib, apps }:
+{ lib, artcraft }:
 let
-  selected = lib.filterAttrs (_: app: app.enable) apps;
-  enabled = selected != { };
+  # The artcraft-flake module registers the craft-<app> MCP servers itself;
+  # OpenCode only scopes them to the editor when that registration is active.
+  enabled =
+    artcraft != null && artcraft.mcp.enable && lib.any (app: app.enable) (lib.attrValues artcraft.apps);
 in
 {
-  # Reuse the host's package selection (including package overrides).
-  # getExe would launch the GUI because that is each package's mainProgram.
-  servers = lib.mapAttrs' (
-    name: app:
-    lib.nameValuePair "craft-${name}" {
-      command = lib.getExe' app.package "${name}-cli";
-      args = [
-        "mcp"
-      ];
-      enabled = true;
-    }
-  ) selected;
-
   settings = lib.optionalAttrs enabled {
     # These are tool visibility rules, not a filesystem security sandbox.
     tools."craft-*" = false;

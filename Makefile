@@ -38,11 +38,6 @@ help:
 		'  noctalia-export    Capture portable Noctalia UI preferences into the TOML baseline' \
 		'  secrets            Edit SOPS secrets' \
 		'' \
-		'Craft applications:' \
-		'  artcraft-updates   Check releases: [APPS="filmcraft photocraft"] (default: all)' \
-		'  artcraft-update    Update pins: [APPS=filmcraft] [VERSION=0.7.2] (default: all)' \
-		'  artcraft-check     Build and test Craft packages/CLI/MCP on Linux; updater on Darwin' \
-		'' \
 		'Restic repository:' \
 		'  restic-snapshots   List snapshots' \
 		'  restic-ls          List files in SNAPSHOT' \
@@ -124,40 +119,6 @@ fmt-check:
 .PHONY: noctalia-export
 noctalia-export: platform-safety
 	nix run '.#noctalia-export' -- modules/features/desktop/noctalia/config/settings.toml
-
-.PHONY: artcraft-updates artcraft-update artcraft-check
-artcraft-updates artcraft-update:
-	@read -r -a craft_apps <<< "$${APPS}"; \
-	if (( $${#craft_apps[@]} == 0 )); then \
-		printf '%s\n' 'APPS must be all or one or more Craft app names.' >&2; exit 1; \
-	fi; \
-	if [[ "$${APPS}" == all ]]; then \
-		craft_args=(--all); \
-	else \
-		for craft_app in "$${craft_apps[@]}"; do \
-			if [[ "$${craft_app}" == all || ! "$${craft_app}" =~ ^[a-z][a-z0-9]*$$ ]]; then \
-				printf '%s\n' 'APPS must be all or whitespace-separated Craft app names.' >&2; exit 1; \
-			fi; \
-		done; \
-		craft_args=("$${craft_apps[@]}"); \
-	fi; \
-	if [[ -n "$${VERSION}" ]]; then \
-		if [[ "$${APPS}" == all ]] || (( $${#craft_apps[@]} != 1 )) || \
-			[[ ! "$${VERSION}" =~ ^v?[0-9][A-Za-z0-9.+_-]*$$ ]]; then \
-			printf '%s\n' 'VERSION requires exactly one app and a release version, e.g. APPS=filmcraft VERSION=0.7.2.' >&2; exit 1; \
-		fi; \
-		craft_args+=(--version "$${VERSION}"); \
-	fi; \
-	if [[ "$@" == artcraft-update ]]; then craft_args+=(--write); else craft_args+=(--check); fi; \
-	nix run '.#artcraft-update' -- "$${craft_args[@]}"
-
-artcraft-check:
-	@craft_system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
-	craft_checks=(".#checks.$${craft_system}.artcraft-updater"); \
-	case "$${craft_system}" in \
-		*-linux) craft_checks+=(".#checks.$${craft_system}.artcraft-selection" ".#checks.$${craft_system}.artcraft-cli") ;; \
-	esac; \
-	nix build "$${craft_checks[@]}" --no-link -L
 
 secrets:
 	sops secrets/secrets.yaml

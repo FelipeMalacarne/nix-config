@@ -21,6 +21,26 @@
         "type": "github"
       }
     },
+    "artcraft": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793372743,
+        "narHash": "sha256-dPBh5woFGrGPf0hQbv7zZ6YUnuxnygdlJz87TTWFQHQ=",
+        "owner": "FelipeMalacarne",
+        "repo": "artcraft-flake",
+        "rev": "11b5087d0cf24b4d83ff75222dd039d8a73d72e8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "FelipeMalacarne",
+        "repo": "artcraft-flake",
+        "type": "github"
+      }
+    },
     "base16": {
       "inputs": {
         "fromYaml": "fromYaml"
@@ -1043,6 +1063,7 @@
     "root": {
       "inputs": {
         "ai-memory": "ai-memory",
+        "artcraft": "artcraft",
         "caelestia-shell": "caelestia-shell",
         "darwin": "darwin",
         "disko": "disko",

@@ -5,30 +5,28 @@
   ...
 }:
 let
+  registry = config.flake.modules;
   module =
     {
+      config,
       lib,
       pkgs,
-      osConfig ? { },
       ...
     }:
     let
       craft = import ./config/craft-integration.nix {
         inherit lib;
-        apps = osConfig.my.artcraft or { };
+        artcraft = config.programs.artcraft or null;
       };
     in
     {
-      imports = with config.flake.modules.homeManager; [
+      imports = with registry.homeManager; [
         ai-skills
         github-mcp
         linear-mcp
         playwright-mcp
       ];
-      programs.mcp = {
-        enable = true;
-        servers = craft.servers;
-      };
+      programs.mcp.enable = true;
 
       home.sessionVariables.OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = "true";
 
@@ -220,6 +218,7 @@ in
         inherit (inputs) home-manager;
         inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) opencode;
         inherit module;
+        artcraft = inputs.artcraft.homeManagerModules.default;
       };
     };
 }
