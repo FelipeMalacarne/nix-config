@@ -92,6 +92,11 @@
       inputs.flake-parts.follows = "flake-parts";
     };
 
+    orca = {
+      url = "github:FelipeMalacarne/orca-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     hermes-agent = {
       url = "github:NousResearch/hermes-agent";
       # Keep upstream's Electron version paired with its fixed header checksum.

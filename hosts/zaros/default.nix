@@ -43,6 +43,7 @@ in
       scape2011
       microbot
       office
+      orca
       webos-dev-manager
       torrent
       signal

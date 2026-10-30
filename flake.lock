@@ -928,6 +928,26 @@
         "type": "github"
       }
     },
+    "orca": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793369033,
+        "narHash": "sha256-8cobSlKEiFp46gfjDjiMxWBq4cruVWcQ2LTguVSGZZA=",
+        "owner": "FelipeMalacarne",
+        "repo": "orca-flake",
+        "rev": "ce71c67fb3d643ed15a2af284d7214cda104816e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "FelipeMalacarne",
+        "repo": "orca-flake",
+        "type": "github"
+      }
+    },
     "phpantom-lsp": {
       "inputs": {
         "flake-utils": "flake-utils_3",
@@ -1039,6 +1059,7 @@
         "noctalia-greeter": "noctalia-greeter",
         "nur": "nur",
         "opencode": "opencode",
+        "orca": "orca",
         "phpantom-lsp": "phpantom-lsp",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
