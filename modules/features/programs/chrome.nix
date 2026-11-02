@@ -44,6 +44,9 @@ in
       programs.google-chrome = {
         enable = true;
         package = pkgs.google-chrome;
+        # Native Wayland on NVIDIA renders DRM video (Netflix) black while audio
+        # plays; XWayland keeps GPU acceleration and protected playback working.
+        commandLineArgs = lib.optionals (!isMac) [ "--ozone-platform=x11" ];
         # Darwin Chrome accepts Web Store external extensions from the profile.
         extensions = lib.optionals isMac extensions;
       };
@@ -72,6 +75,8 @@ in
           zaros.programs.chromium.extensions == extensions
           && (home zaros).programs.google-chrome.enable
           && (home zaros).programs.google-chrome.extensions == [ ]
+          && (home zaros).programs.google-chrome.commandLineArgs == [ "--ozone-platform=x11" ]
+          && macbook.programs.google-chrome.commandLineArgs == [ ]
           && map (e: e.id) macbook.programs.google-chrome.extensions == extensions
         ) "Chrome must install its extensions by Linux policy and by Darwin Web Store profile entries";
         pkgs.runCommand "chrome-platform" { } "touch $out";
