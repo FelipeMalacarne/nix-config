@@ -48,7 +48,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nur.url = "github:nix-community/NUR";
     millennium.url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
 
     sops-nix = {

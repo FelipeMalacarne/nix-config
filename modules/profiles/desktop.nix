@@ -11,7 +11,7 @@ in
       registry.nixos.hyprland
       registry.nixos.umbriel
       registry.nixos.noctalia
-      registry.nixos.firefox
+      registry.nixos.chrome
       registry.nixos.dolphin
       registry.nixos.kdeconnect
       registry.nixos.desktop-foundation
@@ -27,7 +27,7 @@ in
       umbriel
       noctalia
       caelestia
-      firefox
+      chrome
       dolphin
       ghostty
       kdeconnect

@@ -96,7 +96,7 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi.
   It does not import optional system integrations.
 - `desktop` — audio, network, i3, Hyprland, Umbriel, Noctalia and Caelestia
-  capabilities, Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
+  capabilities, Google Chrome, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
   explicitly select the login manager; the profile imports neither Greeter nor SDDM.
 - `development` — programming and Kubernetes tooling, without AI clients.
 - `ai` — explicit workstation composition of OpenCode, Claude Code, Codex, GitHub

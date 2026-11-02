@@ -21,7 +21,6 @@ in
     self.modules.darwin.k8s-credentials
     self.modules.darwin.ai
     self.modules.darwin.claude-gateway
-    self.modules.darwin.firefox
   ];
 
   networking.hostName = "macbook";
@@ -52,7 +51,7 @@ in
     {
       imports = with self.modules.homeManager; [
         ghostty
-        firefox
+        chrome
         sketchybar
       ];
 

@@ -44,6 +44,7 @@ in
       microbot
       office
       orca
+      webapps
       webos-dev-manager
       torrent
       signal
@@ -55,14 +56,7 @@ in
       apps.filmcraft.enable = true;
       mcp.enable = true;
     };
-
-    home.packages = with pkgs; [
-      google-chrome
-    ];
-
   };
-
-  programs.chromium.enable = true;
 
   boot.binfmt = {
     emulatedSystems = [ "aarch64-linux" ];

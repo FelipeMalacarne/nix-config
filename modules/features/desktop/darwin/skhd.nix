@@ -79,7 +79,7 @@
         ctrl + ${mod} - 3 : yabai -m display --focus 3
 
         ${mod} - return : ${termCmd}
-        ${mod} + shift - b : open -na Firefox
+        ${mod} + shift - b : open -na "Google Chrome"
         ${mod} + shift - f : ${termCmd} --args -e yazi
         ${mod} + shift - t : ${termCmd} --args -e btop
         ${mod} + shift - i : ${termCmd} --args -e fastfetch
