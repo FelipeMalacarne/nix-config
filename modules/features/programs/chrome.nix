@@ -1,11 +1,14 @@
 { self, ... }:
 let
-  # Agent bridges that attach to the logged-in browser instead of launching an
-  # isolated one: Claude in Chrome (claude --chrome) and Playwright MCP Bridge
-  # (@playwright/mcp --extension).
-  agentExtensions = [
+  extensions = [
+    # Agent bridges that attach to the logged-in browser instead of launching
+    # an isolated one: Claude in Chrome (claude --chrome) and Playwright MCP
+    # Bridge (@playwright/mcp --extension).
     "fcoeoabgfenejglbffodgkkbkcdhcgfn"
     "mmlmfjhmonkocbjadbfplnigmagldckm"
+    "nngceckbapebfimnlniiiahkandclblb" # Bitwarden
+    "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
+    "eimadpbcbfnmbkopoojfekhnkhdbieeh" # Dark Reader
   ];
   webMimeTypes = [
     "text/html"
@@ -21,7 +24,7 @@ in
     # Google Chrome on Linux only loads extensions from system policy.
     programs.chromium = {
       enable = true;
-      extensions = agentExtensions;
+      inherit extensions;
     };
   };
 
@@ -42,7 +45,7 @@ in
         enable = true;
         package = pkgs.google-chrome;
         # Darwin Chrome accepts Web Store external extensions from the profile.
-        extensions = lib.optionals isMac agentExtensions;
+        extensions = lib.optionals isMac extensions;
       };
 
       home.sessionVariables.BROWSER = lib.getExe config.programs.google-chrome.finalPackage;
@@ -66,11 +69,11 @@ in
     {
       checks.chrome-platform =
         assert lib.assertMsg (
-          zaros.programs.chromium.extensions == agentExtensions
+          zaros.programs.chromium.extensions == extensions
           && (home zaros).programs.google-chrome.enable
           && (home zaros).programs.google-chrome.extensions == [ ]
-          && map (e: e.id) macbook.programs.google-chrome.extensions == agentExtensions
-        ) "Chrome must install the agent bridges by Linux policy and by Darwin Web Store profile entries";
+          && map (e: e.id) macbook.programs.google-chrome.extensions == extensions
+        ) "Chrome must install its extensions by Linux policy and by Darwin Web Store profile entries";
         pkgs.runCommand "chrome-platform" { } "touch $out";
     };
 }
