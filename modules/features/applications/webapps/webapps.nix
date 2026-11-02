@@ -77,6 +77,36 @@ in
               "Player"
             ];
           };
+          youtube = {
+            name = "YouTube";
+            url = "https://www.youtube.com/";
+            icon = ./icons/youtube.png;
+            categories = [
+              "AudioVideo"
+              "Video"
+              "Player"
+            ];
+          };
+          netflix = {
+            name = "Netflix";
+            url = "https://www.netflix.com/";
+            icon = ./icons/netflix.png;
+            categories = [
+              "AudioVideo"
+              "Video"
+              "Player"
+            ];
+          };
+          jellyfin = {
+            name = "Jellyfin";
+            url = "https://jellyfin.saradomin.ftm.dev.br/";
+            icon = ./icons/jellyfin.png;
+            categories = [
+              "AudioVideo"
+              "Video"
+              "Player"
+            ];
+          };
           discord = {
             name = "Discord";
             url = "https://discord.com/app";
@@ -132,6 +162,9 @@ in
           && lib.all (id: lib.hasInfix " --app=https://" entries."webapp-${id}".exec) [
             "whatsapp"
             "youtube-music"
+            "youtube"
+            "netflix"
+            "jellyfin"
             "discord"
             "mesa"
             "lastro"
