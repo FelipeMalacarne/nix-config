@@ -12,22 +12,33 @@ in
     }:
     {
       key = "nix-config/homeManager/playwright-mcp";
-      imports = [ registry.homeManager.chrome ];
+      imports = [ registry.homeManager.chromium ];
 
       programs.mcp = {
         enable = true;
         servers.playwright = {
           command = lib.getExe' pkgs.nodejs "npx";
-          # Attach to the logged-in Chrome through the Playwright MCP Bridge
-          # extension. The relay launches the browser to open its connect page,
-          # so point it at the Nix package instead of /opt/google/chrome.
           args = [
             "-y"
             "@playwright/mcp"
-            "--extension"
-            "--executable-path"
-            (lib.getExe config.programs.google-chrome.finalPackage)
-          ];
+          ]
+          ++ (
+            if config.programs.chromium.enable then
+              # Attach to the agent Chromium through the Playwright MCP Bridge
+              # extension. The relay launches the browser to open its connect
+              # page, so point it at the Nix package.
+              [
+                "--extension"
+                "--executable-path"
+                (lib.getExe config.programs.chromium.finalPackage)
+              ]
+            else
+              # Without an agent browser, launch Playwright's own isolated Chromium.
+              [
+                "--browser"
+                "chromium"
+              ]
+          );
         };
       };
     };

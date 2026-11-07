@@ -1,0 +1,127 @@
+{ inputs, self, ... }:
+let
+  webMimeTypes = [
+    "text/html"
+    "application/xhtml+xml"
+    "x-scheme-handler/http"
+    "x-scheme-handler/https"
+    "x-scheme-handler/about"
+    "x-scheme-handler/unknown"
+  ];
+
+  homeModule =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      p = config.lib.stylix.colors;
+      isMac = pkgs.stdenv.hostPlatform.isDarwin;
+    in
+    {
+      home.packages = [ pkgs.pywalfox-native ];
+
+      home.file.".cache/wal/colors.json".text = ''
+        {
+          "wallpaper": "nix-generated",
+          "alpha": "100",
+          "special": {
+            "background": "#${p.base00}",
+            "foreground": "#${p.base05}",
+            "cursor": "#${p.base05}"
+          },
+          "colors": {
+            "color0": "#${p.base00}", "color1": "#${p.base08}",
+            "color2": "#${p.base0B}", "color3": "#${p.base0A}",
+            "color4": "#${p.base0D}", "color5": "#${p.base0E}",
+            "color6": "#${p.base0C}", "color7": "#${p.base05}",
+            "color8": "#${p.base03}", "color9": "#${p.base08}",
+            "color10": "#${p.base0B}", "color11": "#${p.base0A}",
+            "color12": "#${p.base0D}", "color13": "#${p.base0E}",
+            "color14": "#${p.base0C}", "color15": "#${p.base07}"
+          }
+        }
+      '';
+
+      home.file."${
+        if isMac then
+          "Library/Application Support/Mozilla/NativeMessagingHosts/pywalfox.json"
+        else
+          ".mozilla/native-messaging-hosts/pywalfox.json"
+      }".text =
+        builtins.toJSON {
+          name = "pywalfox";
+          description = "Pywalfox native app";
+          path = "${pkgs.pywalfox-native}/bin/pywalfox";
+          type = "stdio";
+          allowed_extensions = [ "pywalfox@frewacom.org" ];
+        };
+
+      programs.firefox = {
+        enable = true;
+        package = if isMac then null else pkgs.firefox;
+        # Preserve Linux's existing profiles; Darwin uses Home Manager's native path.
+        configPath = lib.mkIf pkgs.stdenv.hostPlatform.isLinux ".mozilla/firefox";
+
+        profiles.${config.home.username} = {
+          isDefault = true;
+          name = config.home.username;
+          extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [ pywalfox ];
+          settings."browser.aboutConfig.showWarning" = false;
+        };
+      };
+
+      stylix.targets.firefox.profileNames = [ config.home.username ];
+
+      home.activation.updatePywalfox = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD ${pkgs.pywalfox-native}/bin/pywalfox update || true
+      '';
+
+      home.sessionVariables = lib.mkIf (!isMac) {
+        BROWSER = lib.getExe config.programs.firefox.finalPackage;
+      };
+
+      # Update associations in place: mimeapps.list also holds handlers that
+      # applications register at runtime, so Home Manager must not own it.
+      home.activation.defaultBrowser = lib.mkIf (!isMac) (
+        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          $DRY_RUN_CMD ${lib.getExe' pkgs.xdg-utils "xdg-mime"} default firefox.desktop ${lib.escapeShellArgs webMimeTypes}
+        ''
+      );
+    };
+
+in
+{
+  flake.modules.homeManager.firefox = homeModule;
+
+  flake.modules.nixos.firefox = {
+    nixpkgs.overlays = [ inputs.nur.overlays.default ];
+  };
+
+  flake.modules.darwin.firefox = {
+    nixpkgs.overlays = [ inputs.nur.overlays.default ];
+  };
+
+  perSystem =
+    { lib, pkgs, ... }:
+    let
+      firefox = host: host.home-manager.users.${host.my.user.name}.programs.firefox;
+      linux = firefox self.nixosConfigurations.zaros.config;
+      darwin = firefox self.darwinConfigurations.macbook.config;
+    in
+    {
+      checks.firefox-platform =
+        assert lib.assertMsg
+          (
+            linux.configPath == ".mozilla/firefox"
+            && linux.profilesPath == ".mozilla/firefox"
+            && darwin.configPath == "Library/Application Support/Firefox"
+            && darwin.profilesPath == "Library/Application Support/Firefox/Profiles"
+            && darwin.package == null
+          )
+          "Firefox must preserve Linux profiles and use the native Darwin profile path without installing Firefox";
+        pkgs.runCommand "firefox-platform" { } "touch $out";
+    };
+}

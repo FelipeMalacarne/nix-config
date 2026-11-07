@@ -35,7 +35,7 @@ let
       inTerminal = true;
     };
     browser = {
-      command = lib.getExe config.programs.google-chrome.finalPackage;
+      command = lib.getExe config.programs.firefox.finalPackage;
       key = "b";
       modifiers = [ "shift" ];
     };

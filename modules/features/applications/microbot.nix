@@ -1,8 +1,11 @@
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.homeManager.microbot =
     { pkgs, ... }:
     let
-      browser = pkgs.chromium;
       jdk = pkgs.jdk;
 
       microbotAppImage = pkgs.appimageTools.wrapType2 rec {
@@ -41,8 +44,10 @@
       };
     in
     {
+      # Chromium on PATH comes from the shared agent-browser feature.
+      imports = [ registry.homeManager.chromium ];
+
       home.packages = [
-        browser
         jdk
         microbotLauncher
       ];

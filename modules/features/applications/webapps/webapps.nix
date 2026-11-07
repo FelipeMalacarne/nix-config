@@ -1,7 +1,7 @@
 { config, self, ... }:
 let
   registry = config.flake.modules;
-  # Chrome derives a Wayland app_id / X11 class of
+  # Chromium derives a Wayland app_id / X11 class of
   # chrome-<host>__<path with "/" as "_">-<profile> for --app windows.
   windowClass =
     lib: url:
@@ -20,11 +20,13 @@ in
       ...
     }:
     let
-      chrome = lib.getExe config.programs.google-chrome.finalPackage;
+      chromium = lib.getExe config.programs.chromium.finalPackage;
+      # Keep personal logins out of the agent browser's profile.
+      userDataDir = "${config.xdg.dataHome}/chromium-webapps";
       enabled = lib.filterAttrs (_: app: app.enable) config.my.webapps;
     in
     {
-      imports = [ registry.homeManager.chrome ];
+      imports = [ registry.homeManager.chromium ];
 
       options.my.webapps = lib.mkOption {
         type = lib.types.attrsOf (
@@ -39,7 +41,7 @@ in
               };
               url = lib.mkOption {
                 type = lib.types.strMatching "https://.+";
-                description = "Page opened in a Chrome app window sharing the default profile.";
+                description = "Page opened in a Chromium app window sharing the web-app profile.";
               };
               icon = lib.mkOption {
                 type = lib.types.path;
@@ -53,7 +55,7 @@ in
           }
         );
         default = { };
-        description = "Chrome --app launchers; each window uses the browser's logged-in default profile.";
+        description = "Chromium --app launchers sharing one profile, separate from the agent browser.";
       };
 
       config = {
@@ -140,7 +142,7 @@ in
           id: app:
           lib.nameValuePair "webapp-${id}" {
             inherit (app) name icon categories;
-            exec = "${chrome} --app=${app.url}";
+            exec = "${chromium} --user-data-dir=${userDataDir} --app=${app.url}";
             terminal = false;
             settings.StartupWMClass = windowClass lib app.url;
           }
@@ -156,20 +158,22 @@ in
     in
     {
       checks.webapps =
-        assert lib.assertMsg (
-          windowClass lib "https://web.whatsapp.com/" == "chrome-web.whatsapp.com__-Default"
-          && windowClass lib "https://discord.com/app" == "chrome-discord.com__app-Default"
-          && lib.all (id: lib.hasInfix " --app=https://" entries."webapp-${id}".exec) [
-            "whatsapp"
-            "youtube-music"
-            "youtube"
-            "netflix"
-            "jellyfin"
-            "discord"
-            "mesa"
-            "lastro"
-          ]
-        ) "Web apps must launch Chrome app windows with their derived window classes";
+        assert lib.assertMsg
+          (
+            windowClass lib "https://web.whatsapp.com/" == "chrome-web.whatsapp.com__-Default"
+            && windowClass lib "https://discord.com/app" == "chrome-discord.com__app-Default"
+            && lib.all (id: lib.hasInfix "/chromium-webapps --app=https://" entries."webapp-${id}".exec) [
+              "whatsapp"
+              "youtube-music"
+              "youtube"
+              "netflix"
+              "jellyfin"
+              "discord"
+              "mesa"
+              "lastro"
+            ]
+          )
+          "Web apps must launch Chromium app windows in their own profile with their derived window classes";
         pkgs.runCommand "webapps" { } "touch $out";
     };
 }

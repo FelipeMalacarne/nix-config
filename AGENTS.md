@@ -96,7 +96,7 @@ SSH/Kubernetes data only; it is not generated host composition.
 - `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi.
   It does not import optional system integrations.
 - `desktop` — audio, network, i3, Hyprland, Umbriel, Noctalia and Caelestia
-  capabilities, Google Chrome, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
+  capabilities, Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
   explicitly select the login manager; the profile imports neither Greeter nor SDDM.
 - `development` — programming and Kubernetes tooling, without AI clients.
 - `ai` — explicit workstation composition of OpenCode, Claude Code, Codex, GitHub
@@ -110,6 +110,11 @@ OpenCode and Claude Code import the shared Home Manager `playwright-mcp`,
 Linear uses its official remote endpoint with client-managed OAuth. GitHub uses
 the official local server with a token obtained from `gh` at runtime; never embed
 credentials in Nix or the store. Codex and Copilot CLI remain package-only.
+Firefox is the daily/default browser; Google Chrome is not installed. On Linux,
+`playwright-mcp` imports the `chromium` agent browser carrying the Claude in
+Chrome and Playwright Bridge extensions; web apps run Chromium in a separate
+`chromium-webapps` user-data-dir so agents never share personal logins. Nixpkgs
+has no Darwin Chromium, so the MacBook's Playwright MCP launches its own isolated browser.
 Keep client-specific settings and plugins in their client features.
 Claude's native `programs.claude-code.settings` renders a `settings.nix.json`
 baseline; the feature rebases it into writable user `settings.json` on activation.
