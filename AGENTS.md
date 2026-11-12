@@ -1,33 +1,24 @@
 # NixOS Configuration
 
-Felipe's system configuration repo. Uses flake-parts, home-manager, stylix,
-and nix-darwin.
+Felipe's system configuration repo: flake-parts, Home Manager, Stylix and
+nix-darwin. This file holds the rules for changing it; `README.md` and `docs/`
+describe how the features behave.
 
-## Hardware
+## Machines
 
-### zaros (desktop / main workstation)
-- CPU: AMD Ryzen 7 7800X3D
-- GPU: NVIDIA RTX 4070 SUPER (NVENC capable)
-- Storage: 1TB NVMe + 2TB NVMe
-- OS: NixOS
+- `zaros` — main NixOS workstation: Ryzen 7 7800X3D, RTX 4070 SUPER (NVENC),
+  1 TB + 2 TB NVMe. Hyprland/UWSM + Noctalia with Noctalia Greeter by default,
+  Umbriel and i3 alternatives, gaming, NVIDIA, development and AI integrations.
+- `saradomin` — headless NixOS home server: Intel N95, 16 GB RAM, 512 GB NVMe.
+  k3s, Disko, AdGuard Home, SSH, Tailscale and the ai-memory server.
+- `saradomin-vm` — VM variant of the server profile with OpenSSH and Tailscale.
+- `macbook` — Apple Silicon nix-darwin laptop with yabai, skhd and SketchyBar.
 
-### saradomin (home server / mini PC)
-- CPU: Intel N95
-- RAM: 16GB
-- Storage: 512GB NVMe
-- OS: NixOS
-- Purpose: home server (no games/gaming GPU — do not run Sunshine/GPU-encoding services here)
+Games and GPU-accelerated workloads run on zaros only. That includes Sunshine,
+which needs NVENC and is available but not selected. Never put them on
+saradomin; `checks.server-policy` enforces this.
 
-### macbook
-- MacBook Pro (Apple Silicon) — nix-darwin
-
-## Key services
-
-- Sunshine (game streaming server) is supported on **zaros** only (needs NVENC),
-  but is currently not selected.
-- Games and GPU-accelerated workloads run on **zaros** only.
-
-## Architecture and module system
+## Architecture
 
 Follow and implement the **dendritic pattern**: feature/aspect-oriented
 flake-parts modules that co-locate related NixOS, nix-darwin and Home Manager
@@ -42,223 +33,191 @@ Hosts own machine facts and explicitly import profiles and selected features.
 Profiles compose features and policy. Features must not depend on profiles or
 hosts.
 
-Features live in the five domains `system`, `desktop`, `services`, `programs`,
-and `applications`; each remains cohesive and cross-platform within its domain.
-Feature-local `config/` directories are excluded from discovery and contain
-internal implementation files imported by their entrypoint.
+### Layout
 
-All `.nix` files under `modules/` are auto-discovered by `import-tree`, except
-paths matching `.*/config/.*`. Features live at
-`modules/features/<domain>/<feature>.nix` or in a same-named directory; directory
-entrypoints are discovered automatically and import internal `config/` files
-manually.
+- `hosts/<name>/` — concrete machines. `modules/flake/configurations.nix`
+  constructs every NixOS and nix-darwin output explicitly; update it when adding
+  a host.
+- `modules/features/<domain>/` — features in the five domains `system`,
+  `desktop`, `services`, `programs` and `applications`. Each stays cohesive and
+  cross-platform within its domain; never group features by platform.
+- `modules/profiles/` — `base`, `desktop`, `development`, `ai`, `server`.
+- `modules/inventory/infrastructure.nix` — typed personal data: SSH hosts and
+  authorized keys, Kubernetes clusters, and `machines.<name>` network facts (LAN
+  and tailnet addresses, MagicDNS names, MAC addresses). It is data, not host
+  composition. Hosts derive cross-machine values from it instead of repeating
+  literals; defaults merge per leaf, so override single settings, never copies.
+- `modules/checks/` — repository checks and shared check helpers.
+- `modules/flake/` — outputs, formatter, development shell, package policy and
+  repository paths.
 
-Feature checks live beside their feature in discovered flake-parts modules;
-shared synthetic fixture helpers live under `modules/checks/config/`. Repository
-checks own concrete host expectations. Native closure checks and the
-`packages.<system>.host-closures` build selector derive from explicit configuration
-outputs rather than maintaining parallel host lists.
+### Features
 
-Each feature registers itself as `flake.modules.nixos.<aspect>`,
-`flake.modules.darwin.<aspect>`, and/or `flake.modules.homeManager.<aspect>`.
-Flake-parts modules compose through `config.flake.modules`; plain hosts consume
-the final `self.modules`. Registration is auto-discovered, but activation and
-composition stay explicit. Use only the platform registrations the
-implementation supports.
+A feature is either `<domain>/<aspect>.nix` or a directory `<domain>/<aspect>/`
+with the entrypoint `<aspect>.nix`, an optional `checks.nix`, and everything else
+(Nix helpers, scripts, data files, images) under `config/`. File names match an
+aspect the file registers; companions such as `ssh-credentials` share their
+feature's file. `checks.repository-structure` enforces this layout.
 
-Platform profiles forward their corresponding Home Manager composition to the
-primary user; hosts must not repeat those Home Manager profile imports. Keep
-explicit Home Manager imports for independently selected user-only features.
-Platform features that forward a Home Manager aspect must use its final
-`config.flake.modules.homeManager` aggregate, so other dendritic fragments apply.
+`import-tree` discovers every `.nix` file under `modules/` except paths matching
+`.*/config/.*`; entrypoints import their `config/` files explicitly.
+
+Each feature registers `flake.modules.nixos.<aspect>`,
+`flake.modules.darwin.<aspect>` and/or `flake.modules.homeManager.<aspect>`, only
+for platforms it supports. Flake-parts modules compose through
+`config.flake.modules`; plain hosts consume the final `self.modules`.
+Registration is automatic; activation and composition stay explicit.
+
+`modules/flake-parts.nix` declares `flake.modules` exactly like upstream's
+`flakeModules.modules`, but gives each registration a module `key`. An aspect
+reached through several import paths therefore merges once, so a feature may
+import what it depends on, as `openssh` imports `infrastructure`. Do not add
+manual `key`s. Switch back to upstream once it sets a key itself.
 
 Importing a registered feature module activates that feature. Do not add a
 redundant `my.<feature>.enable` selector or default-import optional features into
 `base`. Keep typed options for settings such as `my.wol.interface` and
 `my.restic.paths`; feature-specific settings require the corresponding import.
 Enable flags remain appropriate for optional subfeatures such as
-`my.ai.hermes.web.enable`. The restic namespace is `my.restic`.
+`my.ai.hermes.web.enable`.
 
-Custom AI settings share `my.ai`: memory client/server roles use
-`my.ai.memory.client` and `my.ai.memory.server`; Hermes uses `my.ai.hermes`.
-Features own their options. Platform memory clients forward host settings to
-Home Manager. The AI profile composes shared clients; Hermes and Ollama remain
-explicitly selected optional features. ArtCraft uses the `artcraft-flake`
-input's native Home Manager `programs.artcraft` options.
+Platform modules forward Home Manager aspects with
+`home-manager.sharedModules = [ registry.homeManager.<aspect> ]`, using the final
+`config.flake.modules.homeManager` aggregate so other dendritic fragments apply.
+Use `home-manager.users.${user}` only to set per-user values. Platform profiles
+forward their Home Manager profile; hosts must not repeat those imports. Keep
+explicit Home Manager imports for independently selected user-only features.
+When NixOS and Darwin registrations differ only slightly, write one
+`platform:` function (as in `ssh.nix` and `k8s.nix`) rather than two copies.
 
-`hosts/` contains concrete machines. `modules/flake/configurations.nix`
-explicitly constructs all NixOS and nix-darwin outputs from those host
-directories. `modules/inventory/infrastructure.nix` contains typed personal
-SSH/Kubernetes data only; it is not generated host composition.
+Refer to encrypted SOPS files as `secretsDir + "/<file>.yaml"`, a flake-parts
+module argument, not through `../` chains. Never derive repository paths from
+`self` or package a directory containing Nix files (use a fileset, as Neovim
+does): either makes a closure depend on unrelated source edits.
 
-## Profiles and desktop
+### Settings and profiles
 
-- `base` — feature-local core, theming, zsh, git, ssh, nvim, CLI, btop, yazi.
-  It does not import optional system integrations.
+Custom AI settings share `my.ai`: `my.ai.memory.client`, `my.ai.memory.server`
+and `my.ai.hermes`. Features own their options; platform memory clients forward
+host settings to Home Manager. ArtCraft uses the `artcraft-flake` input's native
+`programs.artcraft` options. The restic namespace is `my.restic`.
+
+- `base` — core, theming, zsh, git, ssh, Neovim, CLI, btop, yazi. No optional
+  system integrations.
 - `desktop` — audio, network, i3, Hyprland, Umbriel, Noctalia and Caelestia
-  capabilities, Firefox, Dolphin, Ghostty, KDE Connect and Bitwarden. Hosts
-  explicitly select the login manager; the profile imports neither Greeter nor SDDM.
+  capabilities, Firefox, Dolphin, Ghostty, KDE Connect, Bitwarden. It imports no
+  login manager.
 - `development` — programming and Kubernetes tooling, without AI clients.
-- `ai` — explicit workstation composition of OpenCode, Claude Code, Codex, GitHub
-  Copilot CLI and the SOPS-backed ai-memory client. NixOS/Darwin imports forward
-  the Home Manager profile. Hermes stays host-selected; ai-usagebar is deferred.
-- `server` — headless base/server policy; it does not implicitly enable optional
-  services. Hosts select those services through explicit feature imports.
-
-OpenCode and Claude Code import the shared Home Manager `playwright-mcp`,
-`linear-mcp` and `github-mcp` aspects and consume the native shared MCP registry.
-Linear uses its official remote endpoint with client-managed OAuth. GitHub uses
-the official local server with a token obtained from `gh` at runtime; never embed
-credentials in Nix or the store. Codex and Copilot CLI remain package-only.
-Firefox is the daily/default browser; Google Chrome is not installed. On Linux,
-`playwright-mcp` imports the `chromium` agent browser carrying the Claude in
-Chrome and Playwright Bridge extensions; web apps run Chromium in a separate
-`chromium-webapps` user-data-dir so agents never share personal logins. Nixpkgs
-has no Darwin Chromium, so the MacBook's Playwright MCP launches its own isolated browser.
-Keep client-specific settings and plugins in their client features.
-Claude's native `programs.claude-code.settings` renders a `settings.nix.json`
-baseline; the feature rebases it into writable user `settings.json` on activation.
-Unchanged defaults follow Nix, while local changes and deletions survive rebuilds.
-Do not relink the writable file into the store or force-overwrite user preferences.
-See `docs/claude-code.md` for migration, concurrency and rollback boundaries.
-The memory client owns its upstream routing
-skills and workflow rules for both clients; lifecycle hooks remain client-specific.
-Only add skills with concrete, specialized procedures or reference material;
-do not package generic coding advice or duplicate `AGENTS.md` as skills.
-The shared `ai-skills` aspect publishes portable global skills through each
-enabled client's native Home Manager option, from a single source under
-`modules/features/programs/ai-skills/skills/`. Repository-specific skills stay
-in `.claude/skills/`, discovered by both clients, with distinct IDs when a global
-skill covers the same topic.
+- `ai` — OpenCode, Claude Code, Codex, GitHub Copilot CLI and the SOPS-backed
+  ai-memory client. Hermes and Ollama stay host-selected; ai-usagebar is deferred.
+- `server` — headless base policy; it enables no optional services.
 
 Generic SSH, programming and Kubernetes tooling do not provision credentials.
 Hosts explicitly select `ssh-credentials`, `programming-credentials` and
-`k8s-credentials` where needed. These companion aspects own their SOPS
-prerequisite; Restic also imports its intrinsic SOPS prerequisite. Preserve
-existing secret paths, owners, modes and runtime behavior when composing them.
-Shared SSH inventory defaults merge per setting; override only host-specific
-leaves instead of copying the full inventory.
+`k8s-credentials` where needed; these companions, and Restic, import their own
+SOPS prerequisite. Preserve existing secret paths, owners, modes and runtime
+behavior when composing them.
 
-Core and shared Home Manager policy live under
-`modules/features/system/core/` (with internals in its `config/`). Noctalia's
-registration, settings and startup live under
-`modules/features/desktop/noctalia/`; Caelestia's provider lives under
-`modules/features/desktop/caelestia/`; Hyprland implementation and Lua live
-under `modules/features/desktop/hyprland/`; Umbriel lives under
-`modules/features/desktop/umbriel/`. Desktop sessions use
-`my.desktop.sessions` and `my.desktop.defaultSession` (must be selected), forwarded
-to HM and mapped to native IDs `umbriel`, `hyprland-uwsm`, and `none+i3`.
-The shell selector is `my.desktop.shell =
-"noctalia"`, `"caelestia"`, or `"none"` with typed commands. Zaros selects
-Noctalia. Providers own their commands and all provider-specific package,
-settings, and startup behavior. Caelestia uses its official HM systemd unit and
-supports Hyprland only. Noctalia starts the same configured binary once through
-Hyprland's Lua/UWSM app startup or Umbriel's direct native autostart, with no
-shared Noctalia systemd unit. Both compositors stay provider-neutral. X11-only
-selections require shell `none`. Umbriel's `start-umbriel` owns its native
-`umbriel.service`/`umbriel-session.target`; never wrap it in UWSM. Hypridle targets
-`wayland-session@hyprland.desktop.target`; Swayidle targets `umbriel-session.target`,
-both with 180-second lock and 240-second DPMS timeouts. Portals route per desktop
-with a GTK fallback.
-Monitor identity requirements follow selected sessions: Wayland needs its native
-description, i3 needs its XRandR connector and scale 1. Wayland-only hosts may use
-HiDPI scaling without an XRandR identity. Preserve Zaros's existing facts.
-Adding a provider requires an aspect, registry entry, explicit desktop-profile
-import, and variant checks.
+## Checks
 
-Noctalia Greeter is independent of shell/compositor selection. Zaros explicitly
-imports `noctalia-greeter`; login has no autologin/`initial_session`, and appearance
-sync requires administrator authentication (`auth_admin`, `secure-sync-v1`, empty
-`passwordless-sync-users`). Keep theme/palette/wallpaper sync-controlled. The i3
-fallback owns Xorg/topology; Greeter's scoped X11 helper passes the generated
-xserverrc explicitly to installed startx and uses a projected
-entry calling NixOS `sessionData.wrapper` with the original legacy WM argument and
-`DESKTOP_SESSION=none+i3`. To revert, replace the host's Greeter import with the
-explicit `sddm` feature; never enable both login managers.
+- Feature checks live beside their feature and evaluate synthetic fixtures. Use
+  the perSystem arguments from `modules/checks/lib.nix`: `fixtures` (NixOS
+  fixtures from `modules/checks/config/fixtures.nix`), `evalHome` (Home Manager
+  modules for a throwaway user) and `mkAssertCheck name [ { assertion; message; } ]`,
+  which reports every failure at once. Do not write new per-test harnesses or
+  `assert … runCommand` chains.
+- Concrete host expectations belong in `modules/checks/host-policy.nix`. Encode
+  rules (servers stay headless, GPU workloads stay off servers, summaries use the
+  subscription), never copies of values a host sets.
+- Nix test helpers in `config/` are named `test-<topic>.nix`; Python tests keep
+  `test_<topic>.py`.
+- Host closure checks and `packages.<system>.host-closures` derive from the
+  configuration outputs; never maintain a parallel host list.
+- `desktop-sessions`, `umbriel-config` and `greeter-sessions` deliberately use
+  zaros's desktop facts. They validate composition and native config parsers
+  with mocked xinit/Xorg and never launch a physical session.
 
-Zaros's exact Wayland monitor identities include serials: main
-`Samsung Electric Company Odyssey G61SD HNBYB00003` (live DP-4 probe) and portrait
-secondary `Samsung Electric Company LS27A600U HNMW900149` (historically confirmed,
-currently disconnected). Preserve separate XRandR outputs DP-1/HDMI-A-1 and the
-existing modes, positions, rotations and workspace assignments; do not substitute
-connector names for Umbriel identities.
+## Desktop
 
-## Hosts
+`README.md` describes sessions, shell providers, idle, portals and the Greeter.
+Preserve these rules:
 
-- `zaros`: NixOS desktop defaulting to Hyprland/UWSM + Noctalia and Noctalia Greeter,
-  with experimental Umbriel and i3 alternatives, gaming, NVIDIA, development and server
-  integrations; Sunshine is available but not selected.
-- `saradomin`: headless NixOS home server with k3s, Disko, SSH and Tailscale.
-- `saradomin-vm`: NixOS VM variant using the server profile, OpenSSH and Tailscale.
-- `macbook`: nix-darwin development laptop with yabai, skhd and sketchybar.
+- Sessions come from `my.desktop.sessions` and `my.desktop.defaultSession`; the
+  shell from `my.desktop.shell`. Providers own their commands, packages,
+  settings and startup; compositors stay provider-neutral. A new provider needs
+  an aspect, a registry entry, an explicit desktop-profile import and variant
+  checks. X11-only selections require shell `none`.
+- Never wrap Umbriel's `start-umbriel` in UWSM.
+- Exactly one login manager. Zaros imports `noctalia-greeter`; to revert,
+  replace that import with `sddm`. No autologin or `initial_session`;
+  appearance sync stays admin-authenticated (`auth_admin`, `secure-sync-v1`,
+  empty `passwordless-sync-users`) and theme/palette/wallpaper sync-controlled.
+- Preserve zaros's monitor facts in `hosts/zaros/desktop.nix`. Umbriel matches
+  exact make/model/serial descriptions, never connector names; the XRandR
+  outputs DP-1/HDMI-A-1, modes, positions, rotations and workspaces stay as
+  declared.
 
-To extend the repository, put a feature in its domain and keep host-specific
-facts in `hosts/<name>/`. Compose reusable policy in a profile; select optional
-integrations by importing their registered modules in a host or profile. Update
-`modules/flake/configurations.nix` when adding a host.
+## AI clients and memory
 
-## AI workflow
+- OpenCode and Claude Code share the MCP registry (`playwright-mcp`,
+  `linear-mcp`, `github-mcp`). Never embed credentials in Nix or the store:
+  Linear uses client-managed OAuth; GitHub's token comes from `gh` at runtime.
+  Codex and Copilot CLI remain package-only; client-specific settings and
+  plugins stay in their client features.
+- Firefox is the daily browser and Google Chrome stays absent. On Linux,
+  Chromium is the agent browser carrying the Claude in Chrome and Playwright
+  Bridge extensions; web apps run in a separate `chromium-webapps` user-data-dir
+  so agents never share personal logins.
+- Claude Code rebases the Nix `settings.nix.json` baseline into a writable
+  `settings.json`. Never relink it into the store or force-overwrite user
+  preferences; see `docs/claude-code.md`.
+- Add skills only for concrete, specialized procedures or reference material;
+  never generic advice or copies of this file. Portable skills live in
+  `modules/features/programs/ai-skills/skills/` and are published through each
+  client's native option. Repository skills live in `.claude/skills/` with
+  distinct IDs. The memory client owns its routing skills and workflow rules;
+  lifecycle hooks stay client-specific.
 
-ai-memory is selected as a private server on saradomin and a Home Manager client
-on macbook/zaros through their explicit `ai` profile. Its single feature lives in `modules/features/services/ai-memory/`,
-with server/client internals under the excluded `config/` directory.
-See `docs/ai-memory.md` for pairing, privacy, outage recovery and
-deployment acceptance gates. Capture is automatic by default (`denylist`),
-including repositories without `.ai-memory.toml`. Markers remain optional scope
-and exclusion overrides; this repository keeps workspace `personal`, project
-`nix-config`. Without a marker, use upstream's `default` workspace and Git-derived
-project naming. Keep MCP retrieval project-scoped; cross-project/global searches
-still require an explicit request. The MCP bridge is static: pass
-both explicitly on project-scoped calls. Repository instructions and current
-source outrank recalled history. If memory is unavailable, continue locally;
-never start a competing server. Nix owns integrations; do not run live ai-memory
-installers or self-updates. The former setup command/wiki skill are retired;
-do not scaffold a parallel `docs/ai/` wiki.
-Follow the upstream managed-launch workflow: the recommended daily terminal
-entrypoint is `ai-memory run --no-autowire opencode`, available as alias `oc`
-only when the Home Manager memory client is selected. The client also defines
-`am = ai-memory run --no-autowire`; use `am --new NAME opencode` for parallel
-tasks and `am --workstream NAME opencode` to return. Named wrapper options must
-precede the harness; one launcher owns each workstream. Direct OpenCode launch is
-supported hook-only use, not equivalent to a managed workstream. Do not add
-repository-specific session-finishing commands or require manual UUID workflows.
-Do not promise automatic V2 session closure: verify the pinned harness lifecycle,
-not just generic examples.
-The server explicitly enables the reviewed downstream
-`consolidate_on_turn_checkpoint` patch: substantive OpenCode root turns enqueue
-the existing durable open-session LLM worker without fabricating SessionEnd.
-This can use subscription quota per turn; summaries do not close native chats.
-Keep it separate from upstream defaults and remove/adapt the patch and setting
-together when upstream supplies an equivalent, retaining regression coverage.
-OpenCode is CLI-only and tracks the upstream `opencode` flake's `production`
-branch, locked through `flake.lock`, with the matching upstream-generated V2
-`ai-memory-opencode2.ts` adapter. Keep the CLI and adapter aligned;
-do not substitute Nixpkgs V1 packages or migrate/copy databases as a routine fix.
-Test package/channel changes with isolated HOME/XDG directories before using
-existing chats; a Nix build does not establish database compatibility or
-interactive managed-run/session-closure acceptance.
-The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml`; hosts decrypt it
-at `/run/secrets/ai-memory-token` with service/user-only ownership. Clients link
-their native `auth-token` path to that runtime secret. Never copy its plaintext
-into configuration, prompts or the Nix store, or rotate it with queued captures.
-The memory feature owns shared SOPS credential declarations and platform client
-forwarding; hosts retain machine facts such as the endpoint and server hostname.
-The server config selects ChatGPT subscription `openai-oauth` / `gpt-6-luna` summaries (not the
-separately billed `openai` API; no paid-provider fallback) and CPU-local embeddings
-with a 2 GiB ceiling. The operator completes device login as the `ai-memory`
-service user in a private terminal, outside captured agent sessions. Its mutable
-`/var/lib/ai-memory/auth.json` stays service-owned and private, never plaintext in
-Nix, the store, prompts or SOPS-managed as a whole. Agents must not read that
-file, handle device codes, decrypt provider secrets or run interactive login.
-The legacy encrypted Copilot bootstrap/import helper and existing runtime cache
-entries are preserved, but Copilot secrets are no longer selected for this role.
-Private subscription acceptance and separate deployment approval are required.
-Hourly improvement proposals require approval. Dream processing is enabled for
-automatic idle-time cold-note consolidation; its rewrites are not proposal-gated.
-Cross-project profiles stay off. A handoff alone is not SessionEnd; use upstream
-lifecycle and handoff mechanisms. See the documented login runbook.
-OpenClaw's module/input are removed. Do not delete its legacy encrypted credential
-or runtime state as part of routine cleanup.
+ai-memory runs as a private server on saradomin and a Home Manager client on
+macbook and zaros through the `ai` profile, from the single feature
+`modules/features/services/ai-memory/`. `docs/ai-memory.md` covers pairing,
+privacy, the managed-launch workflow, outage recovery and acceptance gates.
+
+- Capture is automatic (`denylist`), including unmarked repositories. This
+  repository uses workspace `personal`, project `nix-config`; the MCP bridge is
+  static, so pass both on project-scoped calls. Cross-project or global
+  searches need an explicit request. Repository instructions and current
+  source outrank recalled history.
+- If memory is unavailable, continue locally; never start a competing server.
+  Nix owns the integration: never run live ai-memory installers or self-updates,
+  and never scaffold a `docs/ai/` wiki.
+- Follow upstream's managed launch (`oc`, `am`). Do not add repository-specific
+  session-finishing commands or manual UUID workflows, and do not promise
+  automatic V2 session closure without verifying the pinned harness lifecycle.
+  A handoff alone is not SessionEnd.
+- The downstream `consolidate_on_turn_checkpoint` patch and its server setting
+  stay together and separate from upstream defaults; remove or adapt both when
+  upstream ships an equivalent, keeping regression coverage.
+- OpenCode is CLI-only and tracks the upstream `production` branch through
+  `flake.lock`, with the matching V2 `ai-memory-opencode2.ts` adapter. Keep them
+  aligned; never substitute Nixpkgs V1 packages or migrate/copy databases as a
+  routine fix. Test package changes with isolated HOME/XDG first: a build does
+  not prove database compatibility or session behavior.
+- The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml` and decrypted
+  to `/run/secrets/ai-memory-token`. Never copy its plaintext into
+  configuration, prompts or the store, or rotate it while captures are queued.
+  Hosts set the endpoint and server hostname from the machine registry.
+- Summaries use the ChatGPT subscription (`openai-oauth`), never the billed
+  `openai` API or a paid fallback. The operator completes device login privately
+  as the `ai-memory` service user. Agents must not read
+  `/var/lib/ai-memory/auth.json`, handle device codes, decrypt provider secrets
+  or run interactive login. Subscription acceptance and deployment need separate
+  approval.
+- Hourly improvement proposals require approval; Dream rewrites are not
+  proposal-gated; cross-project profiles stay off.
+- Keep legacy state: the encrypted Copilot bootstrap/import helper and cache
+  entries (Copilot is no longer selected) and OpenClaw's encrypted credential
+  and runtime state. Deleting them is not routine cleanup.
 
 ## Validation and deployment
 
@@ -273,14 +232,15 @@ make switch HOST=zaros         # guarded activation
 make secrets                   # edit SOPS secrets
 ```
 
+The flake only sees files Git tracks: `git add` new files (no commit needed)
+before evaluating. For a refactor meant to leave behavior unchanged, compare
+each host's `system.build.toplevel.drvPath` before and after, and explain any
+difference with `nix-diff`.
+
 `switch`, `test`, and `boot` are local-host-only by default; intentional
 cross-host activation requires `DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1`. Rollback
 never accepts cross-host overrides. CI runs pure `nix flake check` on native
 Linux and Apple-Silicon macOS and does not deploy or decrypt secrets.
-Linux checks `desktop-sessions`, `umbriel-config`, and `greeter-sessions` cover
-composition, native CLI config validation, upstream session discovery and the
-installed startx parser with mocked xinit/Xorg, verifying configured server
-arguments, seat/VT, Xauth and client routing. They never launch physical sessions.
 
 Agents must finish formatting, evaluation and affected-closure builds before
 claiming a configuration is ready. Activation (`switch`, `test`, `boot`), rollback,

@@ -60,8 +60,8 @@ credentials are never embedded in Nix configuration or the store. Run
 GitHub/organization permissions still apply; no extra scopes are granted by this
 configuration. Codex and GitHub Copilot CLI remain package-only selections.
 
-Platform profiles forward their Home Manager composition to the primary user.
-Hosts select a platform profile once; additional Home Manager imports are for
+Platform profiles forward their Home Manager composition to the primary user
+through `home-manager.sharedModules`. Hosts select a platform profile once; additional Home Manager imports are for
 independently selected user-only features, not a second copy of the profile.
 
 Generic SSH, programming and Kubernetes tooling do not provision secrets.
@@ -70,24 +70,37 @@ Hosts explicitly import `ssh-credentials`, `programming-credentials` and
 companions import their own SOPS prerequisite, as does Restic. The default base
 and server compositions therefore work without system SOPS integration.
 
-Shared SSH inventory defaults merge per setting. For example, overriding
+Shared inventory defaults merge per setting. For example, overriding
 `my.infrastructure.ssh.hosts."github.com".IdentityFile` preserves the other
-settings for GitHub and all unrelated hosts.
+settings for GitHub and all unrelated hosts. The same holds for
+`my.infrastructure.machines`, the network facts machines use to reach each other
+(LAN and tailnet addresses, MagicDNS names, the Wake-on-LAN MAC). Hosts derive
+values such as the ai-memory endpoint, AdGuard listeners and `wake-zaros` from it
+rather than repeating literals. The `openssh` feature authorizes
+`my.infrastructure.ssh.authorizedKeys`, and `internal-ca` trusts the home-lab CA.
 
 OpenClaw's configuration and flake dependency have been retired. Existing runtime
 data and the encrypted legacy credential are preserved; their deletion or
 revocation is a separate operation.
 
 `import-tree` discovers Nix files under `modules/`, except paths matching
-`*/config/*`. Feature entrypoints are discovered automatically and manually
-import their excluded implementation files. A feature registers the relevant
-`flake.modules.nixos.<aspect>`, `flake.modules.darwin.<aspect>`, and/or
-`flake.modules.homeManager.<aspect>` entry. Flake-parts composition uses
-`config.flake.modules`; plain hosts consume the final `self.modules`. Discovery
-is automatic, but registration and activation/composition remain explicit.
+`*/config/*`. A feature is a single `<domain>/<aspect>.nix`, or a
+`<domain>/<aspect>/` directory with the entrypoint `<aspect>.nix`, an optional
+`checks.nix`, and everything else (helpers, scripts, data, images) in `config/`.
+A feature registers the relevant `flake.modules.nixos.<aspect>`,
+`flake.modules.darwin.<aspect>`, and/or `flake.modules.homeManager.<aspect>`
+entry, named after its file; `checks.repository-structure` enforces the layout.
+Flake-parts composition uses `config.flake.modules`; plain hosts consume the
+final `self.modules`. Discovery is automatic, but registration and
+activation/composition remain explicit.
 
-`modules/inventory/infrastructure.nix` is typed personal SSH and Kubernetes
-data. It is inventory only, not generated host composition.
+`modules/flake-parts.nix` declares `flake.modules` like upstream flake-parts but
+keys each registration, so an aspect imported along several paths (Neovim via
+`base` and `development`, SOPS via every credential companion) is merged once.
+Encrypted files are referenced as `secretsDir + "/<file>.yaml"`.
+
+`modules/inventory/infrastructure.nix` is typed personal SSH, Kubernetes and
+machine network data. It is inventory only, not generated host composition.
 
 ## Options and composition
 
@@ -294,10 +307,13 @@ completeness assertion. Add a host directory under `hosts/`, then update
 checks, the build selector and directory/output consistency follow automatically.
 
 Keep feature checks beside their feature, using excluded implementation files
-under `config/` where useful. Shared synthetic fixtures live in
-`modules/checks/config/`; repository checks own concrete host selections and
-hardware-preservation expectations. Do not hide required integrations by adding
-them to every fixture.
+under `config/` where useful. `modules/checks/lib.nix` gives every perSystem
+module `fixtures` (synthetic NixOS configurations from `modules/checks/config/`),
+`evalHome` (Home Manager modules for a throwaway user) and `mkAssertCheck`, which
+takes `{ assertion; message; }` records and reports every failure at once.
+`modules/checks/host-policy.nix` owns rules about concrete hosts, such as servers
+staying headless and free of GPU workloads; it does not restate values a host
+sets. Do not hide required integrations by adding them to every fixture.
 
 ## Issue backlog
 

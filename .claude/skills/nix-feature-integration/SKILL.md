@@ -29,13 +29,18 @@ module source, not a random online version. Register only supported platforms.
 
 ## 2. Implement and select separately
 
-1. Add the discovered entrypoint under `modules/features/<domain>/`. Put internal
-   Nix helpers in its excluded `config/` directory and import them explicitly.
-2. Register the reusable module under `flake.modules.<platform>.<aspect>`.
-   Importing that module activates it; do not add a second feature-enable flag.
-3. For platform forwarding, capture the outer flake-parts registry and import
-   its final Home Manager aggregate. Do not confuse outer `config` with the
-   inner platform/HM configuration; see the reference example.
+1. Add the entrypoint as `modules/features/<domain>/<aspect>.nix`, or as
+   `<domain>/<aspect>/<aspect>.nix` when it needs more files. Put helpers,
+   scripts and data in its excluded `config/` directory and import them
+   explicitly; checks may go in a discovered `<aspect>/checks.nix`.
+2. Register the reusable module under `flake.modules.<platform>.<aspect>`, named
+   after the file. Importing that module activates it; do not add a second
+   feature-enable flag. Registrations are keyed, so importing a dependency
+   aspect that something else also imports is safe; never set `key` manually.
+3. For platform forwarding, capture the outer flake-parts registry and add its
+   final Home Manager aggregate to `home-manager.sharedModules`. Do not confuse
+   outer `config` with the inner platform/HM configuration; see the reference
+   example. Reference SOPS files as `secretsDir + "/<file>.yaml"`.
 4. Select the aspect in the appropriate profile or host. The host owns machine
    facts. A feature never imports a host or profile.
 5. If the platform profile already forwards its HM composition, do not repeat
@@ -49,10 +54,11 @@ options and required dependencies, plus absence of unintended optional clients.
 Test a setting override when exposing a typed interface. Build the generated
 configuration or run its native parser when evaluation alone cannot validate it.
 
-Keep synthetic checks beside the feature; reuse
-`modules/checks/config/fixtures.nix` where appropriate. Concrete machine
-expectations belong in repository/profile checks rather than reusable features.
-See the reference for a small standalone Home Manager fixture.
+Keep synthetic checks beside the feature. Use the perSystem arguments from
+`modules/checks/lib.nix`: `fixtures` for NixOS configurations, `evalHome` for
+Home Manager modules and `mkAssertCheck` for assertion lists. Rules about
+concrete machines belong in `modules/checks/host-policy.nix`, not in features;
+do not restate values a host sets. See the reference for a small example.
 
 ## 4. Validate the affected outputs
 
