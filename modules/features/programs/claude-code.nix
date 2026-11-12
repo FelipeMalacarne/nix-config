@@ -48,6 +48,19 @@ in
       package = inputs.nix-claude-code.packages.${pkgs.stdenv.hostPlatform.system}.latest;
       enableMcpIntegration = true;
       settings.model = "claude-opus-5-5";
+      # Empty strings drop the Co-Authored-By trailer and the PR footer.
+      settings.attribution = {
+        commit = "";
+        pr = "";
+      };
+      rules.no-attribution = ''
+        # No AI attribution
+
+        Never mention Claude, Claude Code, Anthropic or AI assistance in commit
+        messages, pull requests, issues, review comments or other messages
+        written on the user's behalf. No Co-Authored-By trailers, "Generated
+        with" footers or similar signatures.
+      '';
       plugins = [
         # placeholder
       ];
