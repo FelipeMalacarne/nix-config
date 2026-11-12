@@ -42,6 +42,7 @@ in
       artcraft
       scape2011
       microbot
+      chronicle
       office
       orca
       webapps

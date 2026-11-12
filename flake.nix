@@ -97,6 +97,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # No nixpkgs follows: Chronicle needs Go >= 1.27, which its own pin carries.
+    chronicle.url = "github:FelipeMalacarne/chronicle";
+
     orca = {
       url = "github:FelipeMalacarne/orca-flake";
       inputs.nixpkgs.follows = "nixpkgs";
