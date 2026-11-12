@@ -173,8 +173,7 @@ Session-scoped Hypridle/Swayidle own idle timeouts.
 The old v4 JSON settings and QML plugins are not compatible with v5. The built-in
 screenshot widget replaces the old screenshot plugin, but recording, model usage,
 KDE Connect, Docker, and Tailscale widgets need separately selected native plugins.
-The old JSON export helper `scripts/noctalia2nix.go` is v4-only; use
-`noctalia config export` for the merged v5 TOML settings. GUI changes are stored
+Use `noctalia config export` for the merged v5 TOML settings. GUI changes are stored
 in `~/.local/state/noctalia/settings.toml` and override the declarative settings.
 The feature uses `bar.default` to merge with existing GUI bar settings rather
 than create a second bar. Saved wallpaper paths also take precedence, including
@@ -266,8 +265,7 @@ outputs. Adding a host does not require editing another Make host list.
 On Darwin, Firefox uses its upstream native profile directory under
 `Library/Application Support/Firefox`, rather than Linux's `.mozilla/firefox`.
 No browser data is migrated by this refactor: review existing profiles before
-activation. The optional ChatGPT feature supports Apple Silicon Darwin only and
-is not selected on Zaros or MacBook.
+activation.
 
 SketchyBar's CPU helper is built from source as `packages.aarch64-darwin.sketchybar-helper`;
 the generated startup configuration never compiles inside the linked config directory.

@@ -7,7 +7,6 @@ stdenv.mkDerivation {
   pname = "sketchybar-helper";
   version = "1";
 
-  # Exclude the historical compiled binary and build exclusively from source.
   src = lib.fileset.toSource {
     root = source;
     fileset = lib.fileset.unions [
