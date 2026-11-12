@@ -76,9 +76,6 @@ in
           packagesFor pkgs;
     in
     {
-      # Base and development both import this aspect through deferred modules.
-      key = "nix-config/home-manager/neovim";
-
       options.my.neovim = {
         variant = lib.mkOption {
           type = lib.types.enum [

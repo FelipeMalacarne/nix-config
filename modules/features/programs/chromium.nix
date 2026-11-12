@@ -14,8 +14,6 @@ in
   flake.modules.homeManager.chromium =
     { lib, pkgs, ... }:
     {
-      key = "nix-config/homeManager/chromium";
-
       config = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         programs.chromium = {
           enable = true;

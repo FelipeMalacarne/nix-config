@@ -36,7 +36,6 @@ in
   };
 
   flake.modules.homeManager.claude-code = { pkgs, ... }: {
-    key = "nix-config/homeManager/claude-code";
     imports = with config.flake.modules.homeManager; [
       ai-skills
       github-mcp

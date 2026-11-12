@@ -11,7 +11,6 @@ in
       ...
     }:
     {
-      key = "nix-config/homeManager/playwright-mcp";
       imports = [ registry.homeManager.chromium ];
 
       programs.mcp = {
