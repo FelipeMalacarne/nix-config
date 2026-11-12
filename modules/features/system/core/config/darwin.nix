@@ -1,23 +1,16 @@
-{ config, inputs, ... }:
-let
-  registry = config.flake.modules;
-in
+{ inputs, ... }:
 {
   flake.modules.darwin.core =
-    { config, lib, ... }:
+    { config, ... }:
     let
       user = config.my.user.name;
     in
     {
-      imports = [
-        inputs.home-manager.darwinModules.home-manager
-        registry.darwin.home-manager-policy
-      ];
+      imports = [ inputs.home-manager.darwinModules.home-manager ];
 
       nix.settings = {
         experimental-features = "nix-command flakes";
       };
-      nixpkgs.config.allowUnfree = true;
 
       system.primaryUser = user;
       system.defaults.NSGlobalDomain._HIHideMenuBar = true;
@@ -26,18 +19,6 @@ in
         name = user;
         home =
           if config.my.user.homeDirectory == null then "/Users/${user}" else config.my.user.homeDirectory;
-      };
-
-      home-manager.users.${user} = {
-        imports = [ registry.homeManager.identity ];
-        my.user = config.my.user;
-        home = {
-          username = user;
-          homeDirectory = lib.mkDefault (
-            if config.my.user.homeDirectory == null then "/Users/${user}" else config.my.user.homeDirectory
-          );
-          stateVersion = lib.mkDefault "24.11";
-        };
       };
     };
 }

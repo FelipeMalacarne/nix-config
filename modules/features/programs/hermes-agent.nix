@@ -89,7 +89,7 @@ in
     {
       imports = [ ./hermes-agent/config/web.nix ];
 
-      home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.hermes-agent ];
+      home-manager.sharedModules = [ registry.homeManager.hermes-agent ];
       users.users.${config.my.user.name}.linger = true;
     };
 }

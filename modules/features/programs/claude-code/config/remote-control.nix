@@ -17,7 +17,7 @@ in
     { config, ... }:
     {
       users.users.${config.my.user.name}.linger = true;
-      home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.claude-remote-control ];
+      home-manager.sharedModules = [ registry.homeManager.claude-remote-control ];
     };
 
   flake.modules.homeManager.claude-remote-control =

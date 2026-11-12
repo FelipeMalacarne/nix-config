@@ -39,13 +39,9 @@ in
   flake.modules.homeManager.gaming = homeGaming;
 
   flake.modules.nixos.gaming =
+    { pkgs, ... }:
     {
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.gaming ];
+      home-manager.sharedModules = [ registry.homeManager.gaming ];
       nixpkgs.overlays = [ inputs.millennium.overlays.default ];
 
       hardware.graphics.enable = true;

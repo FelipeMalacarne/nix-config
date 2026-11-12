@@ -18,10 +18,8 @@ let
         sops.secrets.ai-memory-token = (import ./credential.nix) // {
           owner = user;
         };
-        home-manager.users.${user} = {
-          imports = [ registry.homeManager.ai-memory-client ];
-          my.ai.memory.client = config.my.ai.memory.client;
-        };
+        home-manager.sharedModules = [ registry.homeManager.ai-memory-client ];
+        home-manager.users.${user}.my.ai.memory.client = config.my.ai.memory.client;
         my.ai.memory.client.tokenFile = lib.mkDefault config.sops.secrets.ai-memory-token.path;
       };
     };

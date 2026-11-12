@@ -1,8 +1,8 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
   registry = config.flake.modules;
-  platformModule = { config, ... }: {
-    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.ssh ];
+  platformModule = {
+    home-manager.sharedModules = [ registry.homeManager.ssh ];
   };
 
   homeModule =
@@ -15,40 +15,8 @@ let
       };
     };
 
-  nixosCredentials =
-    {
-      config,
-      ...
-    }:
-    let
-      user = config.my.user.name;
-      homeDirectory = config.users.users.${user}.home;
-    in
-    {
-      imports = [
-        registry.nixos.ssh
-        registry.nixos.sops
-      ];
-
-      home-manager.users.${user}.imports = [ registry.homeManager.sops ];
-
-      sops.secrets = builtins.listToAttrs (
-        map (name: {
-          name = "${name}-private-key";
-          value = {
-            owner = user;
-            path = "${homeDirectory}/.ssh/${name}";
-            mode = "0600";
-          };
-        }) config.my.infrastructure.ssh.privateKeys
-      );
-
-      systemd.tmpfiles.rules = [
-        "d ${homeDirectory}/.ssh 0700 ${user} users -"
-      ];
-    };
-
-  darwinCredentials =
+  credentialsModule =
+    platform:
     { config, ... }:
     let
       user = config.my.user.name;
@@ -56,11 +24,11 @@ let
     in
     {
       imports = [
-        registry.darwin.ssh
-        registry.darwin.sops
+        registry.${platform}.ssh
+        registry.${platform}.sops
       ];
 
-      home-manager.users.${user}.imports = [ registry.homeManager.sops ];
+      home-manager.sharedModules = [ registry.homeManager.sops ];
 
       sops.secrets = builtins.listToAttrs (
         map (name: {
@@ -72,6 +40,11 @@ let
           };
         }) config.my.infrastructure.ssh.privateKeys
       );
+    }
+    // lib.optionalAttrs (platform == "nixos") {
+      systemd.tmpfiles.rules = [
+        "d ${homeDirectory}/.ssh 0700 ${user} users -"
+      ];
     };
 in
 {
@@ -79,6 +52,6 @@ in
   flake.modules.darwin.ssh = platformModule;
   flake.modules.homeManager.ssh = homeModule;
 
-  flake.modules.nixos.ssh-credentials = nixosCredentials;
-  flake.modules.darwin.ssh-credentials = darwinCredentials;
+  flake.modules.nixos.ssh-credentials = credentialsModule "nixos";
+  flake.modules.darwin.ssh-credentials = credentialsModule "darwin";
 }

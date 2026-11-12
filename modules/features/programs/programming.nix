@@ -1,8 +1,8 @@
 { config, ... }:
 let
   registry = config.flake.modules;
-  platformModule = { config, ... }: {
-    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.programming ];
+  platformModule = {
+    home-manager.sharedModules = [ registry.homeManager.programming ];
   };
   credentialsModule = platform: { config, ... }: {
     imports = [
@@ -10,9 +10,7 @@ let
       registry.${platform}.sops
     ];
     sops.secrets."linear-api-key".owner = config.my.user.name;
-    home-manager.users.${config.my.user.name}.imports = [
-      registry.homeManager.programming-credentials
-    ];
+    home-manager.sharedModules = [ registry.homeManager.programming-credentials ];
   };
 
   homeModule =

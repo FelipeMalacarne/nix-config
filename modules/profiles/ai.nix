@@ -6,9 +6,9 @@
 }:
 let
   registry = config.flake.modules;
-  workstation = platform: { config, ... }: {
+  workstation = platform: {
     imports = [ registry.${platform}.ai-memory-client ];
-    home-manager.users.${config.my.user.name}.imports = [ registry.homeManager.ai ];
+    home-manager.sharedModules = [ registry.homeManager.ai ];
   };
 in
 {

@@ -16,9 +16,7 @@ in
       owner = config.my.user.name;
       mode = "0400";
     };
-    home-manager.users.${config.my.user.name}.imports = [
-      configFlake.claude-gateway
-    ];
+    home-manager.sharedModules = [ configFlake.claude-gateway ];
   };
 
   flake.modules.homeManager.claude-gateway = {

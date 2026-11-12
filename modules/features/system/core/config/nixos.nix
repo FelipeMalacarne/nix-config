@@ -1,18 +1,12 @@
-{ config, inputs, ... }:
-let
-  registry = config.flake.modules;
-in
+{ inputs, ... }:
 {
   flake.modules.nixos.core =
-    { config, lib, ... }:
+    { config, ... }:
     let
       user = config.my.user.name;
     in
     {
-      imports = [
-        inputs.home-manager.nixosModules.home-manager
-        registry.nixos.home-manager-policy
-      ];
+      imports = [ inputs.home-manager.nixosModules.home-manager ];
 
       i18n.defaultLocale = "en_US.UTF-8";
       time.timeZone = "America/Sao_Paulo";
@@ -36,7 +30,6 @@ in
         options = "--delete-older-than 7d";
       };
 
-      nixpkgs.config.allowUnfree = true;
       programs.nix-ld.enable = true;
       nix.registry.nixpkgs.flake = inputs.nixpkgs;
 
@@ -53,18 +46,6 @@ in
           "wheel"
           "networkmanager"
         ];
-      };
-
-      home-manager.users.${user} = {
-        imports = [ registry.homeManager.identity ];
-        my.user = config.my.user;
-        home = {
-          username = user;
-          homeDirectory = lib.mkDefault (
-            if config.my.user.homeDirectory == null then "/home/${user}" else config.my.user.homeDirectory
-          );
-          stateVersion = lib.mkDefault "24.11";
-        };
       };
     };
 }
