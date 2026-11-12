@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  secretsDir,
   self,
   ...
 }:
@@ -15,7 +16,7 @@ let
       options.my.ai.memory.client = clientOptions lib;
 
       config = {
-        sops.secrets.ai-memory-token = (import ./credential.nix) // {
+        sops.secrets.ai-memory-token = (import ./credential.nix secretsDir) // {
           owner = user;
         };
         home-manager.sharedModules = [ registry.homeManager.ai-memory-client ];

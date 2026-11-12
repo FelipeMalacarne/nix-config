@@ -22,7 +22,7 @@
     };
 
   perSystem = { lib, pkgs, ... }: {
-    checks.github-mcp = import ./config/test.nix {
+    checks.github-mcp = import ./config/test-launcher.nix {
       inherit
         lib
         pkgs

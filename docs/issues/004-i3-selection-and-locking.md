@@ -13,7 +13,7 @@ that it is unused. The [i3 feature](../../modules/features/desktop/i3.nix)
 declares neither a lock binding nor an X11 locker with idle/sleep integration.
 Wayland shell locking does not supply that missing X11 protection.
 
-The [desktop checks](../../modules/features/desktop/desktop/config/test_sessions.nix#L229-L237)
+The [desktop checks](../../modules/features/desktop/desktop-foundation/config/test-sessions.nix#L229-L237)
 correctly exclude Wayland shells and idle services from i3-only configurations.
 The [greeter](../../modules/features/desktop/noctalia-greeter.nix#L51-L62)
 nevertheless exposes the selected X11 session through its dedicated wrapper.

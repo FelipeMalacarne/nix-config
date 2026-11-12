@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, secretsDir, ... }:
 {
   flake.modules.homeManager.sops = {
     home.sessionVariables.SOPS_AGE_KEY_FILE = "/var/lib/sops-age/keys.txt";
@@ -14,7 +14,7 @@
 
       environment.systemPackages = [ pkgs.sops ];
       sops.age.keyFile = "/var/lib/sops-age/keys.txt";
-      sops.defaultSopsFile = ../../../secrets/secrets.yaml;
+      sops.defaultSopsFile = secretsDir + "/secrets.yaml";
 
       systemd.tmpfiles.rules = [
         "z /var/lib/sops-age/keys.txt 0600 ${user} root -"
@@ -33,6 +33,6 @@
 
       environment.systemPackages = [ pkgs.sops ];
       sops.age.keyFile = keyFile;
-      sops.defaultSopsFile = ../../../secrets/secrets.yaml;
+      sops.defaultSopsFile = secretsDir + "/secrets.yaml";
     };
 }

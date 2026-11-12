@@ -8,13 +8,13 @@
 
 ## Problem And Evidence
 
-The [Yabai settings](../../modules/features/desktop/darwin/yabai.nix#L6-L34)
+The [Yabai settings](../../modules/features/desktop/yabai.nix#L6-L34)
 include `window_animation_frame_rate`, unsupported by the reviewed pin 7.1.25.
 They also set `external_bar = "all:48"`, omitting the required bottom value
 from the `all:<top>:<bottom>` form. These commands can be rejected even when
 Nix evaluation succeeds; this is not proof that every later setting fails.
 
-The [signals](../../modules/features/desktop/darwin/yabai.nix#L36-L40) use
+The [signals](../../modules/features/desktop/yabai.nix#L36-L40) use
 `application_closed`, which is not a valid event; the exit event is
 `application_terminated`. Existing `top_padding = 48` must also be considered
 when correcting bar reservation, rather than blindly adding another 48 pixels.

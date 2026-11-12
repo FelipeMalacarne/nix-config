@@ -8,10 +8,10 @@
 
 ## Problem And Evidence
 
-The [skhd configuration](../../modules/features/desktop/darwin/skhd.nix#L10-L32)
+The [skhd configuration](../../modules/features/desktop/skhd/skhd.nix#L10-L32)
 assigns `Alt+Shift+W` to both application quit and upward resize. It also assigns
 `Alt+Shift+X` to mirror the space and later to move a window to the next space.
-The [space bindings](../../modules/features/desktop/darwin/skhd.nix#L54-L73)
+The [space bindings](../../modules/features/desktop/skhd/skhd.nix#L54-L73)
 repeat the identical `Alt+4` entry at lines 58-59. Pinned skhd 0.3.9 retains the
 first duplicate, so later conflicting actions are unreachable, not combined.
 

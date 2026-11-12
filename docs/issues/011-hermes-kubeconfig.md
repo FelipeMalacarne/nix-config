@@ -10,7 +10,7 @@
 
 The [Kubernetes feature](../../modules/features/programs/k8s.nix) declares the
 nonsecret multi-file path in `home.sessionVariables.KUBECONFIG`. The
-[Hermes feature](../../modules/features/programs/hermes-agent.nix) only adds
+[Hermes feature](../../modules/features/programs/hermes-agent/hermes-agent.nix) only adds
 `KUBECONFIG` to `terminal.env_passthrough`, which allows an existing value through
 but does not create it. The user account also has lingering enabled.
 

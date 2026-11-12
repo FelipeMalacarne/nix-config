@@ -10,7 +10,7 @@
 
 [Zaros's Restic paths](../../hosts/zaros/default.nix) cover selected documents
 and game data, not the Hermes home. The
-[Hermes feature](../../modules/features/programs/hermes-agent.nix) enables memory
+[Hermes feature](../../modules/features/programs/hermes-agent/hermes-agent.nix) enables memory
 and profile learning, while its activation seeds a skill only when absent.
 
 The [writable-learning contract](../hermes-agent.md#writable-learning) preserves

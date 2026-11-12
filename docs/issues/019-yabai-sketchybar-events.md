@@ -8,12 +8,12 @@
 
 ## Problem And Evidence
 
-The [Yabai item](../../assets/sketchybar/items/yabai.sh#L11-L15) registers and
+The [Yabai item](../../modules/features/desktop/sketchybar/config/items/yabai.sh#L11-L15) registers and
 subscribes to the custom SketchyBar event `window_focus`. Its
-[plugin](../../assets/sketchybar/plugins/yabai.sh#L46-L51) refreshes window state
+[plugin](../../modules/features/desktop/sketchybar/config/plugins/yabai.sh#L46-L51) refreshes window state
 on that event or a mouse click, rather than on every generic bar update.
 
-The [Yabai module](../../modules/features/desktop/darwin/yabai.nix#L36-L40)
+The [Yabai module](../../modules/features/desktop/yabai.nix#L36-L40)
 has no `window_focused` signal forwarding to `sketchybar --trigger window_focus`.
 Declaring a custom event does not produce it. Normal focus changes therefore
 lack the configured refresh path; this is not a native observation of stale UI.

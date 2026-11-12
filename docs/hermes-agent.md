@@ -2,7 +2,7 @@
 
 Zaros imports `self.modules.nixos.hermes-agent`, which activates the feature and
 its Home Manager integration. Other hosts omit the import. The implementation
-lives in `modules/features/programs/hermes-agent.nix`, not in the general
+lives in `modules/features/programs/hermes-agent/hermes-agent.nix`, not in the general
 programming package list. Standalone Home Manager configurations can import
 `self.modules.homeManager.hermes-agent` directly.
 

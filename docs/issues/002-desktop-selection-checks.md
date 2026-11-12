@@ -9,7 +9,7 @@
 ## Problem And Evidence
 
 [Zaros selects Hyprland](../../hosts/zaros/desktop.nix), while the
-[desktop-session check](../../modules/features/desktop/desktop/config/test_sessions.nix)
+[desktop-session check](../../modules/features/desktop/desktop-foundation/config/test-sessions.nix)
 asserts that its default and native display-manager identifier are `umbriel`.
 `make eval-check` failed at this assertion during review. The
 [README](../../README.md) and [agent instructions](../../AGENTS.md) also describe

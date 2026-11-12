@@ -8,15 +8,15 @@
 
 ## Problem And Evidence
 
-Home Manager [links the helper directory](../../modules/features/desktop/darwin/sketchybar.nix#L35-L42)
-into the immutable Nix store. The [startup script](../../assets/sketchybar/sketchybarrc#L12-L16)
+Home Manager [links the helper directory](../../modules/features/desktop/sketchybar/sketchybar.nix#L35-L42)
+into the immutable Nix store. The [startup script](../../modules/features/desktop/sketchybar/config/sketchybarrc#L12-L16)
 then runs `make` there. The [makefile](../../assets/sketchybar/helper/makefile)
 writes `helper` beside its sources, so startup cannot rebuild that output.
 A committed binary currently masks this design rather than proving rebuildability.
 
 Startup also runs broad `killall helper` and discards the new process's output.
 That can target unrelated same-named processes and hide failures. The
-[helper source](../../assets/sketchybar/helper/helper.c#L21-L30) runs an event
+[helper source](../../modules/features/desktop/sketchybar/config/helper/helper.c#L21-L30) runs an event
 server; its lifetime and single-instance ownership need explicit management.
 
 ## Decision And Scope

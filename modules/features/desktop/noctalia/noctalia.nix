@@ -91,7 +91,7 @@
               wf-recorder
             ];
 
-            home.file."Pictures/nixos.svg".source = ../../../../assets/nixos.svg;
+            home.file."Pictures/nixos.svg".source = ./config/nixos.svg;
 
             programs.noctalia = {
               enable = true;

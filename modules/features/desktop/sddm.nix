@@ -43,7 +43,7 @@
           setupScript = "${lib.getExe pkgs.xrandr} \\\n           ${xrandrOutputs}";
           theme = "${
             pkgs.catppuccin-sddm.override {
-              background = ../../../assets/wallpapers/catppuccin-mocha.png;
+              background = config.stylix.image;
             }
           }/share/sddm/themes/catppuccin-mocha-mauve";
           settings = {

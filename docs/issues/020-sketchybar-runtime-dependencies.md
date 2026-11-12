@@ -8,15 +8,15 @@
 
 ## Problem And Evidence
 
-The [SketchyBar service](../../modules/features/desktop/darwin/sketchybar.nix#L45-L54)
+The [SketchyBar service](../../modules/features/desktop/sketchybar/sketchybar.nix#L45-L54)
 sets no `extraPackages`. Its launchd environment must not be assumed to inherit
 an interactive shell's PATH. Plugins invoke `jq`,
-[GitHub CLI](../../assets/sketchybar/plugins/github.sh#L3-L8), and
-[SwitchAudioSource](../../assets/sketchybar/plugins/volume_click.sh#L22-L39).
+[GitHub CLI](../../modules/features/desktop/sketchybar/config/plugins/github.sh#L3-L8), and
+[SwitchAudioSource](../../modules/features/desktop/sketchybar/config/plugins/volume_click.sh#L22-L39).
 The corresponding `switchaudio-osx` package is not selected in this configuration.
 
-The [bar config](../../assets/sketchybar/sketchybarrc#L76-L84) also loads the
-[brew widget](../../assets/sketchybar/plugins/brew.sh#L1-L5), which calls `brew`.
+The [bar config](../../modules/features/desktop/sketchybar/config/sketchybarrc#L76-L84) also loads the
+[brew widget](../../modules/features/desktop/sketchybar/config/plugins/brew.sh#L1-L5), which calls `brew`.
 Imperative installations may mask these gaps; no running-widget outage is proven.
 GitHub authentication is a separate prerequisite, not supplied by installing `gh`.
 

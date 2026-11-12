@@ -1,17 +1,22 @@
-{ config, inputs, ... }:
+{
+  config,
+  inputs,
+  secretsDir,
+  ...
+}:
 let
   configFlake = config.flake.modules.homeManager;
 in
 {
   imports = [
-    ./claude-code/config/remote-control.nix
-    ./claude-code/config/writable-settings.nix
+    ./config/remote-control.nix
+    ./config/writable-settings.nix
   ];
 
   # Opt-in per host: the shared AI profile keeps using its normal Claude login.
   flake.modules.darwin.claude-gateway = { config, ... }: {
     sops.secrets.claude-gateway-key = {
-      sopsFile = ../../../secrets/claude-gateway.yaml;
+      sopsFile = secretsDir + "/claude-gateway.yaml";
       key = "api-key";
       owner = config.my.user.name;
       mode = "0400";

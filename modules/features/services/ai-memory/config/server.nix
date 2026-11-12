@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  secretsDir,
   self,
   ...
 }:
@@ -45,7 +46,7 @@ in
       };
 
       config = {
-        sops.secrets.ai-memory-token = (import ./credential.nix) // {
+        sops.secrets.ai-memory-token = (import ./credential.nix secretsDir) // {
           owner = service.user;
           group = service.group;
           restartUnits = [ "ai-memory.service" ];

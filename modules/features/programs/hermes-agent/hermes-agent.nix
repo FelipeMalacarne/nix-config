@@ -65,8 +65,8 @@ let
 
       home.activation = lib.mkIf cfg.enable {
         hermesAgentWorkflow = lib.hm.dag.entryBetween [ "reloadSystemd" ] [ "hermesAgentSetup" ] ''
-          $DRY_RUN_CMD ${pkgs.python3}/bin/python3 ${./hermes-agent/config/runtime-state.py} seed-skill \
-            ${./hermes-agent/config/nix-system-workflow/SKILL.md} \
+          $DRY_RUN_CMD ${pkgs.python3}/bin/python3 ${./config/runtime-state.py} seed-skill \
+            ${./config/nix-system-workflow/SKILL.md} \
             ${lib.escapeShellArg "${cfg.hermesHome}/skills/nix-system-workflow/SKILL.md"}
         '';
         # A caller supplying a SOPS/other token path owns its provisioning.
@@ -74,7 +74,7 @@ let
           lib.mkIf (cfg.backend.mode != "none" && cfg.backend.sessionTokenFile == tokenFile)
             (
               lib.hm.dag.entryBetween [ "reloadSystemd" ] [ "hermesAgentSetup" ] ''
-                $DRY_RUN_CMD ${pkgs.python3}/bin/python3 ${./hermes-agent/config/runtime-state.py} ensure-token \
+                $DRY_RUN_CMD ${pkgs.python3}/bin/python3 ${./config/runtime-state.py} ensure-token \
                   ${lib.escapeShellArg tokenFile}
               ''
             );
@@ -87,7 +87,7 @@ in
   flake.modules.nixos.hermes-agent =
     { config, ... }:
     {
-      imports = [ ./hermes-agent/config/web.nix ];
+      imports = [ ./config/web.nix ];
 
       home-manager.sharedModules = [ registry.homeManager.hermes-agent ];
       users.users.${config.my.user.name}.linger = true;

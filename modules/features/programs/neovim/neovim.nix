@@ -11,7 +11,7 @@ in
     {
       inherit packages;
 
-      checks.neovim-options = import ./config/options-check.nix {
+      checks.neovim-options = import ./config/test-options.nix {
         inherit inputs self pkgs;
         configDir = "${./.}";
       };

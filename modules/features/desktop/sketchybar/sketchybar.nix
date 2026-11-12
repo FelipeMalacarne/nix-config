@@ -1,12 +1,12 @@
 { withSystem, ... }:
 let
-  source = ../../../../assets/sketchybar;
+  source = ./config;
 in
 {
   perSystem =
     { lib, pkgs, ... }:
     let
-      helper = pkgs.callPackage ./sketchybar/config/helper.nix { source = source + "/helper"; };
+      helper = pkgs.callPackage ./config/helper.nix { source = source + "/helper"; };
     in
     {
       packages = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {

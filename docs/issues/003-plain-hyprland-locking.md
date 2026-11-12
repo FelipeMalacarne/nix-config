@@ -13,7 +13,7 @@ attaches locking, pre-sleep locking, and DPMS listeners to
 `wayland-session@hyprland.desktop.target`. That target belongs to the UWSM
 session lifecycle, not the raw `hyprland.desktop` login path.
 
-The [session checks](../../modules/features/desktop/desktop/config/test_sessions.nix#L177-L202)
+The [session checks](../../modules/features/desktop/desktop-foundation/config/test-sessions.nix#L177-L202)
 retain both `hyprland` and `hyprland-uwsm`, and the
 [greeter projection](../../modules/features/desktop/noctalia-greeter.nix#L43-L63)
 copies the Wayland entries. Plain Hyprland remains advertised without starting

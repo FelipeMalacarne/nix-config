@@ -213,7 +213,7 @@
           exit 1
         fi
       '';
-      desktopChecks = import ./config/test_sessions.nix {
+      desktopChecks = import ./config/test-sessions.nix {
         inherit
           inputs
           self

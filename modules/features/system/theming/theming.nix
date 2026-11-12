@@ -105,7 +105,7 @@ in
               package = pkgs.noto-fonts;
             };
           };
-          image = ../../../assets/wallpapers/catppuccin-mocha.png;
+          image = ./config/catppuccin-mocha.png;
           polarity = "dark";
         };
         environment.systemPackages = [ pkgs.nerd-fonts.symbols-only ];
@@ -146,7 +146,7 @@ in
               package = pkgs.noto-fonts;
             };
           };
-          image = ../../../assets/wallpapers/catppuccin-mocha.png;
+          image = ./config/catppuccin-mocha.png;
         };
         environment.systemPackages = [ pkgs.nerd-fonts.symbols-only ];
       };

@@ -516,7 +516,7 @@ in
       touch "$out"
     '';
 
-  greeter-sessions = import ./test_greeter.nix {
+  greeter-sessions = import ./test-greeter.nix {
     inherit
       inputs
       lib

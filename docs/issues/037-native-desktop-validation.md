@@ -13,8 +13,8 @@
 monitor, suspend/resume, gaming, Xwayland, and portal tests pending approval.
 Offline checks and built closures do not establish these physical-session properties.
 
-The [desktop checks](../../modules/features/desktop/desktop/config/test_sessions.nix)
-and [greeter checks](../../modules/features/desktop/desktop/config/test_greeter.nix)
+The [desktop checks](../../modules/features/desktop/desktop-foundation/config/test-sessions.nix)
+and [greeter checks](../../modules/features/desktop/desktop-foundation/config/test-greeter.nix)
 cover composition, generated files, discovery, and mocked X11 routing, not physical
 login. [Zaros's settings](../../hosts/zaros/desktop.nix) define the selected sessions.
 

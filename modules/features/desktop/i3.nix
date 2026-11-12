@@ -39,7 +39,7 @@
         warning = "#${config.lib.stylix.colors.base0A}";
         error = "#${config.lib.stylix.colors.base08}";
       };
-      wallpaper = ../../../assets/wallpapers/catppuccin-mocha.png;
+      wallpaper = config.stylix.image;
       menu = "${lib.getExe pkgs.rofi} -show drun";
       feh = lib.getExe pkgs.feh;
       picom = lib.getExe pkgs.picom;
