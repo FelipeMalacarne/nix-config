@@ -1,7 +1,4 @@
-{ config, self, ... }:
-let
-  user = config.my.user.name;
-in
+{ self, ... }:
 {
   imports = with self.modules.nixos; [
     ./hardware.nix
@@ -17,9 +14,7 @@ in
   services.qemuGuest.enable = true;
   services.openssh.settings.PasswordAuthentication = true;
 
-  users.users.${user}.openssh.authorizedKeys.keyFiles = [
-    ../../keys/zaros.pub
-  ];
+  my.infrastructure.ssh.authorizedKeys = [ ../../keys/zaros.pub ];
 
   virtualisation.vmVariant = {
     virtualisation.memorySize = 4096;

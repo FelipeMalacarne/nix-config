@@ -6,6 +6,7 @@
 }:
 let
   user = config.my.user.name;
+  inherit (config.my.infrastructure.machines) saradomin zaros;
 in
 {
   imports = with self.modules.nixos; [
@@ -13,6 +14,7 @@ in
     ./hardware.nix
     server
     ssh-credentials
+    internal-ca
     adguard-home
     k3s
     openssh
@@ -23,7 +25,7 @@ in
 
   networking.hostName = "saradomin";
 
-  my.ai.memory.server.hostName = "saradomin.osiris-fish.ts.net";
+  my.ai.memory.server.hostName = saradomin.tailnetName;
   services.ai-memory.enableWeb = true;
 
   home-manager.users.${user} = {
@@ -31,14 +33,14 @@ in
       (pkgs.writeShellApplication {
         name = "wake-zaros";
         text = ''
-          wakeonlan 04:7c:16:db:d9:e1
+          wakeonlan ${zaros.macAddress}
         '';
       })
     ];
   };
 
   my.k3s.tlsSans = [
-    "100.106.58.87"
+    saradomin.tailnetAddress
     "saradomin"
     "saradomin.tail34cc60.ts.net"
   ];
@@ -47,33 +49,29 @@ in
   # download entries in these hostPath directories. Keep the `e` rules
   # alongside `d`: `d` covers a fresh host, while `e` repairs ownership
   # and mode on directories that already existed before this config.
-  systemd.tmpfiles.rules = [
-    "d /data 0775 1001 1001 -"
-    "d /data/media 0775 1001 1001 -"
-    "d /data/media/movies 0775 1001 1001 -"
-    "d /data/media/tv 0775 1001 1001 -"
-    "d /data/media/music 0775 1001 1001 -"
-    "d /data/media/books 0775 1001 1001 -"
-    "d /data/downloads 0775 1001 1001 -"
-    "d /data/downloads/complete 0775 1001 1001 -"
-    "d /data/downloads/incomplete 0775 1001 1001 -"
-    "e /data 0775 1001 1001 -"
-    "e /data/media 0775 1001 1001 -"
-    "e /data/media/movies 0775 1001 1001 -"
-    "e /data/media/tv 0775 1001 1001 -"
-    "e /data/media/music 0775 1001 1001 -"
-    "e /data/media/books 0775 1001 1001 -"
-    "e /data/downloads 0775 1001 1001 -"
-    "e /data/downloads/complete 0775 1001 1001 -"
-    "e /data/downloads/incomplete 0775 1001 1001 -"
-  ];
+  systemd.tmpfiles.rules =
+    let
+      mediaPaths = [
+        "/data"
+        "/data/media"
+        "/data/media/movies"
+        "/data/media/tv"
+        "/data/media/music"
+        "/data/media/books"
+        "/data/downloads"
+        "/data/downloads/complete"
+        "/data/downloads/incomplete"
+      ];
+    in
+    map (path: "d ${path} 0775 1001 1001 -") mediaPaths
+    ++ map (path: "e ${path} 0775 1001 1001 -") mediaPaths;
 
   my.adguard-home = {
     listenAddresses = [
-      "10.10.0.10"
-      "100.106.58.87"
+      saradomin.lanAddress
+      saradomin.tailnetAddress
     ];
-    webAddress = "10.10.0.10";
+    webAddress = saradomin.lanAddress;
     webProxyCidrs = [ "10.42.0.0/16" ];
     lanCidrs = [ "10.10.0.0/22" ];
     zones = [
@@ -83,7 +81,7 @@ in
     views = [
       {
         clientCidr = "10.10.0.0/22";
-        answer = "10.10.0.10";
+        answer = saradomin.lanAddress;
       }
       {
         clientCidr = "100.64.0.0/10";
@@ -92,13 +90,4 @@ in
     ];
   };
   system.stateVersion = "25.11";
-
-  security.pki.certificateFiles = [
-    ../../certs/saradomin-internal-ca.crt
-  ];
-
-  users.users.${user}.openssh.authorizedKeys.keyFiles = [
-    ../../keys/zaros.pub
-    ../../keys/bitbaut.pub
-  ];
 }

@@ -7,6 +7,7 @@
 }:
 let
   user = config.my.user.name;
+  inherit (config.my.infrastructure) machines;
 in
 {
   imports = with self.modules.nixos; [
@@ -28,6 +29,7 @@ in
     hermes-agent
     nvidia
     ollama
+    internal-ca
     openssh
     restic
     rgb
@@ -51,7 +53,7 @@ in
       signal
     ];
 
-    my.infrastructure.ssh.hosts.saradomin.HostName = "10.10.0.10";
+    my.infrastructure.ssh.hosts.saradomin.HostName = machines.saradomin.lanAddress;
 
     programs.artcraft = {
       apps.filmcraft.enable = true;
@@ -83,10 +85,10 @@ in
       ];
     };
     ai = {
-      memory.client.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
+      memory.client.serverUrl = "https://${machines.saradomin.tailnetName}:8443";
       hermes.web = {
         enable = true;
-        publicUrl = "https://zaros.osiris-fish.ts.net";
+        publicUrl = "https://${machines.zaros.tailnetName}";
         restartTriggers = [ ../../secrets/hermes-web.yaml ];
         environmentFile = lib.mkIf config.my.ai.hermes.web.enable config.sops.secrets.hermes-web.path;
       };
@@ -100,13 +102,4 @@ in
     mode = "0400";
   };
   system.stateVersion = "24.11";
-
-  security.pki.certificateFiles = [
-    ../../certs/saradomin-internal-ca.crt
-  ];
-
-  users.users.${user}.openssh.authorizedKeys.keyFiles = [
-    ../../keys/zaros.pub
-    ../../keys/bitbaut.pub
-  ];
 }

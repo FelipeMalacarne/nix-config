@@ -31,7 +31,7 @@ in
   services.openssh.enable = true;
 
   my = {
-    ai.memory.client.serverUrl = "https://saradomin.osiris-fish.ts.net:8443";
+    ai.memory.client.serverUrl = "https://${config.my.infrastructure.machines.saradomin.tailnetName}:8443";
     user.name = "felipeautentique";
 
     infrastructure.ssh.hosts = {
