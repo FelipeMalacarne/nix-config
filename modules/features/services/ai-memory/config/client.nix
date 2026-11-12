@@ -163,11 +163,22 @@ in
     ];
   };
 
-  perSystem = { lib, pkgs, ... }: {
-    checks.ai-memory-client = import ./test-client.nix {
-      inherit lib pkgs module;
-      inherit (inputs) home-manager;
-      inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) opencode;
+  perSystem =
+    {
+      lib,
+      pkgs,
+      evalHome,
+      ...
+    }:
+    {
+      checks.ai-memory-client = import ./test-client.nix {
+        inherit
+          lib
+          pkgs
+          module
+          evalHome
+          ;
+        inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) opencode;
+      };
     };
-  };
 }

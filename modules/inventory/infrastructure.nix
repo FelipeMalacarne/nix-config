@@ -139,7 +139,7 @@ in
   config.flake.modules.homeManager.infrastructure = module;
 
   config.perSystem =
-    { pkgs, ... }:
+    { mkAssertCheck, ... }:
     let
       inventory =
         (lib.evalModules {
@@ -161,15 +161,23 @@ in
         }).config.my.infrastructure;
     in
     {
-      checks.infrastructure =
-        assert inventory.ssh.hosts."github.com".IdentityFile == "~/.ssh/fixture";
-        assert inventory.ssh.hosts."github.com".Port == 22;
-        assert inventory.ssh.hosts."github.com".User == "git";
-        assert inventory.ssh.hosts.saradomin == sshDefaults.saradomin;
-        assert inventory.ssh.hosts.fixture.HostName == "fixture.example.test";
-        assert inventory.machines.saradomin.lanAddress == "192.0.2.10";
-        assert inventory.machines.saradomin.tailnetName == machineDefaults.saradomin.tailnetName;
-        assert inventory.machines.zaros.macAddress == machineDefaults.zaros.macAddress;
-        pkgs.runCommand "infrastructure-check" { } "touch $out";
+      checks.infrastructure = mkAssertCheck "infrastructure-check" [
+        {
+          assertion =
+            inventory.ssh.hosts."github.com".IdentityFile == "~/.ssh/fixture"
+            && inventory.ssh.hosts."github.com".Port == 22
+            && inventory.ssh.hosts."github.com".User == "git"
+            && inventory.ssh.hosts.saradomin == sshDefaults.saradomin
+            && inventory.ssh.hosts.fixture.HostName == "fixture.example.test";
+          message = "Overriding one SSH setting must keep the rest of the inventory.";
+        }
+        {
+          assertion =
+            inventory.machines.saradomin.lanAddress == "192.0.2.10"
+            && inventory.machines.saradomin.tailnetName == machineDefaults.saradomin.tailnetName
+            && inventory.machines.zaros.macAddress == machineDefaults.zaros.macAddress;
+          message = "Overriding one machine fact must keep the rest of the registry.";
+        }
+      ];
     };
 }

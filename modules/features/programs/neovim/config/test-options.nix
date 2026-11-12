@@ -1,7 +1,7 @@
 {
-  inputs,
   self,
   pkgs,
+  evalHome,
   configDir,
 }:
 let
@@ -9,18 +9,10 @@ let
   packages = self.packages.${pkgs.stdenv.hostPlatform.system};
   mkHome =
     settings:
-    (inputs.home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = [
-        self.modules.homeManager.neovim
-        {
-          home.username = "neovim-test";
-          home.homeDirectory = "/home/neovim-test";
-          home.stateVersion = "24.11";
-          my.neovim = settings;
-        }
-      ];
-    }).config;
+    evalHome [
+      self.modules.homeManager.neovim
+      { my.neovim = settings; }
+    ];
   minimal = mkHome { };
   full = mkHome { variant = "full"; };
   dev = mkHome {

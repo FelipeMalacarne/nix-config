@@ -2,23 +2,11 @@
   lib,
   pkgs,
   self,
-  inputs,
+  evalHome,
 }:
 let
-  evaluate =
-    modules:
-    (inputs.home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = modules ++ [
-        {
-          home.username = "github-mcp-check";
-          home.homeDirectory = "/tmp/github-mcp-check";
-          home.stateVersion = "24.11";
-        }
-      ];
-    }).config;
-  absent = evaluate [ ];
-  selected = evaluate [ self.modules.homeManager.github-mcp ];
+  absent = evalHome [ ];
+  selected = evalHome [ self.modules.homeManager.github-mcp ];
   launcher = selected.programs.mcp.servers.github.command;
   mockGh = pkgs.writeShellScript "mock-gh" ''
     set -euo pipefail

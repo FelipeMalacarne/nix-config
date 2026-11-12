@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ self, ... }:
 {
   flake.modules.homeManager.github-mcp =
     { lib, pkgs, ... }:
@@ -21,14 +21,21 @@
       };
     };
 
-  perSystem = { lib, pkgs, ... }: {
-    checks.github-mcp = import ./config/test-launcher.nix {
-      inherit
-        lib
-        pkgs
-        self
-        inputs
-        ;
+  perSystem =
+    {
+      lib,
+      pkgs,
+      evalHome,
+      ...
+    }:
+    {
+      checks.github-mcp = import ./config/test-launcher.nix {
+        inherit
+          lib
+          pkgs
+          self
+          evalHome
+          ;
+      };
     };
-  };
 }

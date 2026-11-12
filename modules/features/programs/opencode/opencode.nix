@@ -198,7 +198,12 @@ in
   flake.modules.homeManager.opencode = module;
 
   perSystem =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      evalHome,
+      ...
+    }:
     let
       upstream = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system};
       restoreScripts = old: {
@@ -216,7 +221,7 @@ in
       };
       checks.opencode-craft = import ./config/test-craft.nix {
         inherit lib pkgs;
-        inherit (inputs) home-manager;
+        inherit evalHome;
         inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) opencode;
         inherit module;
         artcraft = inputs.artcraft.homeManagerModules.default;

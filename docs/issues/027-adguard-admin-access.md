@@ -8,7 +8,7 @@
 
 ## Problem And Evidence
 
-The [AdGuard feature](../../modules/features/services/adguard-home.nix) sets
+The [AdGuard feature](../../modules/features/services/adguard-home/adguard-home.nix) sets
 `users = [ ]` and serves its dashboard on port 3000. The
 [host selection](../../hosts/saradomin/default.nix) binds the dashboard to the
 LAN address and allows its configured pod CIDR through the firewall, not just a

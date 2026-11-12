@@ -36,11 +36,17 @@
       '';
     };
 
-  perSystem = { lib, pkgs, ... }: {
-    checks.claude-settings = import ./test-settings.nix {
-      inherit lib pkgs;
-      inherit (inputs) home-manager;
-      module = config.flake.modules.homeManager.claude-code;
+  perSystem =
+    {
+      lib,
+      pkgs,
+      evalHome,
+      ...
+    }:
+    {
+      checks.claude-settings = import ./test-settings.nix {
+        inherit lib pkgs evalHome;
+        module = config.flake.modules.homeManager.claude-code;
+      };
     };
-  };
 }

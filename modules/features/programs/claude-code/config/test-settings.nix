@@ -1,28 +1,20 @@
 {
   lib,
   pkgs,
-  home-manager,
+  evalHome,
   module,
 }:
 let
   evaluate =
     extra:
-    (home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = [
-        module
-        {
-          home.username = "claude-settings-check";
-          home.homeDirectory = "/tmp/claude-settings-check";
-          home.stateVersion = "24.11";
-        }
-        extra
-      ];
-    }).config;
+    evalHome [
+      module
+      extra
+    ];
   default = evaluate { };
   custom = evaluate {
     programs.claude-code = {
-      configDir = "/tmp/claude-settings-check/custom-claude";
+      configDir = "/tmp/feature-check/custom-claude";
       settings.enabledPlugins."fixture@example" = true;
       mcpServers.disabled-fixture = {
         command = "fixture";

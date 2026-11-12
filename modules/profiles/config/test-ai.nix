@@ -3,20 +3,11 @@
   pkgs,
   self,
   inputs,
+  evalHome,
+  secretsDir,
 }:
 let
-  evaluate =
-    modules:
-    (inputs.home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = modules ++ [
-        {
-          home.username = "ai-profile-check";
-          home.homeDirectory = "/tmp/ai-profile-check";
-          home.stateVersion = "24.11";
-        }
-      ];
-    }).config;
+  evaluate = evalHome;
   development = evaluate [
     self.modules.homeManager.infrastructure
     self.modules.homeManager.neovim
@@ -79,7 +70,7 @@ let
     && client.my.ai.memory.client.serverUrl == "https://saradomin.osiris-fish.ts.net:8443"
     && secret.owner == host.my.user.name
     && secret.mode == "0400"
-    && toString secret.sopsFile == toString ../../../secrets/ai-memory.yaml;
+    && toString secret.sopsFile == toString (secretsDir + "/ai-memory.yaml");
 in
 assert !(development.programs.opencode.enable or false);
 assert !(development.programs.claude-code.enable or false);
@@ -151,7 +142,7 @@ assert mac.sops.secrets.claude-gateway-key.owner == mac.my.user.name;
 assert mac.sops.secrets.claude-gateway-key.mode == "0400";
 assert
   toString mac.sops.secrets.claude-gateway-key.sopsFile
-  == toString ../../../secrets/claude-gateway.yaml;
+  == toString (secretsDir + "/claude-gateway.yaml");
 assert (home mac).programs.claude-code.settings.env.ANTHROPIC_BASE_URL == "https://llm.attq";
 assert
   (home mac).programs.claude-code.settings.apiKeyHelper == "cat /run/secrets/claude-gateway-key";

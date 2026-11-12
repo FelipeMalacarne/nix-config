@@ -1,30 +1,23 @@
 {
   lib,
   pkgs,
-  home-manager,
+  evalHome,
   module,
   opencode,
 }:
 let
-  cfg =
-    (home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = [
-        module
-        {
-          home.username = "memory-check";
-          home.homeDirectory = "/tmp/memory-check";
-          home.stateVersion = "24.11";
-          my.ai.memory.client.serverUrl = "https://memory.example.test:8443";
-          my.ai.memory.client.tokenFile = "/run/secrets/ai-memory-token";
-          programs.opencode = {
-            enable = true;
-            enableMcpIntegration = true;
-            package = opencode;
-          };
-        }
-      ];
-    }).config;
+  cfg = evalHome [
+    module
+    {
+      my.ai.memory.client.serverUrl = "https://memory.example.test:8443";
+      my.ai.memory.client.tokenFile = "/run/secrets/ai-memory-token";
+      programs.opencode = {
+        enable = true;
+        enableMcpIntegration = true;
+        package = opencode;
+      };
+    }
+  ];
   plugin = cfg.xdg.configFile."opencode/plugins/ai-memory-opencode2.ts".source;
   skills = lib.filterAttrs (name: _: lib.hasPrefix "opencode/skills/" name) cfg.xdg.configFile;
 in
@@ -40,9 +33,9 @@ assert
     "--data-dir"
     (
       if pkgs.stdenv.hostPlatform.isDarwin then
-        "/tmp/memory-check/Library/Application Support/ai-memory"
+        "/tmp/feature-check/Library/Application Support/ai-memory"
       else
-        "/tmp/memory-check/.local/share/ai-memory"
+        "/tmp/feature-check/.local/share/ai-memory"
     )
     "mcp-bridge"
     "--no-session-id"

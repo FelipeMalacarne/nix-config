@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-  home-manager,
+  evalHome,
   module,
   artcraft,
   opencode,
@@ -16,21 +16,13 @@ let
   # null evaluates OpenCode without the ArtCraft module (e.g. Darwin).
   evaluate =
     settings:
-    (home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = [
-        module
-        {
-          home.username = "craft-check";
-          home.homeDirectory = "/tmp/craft-check";
-          home.stateVersion = "24.11";
-        }
-      ]
+    evalHome (
+      [ module ]
       ++ lib.optionals (settings != null) [
         artcraft
         { programs.artcraft = settings; }
-      ];
-    }).config;
+      ]
+    );
   standalone = evaluate null;
   absent = evaluate { };
   disabled = evaluate {

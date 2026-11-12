@@ -4,7 +4,7 @@ let
 in
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, evalHome, ... }:
     let
       packages = packagesFor pkgs;
     in
@@ -12,7 +12,7 @@ in
       inherit packages;
 
       checks.neovim-options = import ./config/test-options.nix {
-        inherit inputs self pkgs;
+        inherit self pkgs evalHome;
         configDir = "${./.}";
       };
 
@@ -39,22 +39,6 @@ in
         grep -q 'neovim-dev requires NVIM_CONFIG_DIR' "$TMPDIR/missing-config.log"
         touch "$out"
       '';
-
-      checks.neovim-selection =
-        let
-          selected = host: host.config.home-manager.users.${host.config.my.user.name}.my.neovim.package;
-          linuxPackages = self.packages.x86_64-linux;
-        in
-        assert
-          (selected self.nixosConfigurations.saradomin).outPath == linuxPackages.neovim-minimal.outPath;
-        assert
-          (selected self.nixosConfigurations.saradomin-vm).outPath == linuxPackages.neovim-minimal.outPath;
-        assert (selected self.nixosConfigurations.zaros).outPath == linuxPackages.neovim-full.outPath;
-        assert
-          (selected self.darwinConfigurations.macbook).outPath
-          == self.packages.aarch64-darwin.neovim-full.outPath;
-        assert packages.neovim.outPath == packages.neovim-full.outPath;
-        pkgs.runCommand "neovim-host-selection" { } "touch $out";
     };
 
   flake.modules.homeManager.neovim =

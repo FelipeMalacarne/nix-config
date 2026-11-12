@@ -10,7 +10,7 @@
 
 [Saradomin's listener selection](../../hosts/saradomin/default.nix) supplies both
 LAN and Tailscale addresses to one AdGuard instance. The
-[feature](../../modules/features/services/adguard-home.nix) passes that list
+[feature](../../modules/features/services/adguard-home/adguard-home.nix) passes that list
 directly to `dns.bind_hosts`; it does not isolate listener failures.
 The upstream unit reviewed orders after `network.target` and retries every
 10 seconds, neither of which guarantees that the Tailscale address exists.

@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ self, ... }:
 {
   flake.modules.homeManager.linear-mcp = {
     programs.mcp = {
@@ -8,33 +8,33 @@
   };
 
   perSystem =
-    { pkgs, ... }:
+    { evalHome, mkAssertCheck, ... }:
     let
-      evaluate =
-        modules:
-        (inputs.home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          modules = modules ++ [
-            {
-              home.username = "linear-mcp-check";
-              home.homeDirectory = "/tmp/linear-mcp-check";
-              home.stateVersion = "24.11";
-            }
-          ];
-        }).config;
-      absent = evaluate [ ];
-      selected = evaluate [ self.modules.homeManager.linear-mcp ];
+      absent = evalHome [ ];
+      selected = evalHome [ self.modules.homeManager.linear-mcp ];
+      server = selected.programs.mcp.servers.linear;
     in
     {
-      checks.linear-mcp =
-        assert !(absent.programs.mcp.servers ? linear);
-        assert selected.programs.mcp.enable;
-        assert builtins.attrNames selected.programs.mcp.servers == [ "linear" ];
-        assert selected.programs.mcp.servers.linear.url == "https://mcp.linear.app/mcp";
-        assert selected.programs.mcp.servers.linear.command == null;
-        assert selected.programs.mcp.servers.linear.headers == { };
-        assert !(selected.programs.opencode.enable or false);
-        assert !(selected.programs.claude-code.enable or false);
-        pkgs.runCommand "linear-mcp" { } "touch $out";
+      checks.linear-mcp = mkAssertCheck "linear-mcp" [
+        {
+          assertion = !(absent.programs.mcp.servers ? linear);
+          message = "Linear MCP must not be registered without importing its aspect.";
+        }
+        {
+          assertion =
+            selected.programs.mcp.enable && builtins.attrNames selected.programs.mcp.servers == [ "linear" ];
+          message = "Importing linear-mcp must register only the Linear server in the shared MCP registry.";
+        }
+        {
+          assertion =
+            server.url == "https://mcp.linear.app/mcp" && server.command == null && server.headers == { };
+          message = "Linear must use its official remote endpoint with client-managed OAuth, no local command or static headers.";
+        }
+        {
+          assertion =
+            !(selected.programs.opencode.enable or false) && !(selected.programs.claude-code.enable or false);
+          message = "The MCP aspect must not enable any client by itself.";
+        }
+      ];
     };
 }

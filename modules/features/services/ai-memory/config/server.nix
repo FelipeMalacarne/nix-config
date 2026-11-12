@@ -191,124 +191,131 @@ in
       };
     };
 
-  perSystem = { lib, pkgs, ... }: {
-    checks.ai-memory-server =
-      let
-        inherit (import ../../../../checks/config/fixtures.nix { inherit inputs self; }) mkFeatureConfig;
-        cfg = mkFeatureConfig [
-          self.modules.nixos.server
-          self.modules.nixos.tailscale
-          self.modules.nixos.ai-memory-server
-          {
-            my.ai.memory.server.hostName = "fixture.example.test";
-            services.ai-memory.enableWeb = true;
-          }
-        ];
-        settings = cfg.services.ai-memory.settings;
-        pruneNulls =
-          value:
-          if builtins.isAttrs value then
-            lib.filterAttrs (_: v: v != null) (lib.mapAttrs (_: v: pruneNulls v) value)
-          else
-            value;
-        fixtureConfig = (pkgs.formats.toml { }).generate "ai-memory-server-fixture.toml" (
-          pruneNulls (
-            settings
-            // {
-              auth = settings.auth // {
-                bearer_token_file = "fixture-auth-token";
-              };
+  perSystem =
+    {
+      lib,
+      pkgs,
+      fixtures,
+      ...
+    }:
+    {
+      checks.ai-memory-server =
+        let
+          inherit (fixtures) mkFeatureConfig;
+          cfg = mkFeatureConfig [
+            self.modules.nixos.server
+            self.modules.nixos.tailscale
+            self.modules.nixos.ai-memory-server
+            {
+              my.ai.memory.server.hostName = "fixture.example.test";
+              services.ai-memory.enableWeb = true;
             }
-          )
-        );
-        tokenGuard = pkgs.writeShellScript "ai-memory-fixture-token-guard" (
-          lib.replaceStrings
-            [
-              (lib.escapeShellArg cfg.my.ai.memory.server.tokenFile)
-              (lib.escapeShellArg "${cfg.services.ai-memory.dataDir}/auth.json")
-            ]
-            [ ''"$FIXTURE_TOKEN"'' ''"$FIXTURE_PROVIDER_AUTH"'' ]
-            cfg.systemd.services.ai-memory.preStart
-        );
-      in
-      assert cfg.services.ai-memory.enable;
-      assert cfg.services.ai-memory.bind == "127.0.0.1";
-      assert !cfg.services.ai-memory.openFirewall;
-      assert cfg.services.ai-memory.enableWeb;
-      assert lib.hasInfix "--enable-web" cfg.systemd.services.ai-memory.serviceConfig.ExecStart;
-      assert cfg.services.ai-memory.memoryMax == "2G";
-      assert settings.embedding_provider == "local";
-      assert settings.llm_provider == "openai-oauth";
-      assert settings.llm_model == "gpt-6-luna";
-      assert settings.llm_base_url == null;
-      assert settings.llm_reasoning_effort == "low";
-      assert settings.llm_fallbacks == [ ];
-      assert settings.consolidate_on_session_end;
-      assert settings.consolidate_on_turn_checkpoint;
-      assert settings.consolidation.max_input_tokens == 16000;
-      assert settings.consolidation.max_output_tokens == 2000;
-      assert settings.auth.bearer_token_file == cfg.sops.secrets.ai-memory-token.path;
-      assert cfg.sops.secrets.ai-memory-token.owner == cfg.services.ai-memory.user;
-      assert cfg.sops.secrets.ai-memory-token.mode == "0400";
-      assert settings.auth.secure_cookie;
-      assert !(cfg.sops.secrets ? ai-memory-copilot);
-      assert !(cfg.sops.templates ? "ai-memory-copilot.env");
-      assert !(cfg.systemd.services.ai-memory.environment ? COPILOT_GITHUB_TOKEN);
-      assert cfg.services.ai-memory.environmentFile == null;
-      assert settings.auto_improve.scheduler.enabled;
-      assert settings.auto_improve.scheduler.interval_secs == 3600;
-      assert settings.auto_improve.scheduler.max_sessions_per_tick == 1;
-      assert settings.auto_improve.scheduler.min_session_age_secs == 600;
-      assert !settings.auto_improve.on_session_end;
-      assert settings.auto_improve.require_approval;
-      assert settings.dream.enabled;
-      assert settings.profile.enabled == "off";
-      assert settings.decay.observation_retention_days == 0;
-      assert settings.decay.hard_delete_after_days == 180;
-      assert !settings.decay.compact_cold_episodic;
-      assert !settings.decay.dedup_cold_clusters;
-      assert settings.maintenance.forget_sweep_interval_secs == 86400;
-      assert cfg.systemd.services.ai-memory.serviceConfig.ProtectSystem == "strict";
-      assert lib.hasInfix "--https=8443 http://127.0.0.1:49374"
-        cfg.systemd.services.ai-memory-https.serviceConfig.ExecStart;
-      assert cfg.systemd.services.ai-memory-https.serviceConfig.Restart == "always";
-      pkgs.runCommand "ai-memory-server-policy"
-        {
-          nativeBuildInputs = [
-            pkgs.nodejs
-            pkgs.git
           ];
-          __darwinAllowLocalNetworking = true;
-        }
-        ''
-          export HOME="$TMPDIR/home"
-          mkdir -p "$HOME"
-          export FIXTURE_PROVIDER_AUTH="$TMPDIR/fixture-auth.json"
-          printf '{"fixture":"not-a-real-login"}\n' > "$FIXTURE_PROVIDER_AUTH"
-          if FIXTURE_TOKEN="$TMPDIR/missing-token" ${tokenGuard}; then
-            echo 'Missing token must block server startup' >&2
-            exit 1
-          fi
-          printf ' \n' > "$TMPDIR/blank-token"
-          if FIXTURE_TOKEN="$TMPDIR/blank-token" ${tokenGuard}; then
-            echo 'Blank token must block server startup' >&2
-            exit 1
-          fi
-          printf 'fixture-token\n' > "$TMPDIR/valid-token"
-          if FIXTURE_TOKEN="$TMPDIR/valid-token" FIXTURE_PROVIDER_AUTH="$TMPDIR/missing-auth.json" ${tokenGuard}; then
-            echo 'Missing ChatGPT login must block server startup' >&2
-            exit 1
-          fi
-          touch "$TMPDIR/empty-auth.json"
-          if FIXTURE_TOKEN="$TMPDIR/valid-token" FIXTURE_PROVIDER_AUTH="$TMPDIR/empty-auth.json" ${tokenGuard}; then
-            echo 'Empty ChatGPT login must block server startup' >&2
-            exit 1
-          fi
-          FIXTURE_TOKEN="$TMPDIR/valid-token" ${tokenGuard}
-          node ${./test-server.mjs} \
-            ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory} \
-            ${fixtureConfig} "$TMPDIR"
-          touch "$out"
-        '';
-  };
+          settings = cfg.services.ai-memory.settings;
+          pruneNulls =
+            value:
+            if builtins.isAttrs value then
+              lib.filterAttrs (_: v: v != null) (lib.mapAttrs (_: v: pruneNulls v) value)
+            else
+              value;
+          fixtureConfig = (pkgs.formats.toml { }).generate "ai-memory-server-fixture.toml" (
+            pruneNulls (
+              settings
+              // {
+                auth = settings.auth // {
+                  bearer_token_file = "fixture-auth-token";
+                };
+              }
+            )
+          );
+          tokenGuard = pkgs.writeShellScript "ai-memory-fixture-token-guard" (
+            lib.replaceStrings
+              [
+                (lib.escapeShellArg cfg.my.ai.memory.server.tokenFile)
+                (lib.escapeShellArg "${cfg.services.ai-memory.dataDir}/auth.json")
+              ]
+              [ ''"$FIXTURE_TOKEN"'' ''"$FIXTURE_PROVIDER_AUTH"'' ]
+              cfg.systemd.services.ai-memory.preStart
+          );
+        in
+        assert cfg.services.ai-memory.enable;
+        assert cfg.services.ai-memory.bind == "127.0.0.1";
+        assert !cfg.services.ai-memory.openFirewall;
+        assert cfg.services.ai-memory.enableWeb;
+        assert lib.hasInfix "--enable-web" cfg.systemd.services.ai-memory.serviceConfig.ExecStart;
+        assert cfg.services.ai-memory.memoryMax == "2G";
+        assert settings.embedding_provider == "local";
+        assert settings.llm_provider == "openai-oauth";
+        assert settings.llm_model == "gpt-6-luna";
+        assert settings.llm_base_url == null;
+        assert settings.llm_reasoning_effort == "low";
+        assert settings.llm_fallbacks == [ ];
+        assert settings.consolidate_on_session_end;
+        assert settings.consolidate_on_turn_checkpoint;
+        assert settings.consolidation.max_input_tokens == 16000;
+        assert settings.consolidation.max_output_tokens == 2000;
+        assert settings.auth.bearer_token_file == cfg.sops.secrets.ai-memory-token.path;
+        assert cfg.sops.secrets.ai-memory-token.owner == cfg.services.ai-memory.user;
+        assert cfg.sops.secrets.ai-memory-token.mode == "0400";
+        assert settings.auth.secure_cookie;
+        assert !(cfg.sops.secrets ? ai-memory-copilot);
+        assert !(cfg.sops.templates ? "ai-memory-copilot.env");
+        assert !(cfg.systemd.services.ai-memory.environment ? COPILOT_GITHUB_TOKEN);
+        assert cfg.services.ai-memory.environmentFile == null;
+        assert settings.auto_improve.scheduler.enabled;
+        assert settings.auto_improve.scheduler.interval_secs == 3600;
+        assert settings.auto_improve.scheduler.max_sessions_per_tick == 1;
+        assert settings.auto_improve.scheduler.min_session_age_secs == 600;
+        assert !settings.auto_improve.on_session_end;
+        assert settings.auto_improve.require_approval;
+        assert settings.dream.enabled;
+        assert settings.profile.enabled == "off";
+        assert settings.decay.observation_retention_days == 0;
+        assert settings.decay.hard_delete_after_days == 180;
+        assert !settings.decay.compact_cold_episodic;
+        assert !settings.decay.dedup_cold_clusters;
+        assert settings.maintenance.forget_sweep_interval_secs == 86400;
+        assert cfg.systemd.services.ai-memory.serviceConfig.ProtectSystem == "strict";
+        assert lib.hasInfix "--https=8443 http://127.0.0.1:49374"
+          cfg.systemd.services.ai-memory-https.serviceConfig.ExecStart;
+        assert cfg.systemd.services.ai-memory-https.serviceConfig.Restart == "always";
+        pkgs.runCommand "ai-memory-server-policy"
+          {
+            nativeBuildInputs = [
+              pkgs.nodejs
+              pkgs.git
+            ];
+            __darwinAllowLocalNetworking = true;
+          }
+          ''
+            export HOME="$TMPDIR/home"
+            mkdir -p "$HOME"
+            export FIXTURE_PROVIDER_AUTH="$TMPDIR/fixture-auth.json"
+            printf '{"fixture":"not-a-real-login"}\n' > "$FIXTURE_PROVIDER_AUTH"
+            if FIXTURE_TOKEN="$TMPDIR/missing-token" ${tokenGuard}; then
+              echo 'Missing token must block server startup' >&2
+              exit 1
+            fi
+            printf ' \n' > "$TMPDIR/blank-token"
+            if FIXTURE_TOKEN="$TMPDIR/blank-token" ${tokenGuard}; then
+              echo 'Blank token must block server startup' >&2
+              exit 1
+            fi
+            printf 'fixture-token\n' > "$TMPDIR/valid-token"
+            if FIXTURE_TOKEN="$TMPDIR/valid-token" FIXTURE_PROVIDER_AUTH="$TMPDIR/missing-auth.json" ${tokenGuard}; then
+              echo 'Missing ChatGPT login must block server startup' >&2
+              exit 1
+            fi
+            touch "$TMPDIR/empty-auth.json"
+            if FIXTURE_TOKEN="$TMPDIR/valid-token" FIXTURE_PROVIDER_AUTH="$TMPDIR/empty-auth.json" ${tokenGuard}; then
+              echo 'Empty ChatGPT login must block server startup' >&2
+              exit 1
+            fi
+            FIXTURE_TOKEN="$TMPDIR/valid-token" ${tokenGuard}
+            node ${./test-server.mjs} \
+              ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.ai-memory} \
+              ${fixtureConfig} "$TMPDIR"
+            touch "$out"
+          '';
+    };
 }

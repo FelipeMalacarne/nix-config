@@ -100,14 +100,21 @@ let
 in
 {
   flake.modules.nixos.ai-memory-backup = module;
-  perSystem = { lib, pkgs, ... }: {
-    checks.ai-memory-backup = import ./test-backup.nix {
-      inherit
-        lib
-        pkgs
-        self
-        inputs
-        ;
+  perSystem =
+    {
+      lib,
+      pkgs,
+      fixtures,
+      ...
+    }:
+    {
+      checks.ai-memory-backup = import ./test-backup.nix {
+        inherit
+          lib
+          pkgs
+          self
+          fixtures
+          ;
+      };
     };
-  };
 }

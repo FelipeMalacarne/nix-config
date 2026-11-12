@@ -5,10 +5,12 @@
       lib,
       pkgs,
       system,
+      fixtures,
+      evalHome,
       ...
     }:
     let
-      inherit (import ../../../checks/config/fixtures.nix { inherit inputs self; })
+      inherit (fixtures)
         mkFeatureConfig
         homeOf
         baseOnly
@@ -24,20 +26,10 @@
       zarosHome = homeOf zaros;
       mkHermesHome =
         services:
-        (inputs.home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          modules = [
-            self.modules.homeManager.hermes-agent
-            {
-              home = {
-                username = "hermes-check";
-                homeDirectory = "/home/hermes-check";
-                stateVersion = "24.11";
-              };
-              services.hermes-agent = services;
-            }
-          ];
-        }).config;
+        evalHome [
+          self.modules.homeManager.hermes-agent
+          { services.hermes-agent = services; }
+        ];
       externalToken = mkHermesHome { backend.sessionTokenFile = "/run/hermes-check/token"; };
       withoutBackend = mkHermesHome { backend.mode = "none"; };
       withoutService = mkHermesHome { enable = lib.mkForce false; };

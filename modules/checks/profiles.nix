@@ -5,10 +5,11 @@
       lib,
       pkgs,
       system,
+      fixtures,
       ...
     }:
     let
-      inherit (import ./config/fixtures.nix { inherit inputs self; })
+      inherit (fixtures)
         mkFeatureConfig
         homeOf
         baseOnly

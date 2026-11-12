@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  secretsDir,
   self,
   ...
 }:
@@ -23,14 +24,23 @@ in
     ];
   };
 
-  perSystem = { lib, pkgs, ... }: {
-    checks.ai-profile = import ./config/test-ai.nix {
-      inherit
-        lib
-        pkgs
-        self
-        inputs
-        ;
+  perSystem =
+    {
+      lib,
+      pkgs,
+      evalHome,
+      ...
+    }:
+    {
+      checks.ai-profile = import ./config/test-ai.nix {
+        inherit
+          lib
+          pkgs
+          self
+          inputs
+          evalHome
+          secretsDir
+          ;
+      };
     };
-  };
 }

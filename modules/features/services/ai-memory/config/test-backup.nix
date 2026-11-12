@@ -2,10 +2,10 @@
   lib,
   pkgs,
   self,
-  inputs,
+  fixtures,
 }:
 let
-  inherit (import ../../../../checks/config/fixtures.nix { inherit inputs self; }) mkFeatureConfig;
+  inherit (fixtures) mkFeatureConfig;
   modules = [
     self.modules.nixos.server
     self.modules.nixos.tailscale

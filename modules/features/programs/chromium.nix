@@ -30,21 +30,36 @@ in
     };
 
   perSystem =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      evalHome,
+      mkAssertCheck,
+      ...
+    }:
     let
-      home = host: host.home-manager.users.${host.my.user.name};
-      zaros = home self.nixosConfigurations.zaros.config;
-      macbook = home self.darwinConfigurations.macbook.config;
+      chromium = (evalHome [ self.modules.homeManager.chromium ]).programs.chromium;
     in
     {
-      checks.chromium-platform =
-        assert lib.assertMsg (
-          zaros.programs.chromium.enable
-          && map (e: e.id) zaros.programs.chromium.extensions == extensions
-          && zaros.programs.chromium.commandLineArgs == [ "--ozone-platform=x11" ]
-          && !macbook.programs.chromium.enable
-          && !(zaros.programs.google-chrome.enable || macbook.programs.google-chrome.enable)
-        ) "Chromium must be the Linux-only agent browser with its bridges, and Chrome must stay absent";
-        pkgs.runCommand "chromium-platform" { } "touch $out";
+      checks.chromium-platform = mkAssertCheck "chromium-platform" (
+        if pkgs.stdenv.hostPlatform.isLinux then
+          [
+            {
+              assertion = chromium.enable && map (e: e.id) chromium.extensions == extensions;
+              message = "Linux must install the agent Chromium with its bridge extensions.";
+            }
+            {
+              assertion = chromium.commandLineArgs == [ "--ozone-platform=x11" ];
+              message = "Chromium must keep XWayland for protected video on NVIDIA.";
+            }
+          ]
+        else
+          [
+            {
+              assertion = !chromium.enable;
+              message = "Nixpkgs has no Darwin Chromium; the aspect must evaluate to nothing there.";
+            }
+          ]
+      );
     };
 }
