@@ -66,7 +66,12 @@ let
             end)()
           ''
         else
-          ../.;
+          # Only the Lua runtime: Nix-only edits must not rebuild the editor.
+          # Interpolate it: the wrapper would serialize the attrset as a table.
+          "${lib.fileset.toSource {
+            root = ../.;
+            fileset = lib.fileset.fileFilter (file: file.hasExt "lua") ../.;
+          }}";
 
       info = {
         variant = if full then "full" else "minimal";

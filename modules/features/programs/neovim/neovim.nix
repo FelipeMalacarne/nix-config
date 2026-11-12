@@ -13,7 +13,7 @@ in
 
       checks.neovim-options = import ./config/options-check.nix {
         inherit inputs self pkgs;
-        configDir = toString ./.;
+        configDir = "${./.}";
       };
 
       checks.neovim = pkgs.runCommand "neovim-variants" { } ''
