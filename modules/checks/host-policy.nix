@@ -18,8 +18,10 @@ in
     }:
     let
       selectedFeatures = import ./config/selected-features.nix { inherit lib; };
-      # Games and GPU workloads run on zaros only.
+      # Games and GPU workloads run on zaros only, including the agent that
+      # starts and drives the Microbot game client.
       workstationOnly = [
+        "chronicle-agent"
         "gaming"
         "nvidia"
         "ollama"
@@ -66,7 +68,7 @@ in
               saradomin
               vm
             ];
-            message = "Servers must not select gaming, GPU or game-streaming features.";
+            message = "Servers must not select gaming, GPU, game-streaming or game-client control features.";
           }
           {
             assertion = headless saradomin && headless vm;

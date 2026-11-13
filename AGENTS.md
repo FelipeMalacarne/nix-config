@@ -15,7 +15,8 @@ describe how the features behave.
 - `macbook` — Apple Silicon nix-darwin laptop with yabai, skhd and SketchyBar.
 
 Games and GPU-accelerated workloads run on zaros only. That includes Sunshine,
-which needs NVENC and is available but not selected. Never put them on
+which needs NVENC and is available but not selected, and `chronicle-agent`,
+which starts and drives the Microbot game client. Never put them on
 saradomin; `checks.server-policy` enforces this.
 
 ## Architecture
