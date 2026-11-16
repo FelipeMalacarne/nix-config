@@ -21,7 +21,7 @@ let
       gopls = gopls;
       phpantom-lsp = inputs.phpantom-lsp.packages.${pkgs.stdenv.hostPlatform.system}.phpantom-lsp;
       nixd = nixd;
-      tsgo = typescript-go;
+      tsc = typescript;
       superhtml = superhtml;
       cssls = vscode-css-languageserver;
       tailwindcss = tailwindcss-language-server;
