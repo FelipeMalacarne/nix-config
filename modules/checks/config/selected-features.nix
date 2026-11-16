@@ -3,6 +3,8 @@ host:
 builtins.attrNames (
   lib.filterAttrs (_: enabled: enabled) {
     adguard-home = host.services.adguardhome.enable;
+    chronicle-agent =
+      host.home-manager.users.${host.my.user.name}.systemd.user.services ? chronicle-agent;
     docker = host.virtualisation.docker.enable;
     flatpak = host.services.flatpak.enable;
     gaming = host.programs.steam.enable;
