@@ -117,6 +117,13 @@ assert
 assert
   ai.programs.claude-code.skills.ai-client-troubleshooting
   == ai.programs.opencode.skills.ai-client-troubleshooting;
+assert !(ai.programs.claude-code.skills ? linear-issue);
+assert !(ai.programs.opencode.skills ? linear-issue);
+assert
+  (home mac).programs.claude-code.skills.linear-issue == (home mac)
+  .programs.opencode.skills.linear-issue;
+assert !((home zaros).programs.claude-code.skills ? linear-issue);
+assert !((home zaros).programs.opencode.skills ? linear-issue);
 assert
   builtins.readFile ai.programs.claude-code.rules.ai-memory
   == builtins.readFile (builtins.head ai.programs.opencode.settings.instructions);

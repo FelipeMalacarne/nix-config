@@ -108,9 +108,35 @@ host settings to Home Manager. ArtCraft uses the `artcraft-flake` input's native
   capabilities, Firefox, Dolphin, Ghostty, KDE Connect, Bitwarden. It imports no
   login manager.
 - `development` — programming and Kubernetes tooling, without AI clients.
-- `ai` — OpenCode, Claude Code, Codex, GitHub Copilot CLI and the SOPS-backed
-  ai-memory client. Hermes and Ollama stay host-selected; ai-usagebar is deferred.
-- `server` — headless base policy; it enables no optional services.
+- `ai` — explicit workstation composition of OpenCode, Claude Code, Codex, GitHub
+  Copilot CLI and the SOPS-backed ai-memory client. NixOS/Darwin imports forward
+  the Home Manager profile. Hermes stays host-selected; ai-usagebar is deferred.
+- `server` — headless base/server policy; it does not implicitly enable optional
+  services. Hosts select those services through explicit feature imports.
+
+OpenCode and Claude Code import the shared Home Manager `playwright-mcp`,
+`linear-mcp` and `github-mcp` aspects and consume the native shared MCP registry.
+Linear uses its official remote endpoint with client-managed OAuth. GitHub uses
+the official local server with a token obtained from `gh` at runtime; never embed
+credentials in Nix or the store. Codex and Copilot CLI remain package-only.
+Keep client-specific settings and plugins in their client features.
+Claude's native `programs.claude-code.settings` renders a `settings.nix.json`
+baseline; the feature rebases it into writable user `settings.json` on activation.
+Unchanged defaults follow Nix, while local changes and deletions survive rebuilds.
+Do not relink the writable file into the store or force-overwrite user preferences.
+See `docs/claude-code.md` for migration, concurrency and rollback boundaries.
+The memory client owns its upstream routing
+skills and workflow rules for both clients; lifecycle hooks remain client-specific.
+Only add skills with concrete, specialized procedures or reference material;
+do not package generic coding advice or duplicate `AGENTS.md` as skills.
+The shared `ai-skills` aspect publishes portable global skills through each
+enabled client's native Home Manager option, from a single source under
+`modules/features/programs/ai-skills/skills/`. Repository-specific skills stay
+in `.claude/skills/`, discovered by both clients, with distinct IDs when a global
+skill covers the same topic.
+The optional `linear-issue-skill` Home Manager aspect publishes the user-authored
+Linear issue workflow to enabled Claude Code/OpenCode clients from that same
+source tree. MacBook explicitly selects it; the shared AI profile and Zaros do not.
 
 Generic SSH, programming and Kubernetes tooling do not provision credentials.
 Hosts explicitly select `ssh-credentials`, `programming-credentials` and

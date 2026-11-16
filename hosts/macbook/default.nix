@@ -54,6 +54,7 @@ in
         ghostty
         firefox
         sketchybar
+        linear-issue-skill
       ];
 
       my.infrastructure.ssh.hosts = config.my.infrastructure.ssh.hosts;
