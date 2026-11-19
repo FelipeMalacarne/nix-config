@@ -22,19 +22,11 @@ in
   homeOf = host: host.home-manager.users.${host.my.user.name};
   baseOnly = mkFeatureConfig [ self.modules.nixos.base ];
   serverOnly = mkFeatureConfig [ self.modules.nixos.server ];
-  desktopWithoutHermes = mkFeatureConfig [
+  # The desktop profile alone: under the import rule it selects no session,
+  # shell or optional feature.
+  desktopProfile = mkFeatureConfig [
     self.modules.nixos.base
     self.modules.nixos.desktop
     self.modules.nixos.development
-    {
-      my.desktop = {
-        sessions = [
-          "umbriel"
-          "hyprland"
-          "i3"
-        ];
-        defaultSession = "hyprland";
-      };
-    }
   ];
 }

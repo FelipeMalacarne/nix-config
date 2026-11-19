@@ -14,7 +14,7 @@
         mkFeatureConfig
         homeOf
         baseOnly
-        desktopWithoutHermes
+        desktopProfile
         ;
       hermes = mkFeatureConfig [
         self.modules.nixos.base
@@ -54,7 +54,7 @@
         && !(h.systemd.user.services ? hermes-agent);
       omitted = [
         baseOnly
-        desktopWithoutHermes
+        desktopProfile
         self.nixosConfigurations.saradomin.config
         self.nixosConfigurations.saradomin-vm.config
       ];

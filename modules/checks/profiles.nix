@@ -14,7 +14,7 @@
         homeOf
         baseOnly
         serverOnly
-        desktopWithoutHermes
+        desktopProfile
         ;
       selectedFeatures = import ./config/selected-features.nix { inherit lib; };
       desktopWithUmbriel = mkFeatureConfig [
@@ -113,7 +113,7 @@
         assert lib.assertMsg (
           selectedFeatures baseOnly == [ ]
           && selectedFeatures serverOnly == [ ]
-          && selectedFeatures desktopWithoutHermes == [ ]
+          && selectedFeatures desktopProfile == [ ]
         ) "Base/server/desktop/development must not implicitly activate optional integrations";
         assert lib.assertMsg (
           !desktopWithUmbriel.services.displayManager.sddm.enable
