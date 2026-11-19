@@ -17,6 +17,13 @@
         desktopWithoutHermes
         ;
       selectedFeatures = import ./config/selected-features.nix { inherit lib; };
+      desktopWithUmbriel = mkFeatureConfig [
+        self.modules.nixos.base
+        self.modules.nixos.desktop
+        self.modules.nixos.development
+        self.modules.nixos.umbriel
+        { my.desktop.defaultSession = "umbriel"; }
+      ];
       platform = if pkgs.stdenv.hostPlatform.isDarwin then "darwin" else "nixos";
       registry = self.modules.${platform};
       mkNativeConfig =
@@ -109,11 +116,12 @@
           && selectedFeatures desktopWithoutHermes == [ ]
         ) "Base/server/desktop/development must not implicitly activate optional integrations";
         assert lib.assertMsg (
-          !desktopWithoutHermes.services.displayManager.sddm.enable
-          && !desktopWithoutHermes.services.greetd.enable
-          && desktopWithoutHermes.programs.umbriel.enable
-          && (homeOf desktopWithoutHermes).programs.umbriel.enable
-        ) "Desktop must expose Umbriel without implicitly selecting a login manager";
+          !desktopWithUmbriel.services.displayManager.sddm.enable
+          && !desktopWithUmbriel.services.greetd.enable
+          && desktopWithUmbriel.programs.umbriel.enable
+          && (homeOf desktopWithUmbriel).programs.umbriel.enable
+          && !desktopWithUmbriel.programs.hyprland.enable
+        ) "Importing Umbriel must activate only Umbriel, without implicitly selecting a login manager";
         assert lib.assertMsg (
           selectedFeatures gaming == [ "gaming" ]
           && gaming.programs.gamemode.enable

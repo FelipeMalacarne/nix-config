@@ -6,6 +6,7 @@
       pkgs,
       system,
       fixtures,
+      mkAssertCheck,
       ...
     }:
     let
@@ -15,32 +16,43 @@
         baseOnly
         serverOnly
         ;
+      inherit (self.modules) nixos;
       zaros = self.nixosConfigurations.zaros.config;
       zarosHome = homeOf zaros;
       # Provider variants do not import an entire workstation or its secrets.
       mkDesktop =
-        shell:
-        mkFeatureConfig [
-          self.modules.nixos.base
-          self.modules.nixos.desktop
-          {
-            my.desktop = {
-              inherit shell;
-              sessions = [
-                "hyprland"
-                "i3"
-              ]
-              ++ lib.optional (shell != "caelestia") "umbriel";
-              defaultSession = "hyprland";
-            };
-          }
-        ];
-      noctaliaHome = homeOf (mkDesktop "noctalia");
-      caelestiaHome = homeOf (mkDesktop "caelestia");
-      noneHome = homeOf (mkDesktop "none");
+        modules:
+        mkFeatureConfig (
+          [
+            nixos.base
+            nixos.desktop
+          ]
+          ++ modules
+        );
+      sessions = [
+        nixos.hyprland
+        nixos.i3
+      ];
+      noctaliaHome = homeOf (
+        mkDesktop (
+          sessions
+          ++ [
+            nixos.umbriel
+            nixos.noctalia
+          ]
+        )
+      );
+      caelestiaHome = homeOf (mkDesktop (sessions ++ [ nixos.caelestia ]));
+      noneHome = homeOf (mkDesktop (sessions ++ [ nixos.umbriel ]));
       invalidShell = builtins.tryEval (
         let
-          candidate = mkDesktop "invalid-shell";
+          candidate = mkDesktop (
+            sessions
+            ++ [
+              nixos.noctalia
+              { my.desktop.shell = lib.mkForce "invalid-shell"; }
+            ]
+          );
           assertions = map (a: a.assertion) (candidate.assertions ++ (homeOf candidate).assertions);
         in
         builtins.deepSeq assertions (lib.all lib.id assertions)
@@ -54,117 +66,95 @@
           9
         else
           8;
-      shellProvidersCheck =
-        assert lib.assertMsg (
-          noctaliaHome.programs.noctalia.enable
-          && !noctaliaHome.programs.noctalia.systemd.enable
-          && !noctaliaHome.programs.caelestia.enable
-          && noctaliaHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia
-          && !(noctaliaHome.systemd.user.services ? caelestia)
-        ) "Noctalia must use compositor-owned startup, without a shared unit or Caelestia service";
-        assert lib.assertMsg (
-          builtins.elem noctaliaHome.programs.noctalia.package noctaliaHome.home.packages
-          && noctaliaHome.programs.noctalia.package == inputs.noctalia.packages.${system}.default
-          && lib.hasPrefix "local noctalia = ${builtins.toJSON (lib.getExe noctaliaHome.programs.noctalia.package)}" noctaliaHome.wayland.windowManager.hyprland.extraLuaFiles.noctalia.content
-          && noctaliaHome.programs.noctalia.checkConfig
-        ) "Noctalia startup and validation must use its configured native package";
-        assert lib.assertMsg (
-          noctaliaHome.my.desktop.shellCommands == {
-            launcher = "${lib.getExe noctaliaHome.programs.noctalia.package} msg panel-toggle launcher";
-            dashboard = "${lib.getExe noctaliaHome.programs.noctalia.package} msg panel-toggle control-center";
-            settings = "${lib.getExe noctaliaHome.programs.noctalia.package} msg settings-toggle";
-            session = "${lib.getExe noctaliaHome.programs.noctalia.package} msg panel-toggle session";
-            lock = "${lib.getExe noctaliaHome.programs.noctalia.package} msg session lock";
-          }
-          && !builtins.elem noctaliaHome.programs.caelestia.package noctaliaHome.home.packages
-          && !builtins.elem noctaliaHome.programs.caelestia.cli.package noctaliaHome.home.packages
-        ) "Noctalia must use native IPC commands and not install Caelestia packages";
-        assert lib.assertMsg (
-          caelestiaHome.programs.caelestia.enable
-          && caelestiaHome.programs.caelestia.systemd.enable
-          && caelestiaHome.programs.caelestia.cli.enable
-          && caelestiaHome.programs.caelestia.systemd.target == "wayland-session@hyprland.desktop.target"
-          && !caelestiaHome.programs.noctalia.enable
-          && !(caelestiaHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia)
-          && caelestiaHome.systemd.user.services ? caelestia
-          && !builtins.elem caelestiaHome.programs.noctalia.package caelestiaHome.home.packages
-        ) "Caelestia must use its official Hyprland-scoped unit without Noctalia";
-        assert lib.assertMsg (
-          caelestiaHome.systemd.user.services.caelestia.Service.ExecStart == [
-            "${caelestiaHome.programs.caelestia.package}/bin/caelestia-shell"
-          ]
-          &&
-            caelestiaHome.systemd.user.services.caelestia.Unit.After == [
-              caelestiaHome.programs.caelestia.systemd.target
-            ]
-          &&
-            caelestiaHome.systemd.user.services.caelestia.Unit.PartOf == [
-              caelestiaHome.programs.caelestia.systemd.target
-            ]
-          &&
-            caelestiaHome.systemd.user.services.caelestia.Install.WantedBy == [
-              caelestiaHome.programs.caelestia.systemd.target
-            ]
-        ) "Caelestia must run the configured shell with the official unit lifecycle";
-        assert lib.assertMsg (
-          !noneHome.programs.noctalia.enable
-          && !noneHome.programs.caelestia.enable
-          && lib.all (package: !builtins.elem package noneHome.home.packages) [
-            noneHome.programs.noctalia.package
-            noneHome.programs.caelestia.package
-            noneHome.programs.caelestia.cli.package
-          ]
-          && !(noneHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia)
-          && !(noneHome.systemd.user.services ? caelestia)
-          && noneHome.programs.umbriel.settings.general.autostart == [ ]
-          && lib.all (command: command == ":") (lib.attrValues noneHome.my.desktop.shellCommands)
-        ) "none must install neither provider and expose no provider startup or commands";
-        assert lib.assertMsg (
-          !invalidShell.success || !invalidShell.value
-        ) "Invalid shell selectors must fail";
-        assert lib.assertMsg (
-          zarosHome.programs.noctalia.enable
-          && zarosHome.my.desktop.shellCommands == noctaliaHome.my.desktop.shellCommands
-        ) "Zaros must explicitly select the tested Noctalia provider";
-        pkgs.runCommand "shell-providers" { } ''
-          for config in \
-            ${noctaliaHome.xdg.configFile."noctalia/config.toml".source} \
-            ${zarosHome.xdg.configFile."noctalia/config.toml".source}; do
-            validation="$(${lib.getExe noctaliaHome.programs.noctalia.package} config validate "$config")"
-            printf '%s\n' "$validation"
-            case "$validation" in
-              *WARN*) exit 1 ;;
-            esac
-          done
-          ${lib.getExe pkgs.jq} -e '
-            .dark.terminal |
-            (.normal | length == 8) and (.bright | length == 8) and
-            ([.background, .foreground, .cursor, .cursorText, .selectionBg, .selectionFg] |
-              all(test("^#[0-9a-fA-F]{6}$")))
-          ' ${noctaliaHome.xdg.configFile."noctalia/palettes/stylix.json".source} > /dev/null
-          export XDG_CONFIG_HOME="$TMPDIR/config"
-          export XDG_STATE_HOME="$TMPDIR/state"
-          export XDG_CACHE_HOME="$TMPDIR/cache"
-          mkdir -p "$XDG_CONFIG_HOME/noctalia" "$XDG_STATE_HOME/noctalia"
-          cp ${
-            noctaliaHome.xdg.configFile."noctalia/config.toml".source
-          } "$XDG_CONFIG_HOME/noctalia/config.toml"
-          cp ${pkgs.writeText "noctalia-saved-settings.toml" ''
-            [bar.${builtins.toJSON noctaliaTestBar}]
-            widget_spacing = ${toString noctaliaGuiSpacing}
-          ''} "$XDG_STATE_HOME/noctalia/settings.toml"
-          ${lib.getExe noctaliaHome.programs.noctalia.package} config export | ${pkgs.python3}/bin/python3 -c ${lib.escapeShellArg ''
-            import pathlib, sys, tomllib
-            config = tomllib.loads(sys.stdin.read())
-            bars = {name: bar for name, bar in config["bar"].items() if isinstance(bar, dict)}
-            assert sorted(bars) == ${
-              builtins.toJSON (lib.unique (noctaliaBarNames ++ [ noctaliaTestBar ]))
-            }, "Saved settings must not create another bar"
-            assert bars[${builtins.toJSON noctaliaTestBar}]["widget_spacing"] == ${toString noctaliaGuiSpacing}, "GUI overrides must remain effective"
-            assert pathlib.Path(config["wallpaper"]["default"]["path"]).is_file(), "Default wallpaper must exist"
-          ''}
-          touch $out
-        '';
+      shellComposition = mkAssertCheck "shell-composition" [
+        {
+          assertion =
+            noctaliaHome.programs.noctalia.enable
+            && !noctaliaHome.programs.noctalia.systemd.enable
+            && !(noctaliaHome.programs.caelestia.enable or false)
+            && noctaliaHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia
+            && !(noctaliaHome.systemd.user.services ? caelestia);
+          message = "Noctalia must use compositor-owned startup, without a shared unit or Caelestia service";
+        }
+        {
+          assertion =
+            builtins.elem noctaliaHome.programs.noctalia.package noctaliaHome.home.packages
+            && noctaliaHome.programs.noctalia.package == inputs.noctalia.packages.${system}.default
+            && lib.hasPrefix "local noctalia = ${builtins.toJSON (lib.getExe noctaliaHome.programs.noctalia.package)}" noctaliaHome.wayland.windowManager.hyprland.extraLuaFiles.noctalia.content
+            && noctaliaHome.programs.noctalia.checkConfig;
+          message = "Noctalia startup and validation must use its configured native package";
+        }
+        {
+          assertion =
+            caelestiaHome.programs.caelestia.enable
+            && caelestiaHome.programs.caelestia.cli.enable
+            && caelestiaHome.systemd.user.services ? caelestia
+            &&
+              caelestiaHome.systemd.user.services.caelestia.Install.WantedBy == [
+                "wayland-session@hyprland.desktop.target"
+              ]
+            && !(caelestiaHome.programs.noctalia.enable or false)
+            && !(caelestiaHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia);
+          message = "Caelestia must run as a Hyprland-scoped unit without Noctalia";
+        }
+        {
+          assertion =
+            !(noneHome.programs.noctalia.enable or false)
+            && !(noneHome.programs.caelestia.enable or false)
+            && !(noneHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia)
+            && !(noneHome.systemd.user.services ? caelestia)
+            && noneHome.programs.umbriel.settings.general.autostart == [ ]
+            && lib.all (command: command == ":") (lib.attrValues noneHome.my.desktop.shellCommands);
+          message = "Importing no shell must install no provider and expose no provider startup or commands";
+        }
+        {
+          assertion = !invalidShell.success || !invalidShell.value;
+          message = "Invalid shell selectors must fail";
+        }
+        {
+          assertion = zarosHome.programs.noctalia.enable;
+          message = "Zaros must import the Noctalia shell";
+        }
+      ];
+      shellProvidersCheck = pkgs.runCommand "shell-providers" { inherit shellComposition; } ''
+        for config in \
+          ${noctaliaHome.xdg.configFile."noctalia/config.toml".source} \
+          ${zarosHome.xdg.configFile."noctalia/config.toml".source}; do
+          validation="$(${lib.getExe noctaliaHome.programs.noctalia.package} config validate "$config")"
+          printf '%s\n' "$validation"
+          case "$validation" in
+            *WARN*) exit 1 ;;
+          esac
+        done
+        ${lib.getExe pkgs.jq} -e '
+          .dark.terminal |
+          (.normal | length == 8) and (.bright | length == 8) and
+          ([.background, .foreground, .cursor, .cursorText, .selectionBg, .selectionFg] |
+            all(test("^#[0-9a-fA-F]{6}$")))
+        ' ${noctaliaHome.xdg.configFile."noctalia/palettes/stylix.json".source} > /dev/null
+        export XDG_CONFIG_HOME="$TMPDIR/config"
+        export XDG_STATE_HOME="$TMPDIR/state"
+        export XDG_CACHE_HOME="$TMPDIR/cache"
+        mkdir -p "$XDG_CONFIG_HOME/noctalia" "$XDG_STATE_HOME/noctalia"
+        cp ${
+          noctaliaHome.xdg.configFile."noctalia/config.toml".source
+        } "$XDG_CONFIG_HOME/noctalia/config.toml"
+        cp ${pkgs.writeText "noctalia-saved-settings.toml" ''
+          [bar.${builtins.toJSON noctaliaTestBar}]
+          widget_spacing = ${toString noctaliaGuiSpacing}
+        ''} "$XDG_STATE_HOME/noctalia/settings.toml"
+        ${lib.getExe noctaliaHome.programs.noctalia.package} config export | ${pkgs.python3}/bin/python3 -c ${lib.escapeShellArg ''
+          import pathlib, sys, tomllib
+          config = tomllib.loads(sys.stdin.read())
+          bars = {name: bar for name, bar in config["bar"].items() if isinstance(bar, dict)}
+          assert sorted(bars) == ${
+            builtins.toJSON (lib.unique (noctaliaBarNames ++ [ noctaliaTestBar ]))
+          }, "Saved settings must not create another bar"
+          assert bars[${builtins.toJSON noctaliaTestBar}]["widget_spacing"] == ${toString noctaliaGuiSpacing}, "GUI overrides must remain effective"
+          assert pathlib.Path(config["wallpaper"]["default"]["path"]).is_file(), "Default wallpaper must exist"
+        ''}
+        touch $out
+      '';
       noctaliaExportCheck =
         pkgs.runCommand "noctalia-export"
           {
@@ -218,6 +208,7 @@
           lib
           pkgs
           mkFeatureConfig
+          mkAssertCheck
           zaros
           zarosHome
           baseOnly

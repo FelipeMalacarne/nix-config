@@ -2,20 +2,24 @@
   inputs,
   lib,
   pkgs,
-  zaros,
-  zarosHome,
+  mkAssertCheck,
+  nixos,
   mkDesktop,
+  desktopWith,
+  defaultTo,
+  full,
+  fullHome,
 }:
 let
-  greeter = zaros.services.displayManager.noctalia-greeter;
-  wrapper = zaros.services.displayManager.sessionData.wrapper;
+  greeter = full.services.displayManager.noctalia-greeter;
+  wrapper = full.services.displayManager.sessionData.wrapper;
   rawI3 = lib.findFirst (
     p: builtins.elem "none+i3" p.providedSessions
-  ) null zaros.services.displayManager.sessionPackages;
+  ) null full.services.displayManager.sessionPackages;
   rawExec = lib.removePrefix "Exec=" (
     lib.findFirst (s: lib.hasPrefix "Exec=" s) "" (lib.splitString "\n" rawI3.text)
   );
-  startx = lib.findFirst (p: p.pname or "" == "xinit") null zaros.environment.systemPackages;
+  startx = lib.findFirst (p: p.pname or "" == "xinit") null full.environment.systemPackages;
   xsessionFor =
     c: lib.findFirst (p: p.name == "noctalia-greeter-xsession") null c.environment.systemPackages;
   projectedSessions =
@@ -34,78 +38,90 @@ let
   mockTty = pkgs.writeShellScriptBin "tty" ''
     printf '/dev/tty9\n'
   '';
-  mockBase = mkDesktop {
-    services.xserver.displayManager.xserverArgs = lib.mkAfter [ "-audit 4" ];
-    services.displayManager.sessionData = lib.mkForce (
-      zaros.services.displayManager.sessionData
-      // {
-        wrapper = pkgs.writeShellScript "mock-nixos-xsession-wrapper" ''
-          exec ${lib.getExe pkgs.python3} ${./test_greeter_xinit.py} client "$@"
-        '';
-      }
-    );
-  };
+  mockBase = desktopWith [
+    {
+      services.xserver.displayManager.xserverArgs = lib.mkAfter [ "-audit 4" ];
+      services.displayManager.sessionData = lib.mkForce (
+        full.services.displayManager.sessionData
+        // {
+          wrapper = pkgs.writeShellScript "mock-nixos-xsession-wrapper" ''
+            exec ${lib.getExe pkgs.python3} ${./test_greeter_xinit.py} client "$@"
+          '';
+        }
+      );
+    }
+  ];
   nativeXorg = "${pkgs.xorg-server}/bin/X";
   serverText = mockBase.environment.etc."X11/xinit/xserverrc".source.text;
   # Replace only the Xorg executable in a new fixture, not the generated arguments or store source.
   mockServer = pkgs.writeScript "mock-xserverrc" (
     lib.replaceStrings [ nativeXorg ] [ "${mockXorg}/bin/X" ] serverText
   );
-  mock = mkDesktop {
-    services.xserver.displayManager.xserverArgs = lib.mkAfter [ "-audit 4" ];
-    services.displayManager.sessionData = lib.mkForce mockBase.services.displayManager.sessionData;
-    environment.etc."X11/xinit/xserverrc".source = lib.mkForce mockServer;
-  };
-  waylandOnly = mkDesktop {
-    my.desktop.sessions = lib.mkForce [ "umbriel" ];
-    my.desktop.defaultSession = lib.mkForce "umbriel";
-  };
-  overridden = mkDesktop {
-    services.displayManager.noctalia-greeter.settings.session.default = "hyprland-uwsm";
-  };
+  mock = desktopWith [
+    {
+      services.xserver.displayManager.xserverArgs = lib.mkAfter [ "-audit 4" ];
+      services.displayManager.sessionData = lib.mkForce mockBase.services.displayManager.sessionData;
+      environment.etc."X11/xinit/xserverrc".source = lib.mkForce mockServer;
+    }
+  ];
+  waylandOnly = mkDesktop [
+    nixos.umbriel
+    nixos.noctalia
+    (defaultTo "umbriel")
+  ];
+  overridden = desktopWith [
+    { services.displayManager.noctalia-greeter.settings.session.default = "hyprland-uwsm"; }
+  ];
+  composition = mkAssertCheck "greeter-composition" [
+    {
+      assertion =
+        greeter.settings.session.default == full.services.displayManager.defaultSession
+        && overridden.services.displayManager.noctalia-greeter.settings.session.default == "hyprland-uwsm"
+        && greeter.package == inputs.noctalia-greeter.packages.${pkgs.stdenv.hostPlatform.system}.default
+        && builtins.elem greeter.package full.environment.systemPackages
+        && !full.services.displayManager.autoLogin.enable
+        && !(full.services.greetd.settings ? initial_session)
+        && greeter.passwordless-sync-users == [ ]
+        && !lib.hasInfix "org.noctalia.greeter.sync-appearance" full.security.polkit.extraConfig
+        && !(greeter.settings ? appearance)
+        && !(greeter.settings ? wallpaper)
+        && greeter.settings.keyboard == { inherit (full.services.xserver.xkb) layout variant options; };
+      message = "Greeter must forward native defaults, preserve appearance sync, and require authenticated login/sync";
+    }
+    {
+      assertion =
+        full.services.xserver.enable
+        && full.services.xserver.displayManager.startx.enable
+        && !full.services.xserver.displayManager.startx.generateScript
+        && startx != null
+        && fullHome.xsession.enable
+        && fullHome.home.file.".xsession".executable
+        && lib.hasInfix "/bin/i3" fullHome.home.file.".xsession".text
+        && lib.hasInfix "hm-session-vars.sh" fullHome.home.file.".xprofile".text
+        && lib.all (fragment: lib.hasInfix fragment wrapper.text) [
+          ". /etc/profile"
+          "source ~/.xprofile"
+          "eval exec ~/.xsession"
+          "start nixos-fake-graphical-session.target"
+          "import-environment DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY"
+          (builtins.unsafeDiscardStringContext full.services.xserver.displayManager.sessionCommands)
+        ];
+      message = "The i3 fallback must retain configured Xorg/startx, HM and NixOS session setup";
+    }
+    {
+      assertion =
+        xsessionFor full != null
+        && xsessionFor mock != null
+        && xsessionFor waylandOnly == null
+        && !waylandOnly.services.xserver.displayManager.startx.enable
+        && lib.hasInfix (builtins.unsafeDiscardStringContext nativeXorg) serverText;
+      message = "X11 server routing must be scoped to i3 and the fixture must mock the native Xorg executable";
+    }
+  ];
 in
-assert lib.assertMsg
-  (
-    greeter.settings.session.default == zaros.services.displayManager.defaultSession
-    && overridden.services.displayManager.noctalia-greeter.settings.session.default == "hyprland-uwsm"
-    && greeter.package == inputs.noctalia-greeter.packages.${pkgs.stdenv.hostPlatform.system}.default
-    && builtins.elem greeter.package zaros.environment.systemPackages
-    && !zaros.services.displayManager.autoLogin.enable
-    && !(zaros.services.greetd.settings ? initial_session)
-    && greeter.passwordless-sync-users == [ ]
-    && !lib.hasInfix "org.noctalia.greeter.sync-appearance" zaros.security.polkit.extraConfig
-    && !(greeter.settings ? appearance)
-    && !(greeter.settings ? wallpaper)
-    && greeter.settings.keyboard == { inherit (zaros.services.xserver.xkb) layout variant options; }
-  )
-  "Greeter must forward native defaults, preserve appearance sync, and require authenticated login/sync";
-assert lib.assertMsg (
-  zaros.services.xserver.enable
-  && zaros.services.xserver.displayManager.startx.enable
-  && !zaros.services.xserver.displayManager.startx.generateScript
-  && startx != null
-  && zarosHome.xsession.enable
-  && zarosHome.home.file.".xsession".executable
-  && lib.hasInfix "/bin/i3" zarosHome.home.file.".xsession".text
-  && lib.hasInfix "hm-session-vars.sh" zarosHome.home.file.".xprofile".text
-  && lib.all (fragment: lib.hasInfix fragment wrapper.text) [
-    ". /etc/profile"
-    "source ~/.xprofile"
-    "eval exec ~/.xsession"
-    "start nixos-fake-graphical-session.target"
-    "import-environment DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY"
-    (builtins.unsafeDiscardStringContext zaros.services.xserver.displayManager.sessionCommands)
-  ]
-) "The i3 fallback must retain configured Xorg/startx, HM and NixOS session setup";
-assert lib.assertMsg (
-  xsessionFor zaros != null
-  && xsessionFor mock != null
-  && xsessionFor waylandOnly == null
-  && !waylandOnly.services.xserver.displayManager.startx.enable
-  && lib.hasInfix (builtins.unsafeDiscardStringContext nativeXorg) serverText
-) "X11 server routing must be scoped to i3 and the fixture must mock the native Xorg executable";
 pkgs.runCommandCC "greeter-sessions"
   {
+    inherit composition;
     nativeBuildInputs = [
       greeter.package
       pkgs.python3
@@ -128,27 +144,27 @@ pkgs.runCommandCC "greeter-sessions"
       ${./test_greeter_sessions.cpp} \
       ${inputs.noctalia-greeter}/src/greeter/greeter_sessions.cpp \
       -o native-session-check
-    session=${projectedSessions zaros}/share/xsessions/none+i3.desktop
-    test "$(find ${projectedSessions zaros}/share/xsessions -name 'none+i3.desktop' | wc -l)" -eq 1
-    test "$(sed -n 's/^Exec=//p' "$session")" = ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
-    test "$(sed -n 's/^TryExec=//p' "$session")" = ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
-    grep -F '${wrapper}' ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
-    grep -F '${rawExec}' ${projectedSessions zaros}/bin/noctalia-greeter-i3-session
+    session=${projectedSessions full}/share/xsessions/none+i3.desktop
+    test "$(find ${projectedSessions full}/share/xsessions -name 'none+i3.desktop' | wc -l)" -eq 1
+    test "$(sed -n 's/^Exec=//p' "$session")" = ${projectedSessions full}/bin/noctalia-greeter-i3-session
+    test "$(sed -n 's/^TryExec=//p' "$session")" = ${projectedSessions full}/bin/noctalia-greeter-i3-session
+    grep -F '${wrapper}' ${projectedSessions full}/bin/noctalia-greeter-i3-session
+    grep -F '${rawExec}' ${projectedSessions full}/bin/noctalia-greeter-i3-session
     # Plain Hyprland is hidden from the greeter (its idle/lock lifecycle is UWSM-bound) but the
     # system-wide entry that UWSM launches must remain.
-    test -e ${zaros.services.displayManager.sessionData.desktops}/share/wayland-sessions/hyprland.desktop
-    test ! -e ${projectedSessions zaros}/share/wayland-sessions/hyprland.desktop
-    for desktop in ${zaros.services.displayManager.sessionData.desktops}/share/wayland-sessions/*.desktop; do
+    test -e ${full.services.displayManager.sessionData.desktops}/share/wayland-sessions/hyprland.desktop
+    test ! -e ${projectedSessions full}/share/wayland-sessions/hyprland.desktop
+    for desktop in ${full.services.displayManager.sessionData.desktops}/share/wayland-sessions/*.desktop; do
       test "$(basename "$desktop")" = hyprland.desktop && continue
-      cmp "$desktop" ${projectedSessions zaros}/share/wayland-sessions/$(basename "$desktop")
+      cmp "$desktop" ${projectedSessions full}/share/wayland-sessions/$(basename "$desktop")
     done
-    XDG_DATA_DIRS=${projectedSessions zaros}/share noctalia-greeter sessions > discovered-sessions
+    XDG_DATA_DIRS=${projectedSessions full}/share noctalia-greeter sessions > discovered-sessions
     test "$(grep -xc i3 discovered-sessions)" -eq 1
     grep -x Umbriel discovered-sessions
     grep -x 'Hyprland (uwsm-managed)' discovered-sessions
     ! grep -x Hyprland discovered-sessions
-    XDG_DATA_DIRS=${projectedSessions zaros}/share ./native-session-check ${projectedSessions zaros} inspect
-    test "$(readlink -f ${zaros.system.path}/bin/noctalia-greeter-xsession)" = ${xsessionFor zaros}/bin/noctalia-greeter-xsession
+    XDG_DATA_DIRS=${projectedSessions full}/share ./native-session-check ${projectedSessions full} inspect
+    test "$(readlink -f ${full.system.path}/bin/noctalia-greeter-xsession)" = ${xsessionFor full}/bin/noctalia-greeter-xsession
     export PATH=${xsessionFor mock}/bin:${mockXinit}/bin:${startx}/bin:$PATH
     export GREETER_PROBE_DIR="$TMPDIR/with-vt" GREETER_EXPECTED_SEAT=seat-test GREETER_EXPECTED_VT=8
     export GREETER_EXPECTED_AUTHORITY="$TMPDIR/mock-xauthority" GREETER_EXPECTED_CLIENT_ARGS='[]'
