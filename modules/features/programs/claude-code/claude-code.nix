@@ -38,7 +38,7 @@ in
     };
   };
 
-  flake.modules.homeManager.claude-code = { pkgs, ... }: {
+  flake.modules.homeManager.claude-code = { lib, pkgs, ... }: {
     imports = with config.flake.modules.homeManager; [
       ai-skills
       github-mcp
@@ -66,7 +66,24 @@ in
       plugins = [
         # placeholder
       ];
-      settings.enabledPlugins."gopls-lsp@claude-plugins-official" = true;
+      settings.enabledPlugins = {
+        "gopls-lsp@claude-plugins-official" = true;
+      }
+      # claude.ai syncs account plugins into every client; keep unused ones
+      # disabled so their skills and tools stay out of each session's context.
+      // lib.genAttrs (map (name: "${name}@synced") [
+        "cowork-plugin-management"
+        "data"
+        "design"
+        "design-skills"
+        "desktop-commander"
+        "engineering"
+        "finance"
+        "firebase"
+        "grafana-mcp"
+        "productivity"
+        "searchfit-seo"
+      ]) (_: false);
     };
   };
 }

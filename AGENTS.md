@@ -108,35 +108,11 @@ host settings to Home Manager. ArtCraft uses the `artcraft-flake` input's native
   capabilities, Firefox, Dolphin, Ghostty, KDE Connect, Bitwarden. It imports no
   login manager.
 - `development` — programming and Kubernetes tooling, without AI clients.
-- `ai` — explicit workstation composition of OpenCode, Claude Code, Codex, GitHub
-  Copilot CLI and the SOPS-backed ai-memory client. NixOS/Darwin imports forward
-  the Home Manager profile. Hermes stays host-selected; ai-usagebar is deferred.
+- `ai` — explicit workstation composition of OpenCode, Claude Code, Codex and
+  GitHub Copilot CLI. NixOS/Darwin imports forward the Home Manager profile.
+  Hermes stays host-selected; ai-usagebar is deferred.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
-
-OpenCode and Claude Code import the shared Home Manager `playwright-mcp`,
-`linear-mcp` and `github-mcp` aspects and consume the native shared MCP registry.
-Linear uses its official remote endpoint with client-managed OAuth. GitHub uses
-the official local server with a token obtained from `gh` at runtime; never embed
-credentials in Nix or the store. Codex and Copilot CLI remain package-only.
-Keep client-specific settings and plugins in their client features.
-Claude's native `programs.claude-code.settings` renders a `settings.nix.json`
-baseline; the feature rebases it into writable user `settings.json` on activation.
-Unchanged defaults follow Nix, while local changes and deletions survive rebuilds.
-Do not relink the writable file into the store or force-overwrite user preferences.
-See `docs/claude-code.md` for migration, concurrency and rollback boundaries.
-The memory client owns its upstream routing
-skills and workflow rules for both clients; lifecycle hooks remain client-specific.
-Only add skills with concrete, specialized procedures or reference material;
-do not package generic coding advice or duplicate `AGENTS.md` as skills.
-The shared `ai-skills` aspect publishes portable global skills through each
-enabled client's native Home Manager option, from a single source under
-`modules/features/programs/ai-skills/skills/`. Repository-specific skills stay
-in `.claude/skills/`, discovered by both clients, with distinct IDs when a global
-skill covers the same topic.
-The optional `linear-issue-skill` Home Manager aspect publishes the user-authored
-Linear issue workflow to enabled Claude Code/OpenCode clients from that same
-source tree. MacBook explicitly selects it; the shared AI profile and Zaros do not.
 
 Generic SSH, programming and Kubernetes tooling do not provision credentials.
 Hosts explicitly select `ssh-credentials`, `programming-credentials` and
@@ -185,29 +161,35 @@ Preserve these rules:
 
 ## AI clients and memory
 
-- OpenCode and Claude Code share the MCP registry (`playwright-mcp`,
-  `linear-mcp`, `github-mcp`). Never embed credentials in Nix or the store:
-  Linear uses client-managed OAuth; GitHub's token comes from `gh` at runtime.
-  Codex and Copilot CLI remain package-only; client-specific settings and
-  plugins stay in their client features.
+- OpenCode and Claude Code import the shared `playwright-mcp`, `linear-mcp` and
+  `github-mcp` Home Manager aspects and consume the native MCP registry. Never
+  embed credentials in Nix or the store: Linear uses its official remote
+  endpoint with client-managed OAuth; GitHub uses the official local server with
+  a token from `gh` at runtime. Codex and Copilot CLI remain package-only;
+  client-specific settings and plugins stay in their client features.
 - Firefox is the daily browser and Google Chrome stays absent. On Linux,
   Chromium is the agent browser carrying the Claude in Chrome and Playwright
   Bridge extensions; web apps run in a separate `chromium-webapps` user-data-dir
   so agents never share personal logins.
-- Claude Code rebases the Nix `settings.nix.json` baseline into a writable
-  `settings.json`. Never relink it into the store or force-overwrite user
-  preferences; see `docs/claude-code.md`.
+- Claude's native `programs.claude-code.settings` renders a `settings.nix.json`
+  baseline that activation rebases into a writable `settings.json`: unchanged
+  defaults follow Nix, while local changes and deletions survive rebuilds. Never
+  relink it into the store or force-overwrite user preferences; see
+  `docs/claude-code.md` for migration, concurrency and rollback.
 - Add skills only for concrete, specialized procedures or reference material;
-  never generic advice or copies of this file. Portable skills live in
-  `modules/features/programs/ai-skills/skills/` and are published through each
-  client's native option. Repository skills live in `.claude/skills/` with
-  distinct IDs. The memory client owns its routing skills and workflow rules;
+  never generic advice or copies of this file. The `ai-skills` aspect publishes
+  portable skills from `modules/features/programs/ai-skills/skills/` through each
+  enabled client's native option; the optional `linear-issue-skill` aspect
+  publishes the Linear issue workflow from the same tree (MacBook selects it;
+  the AI profile and Zaros do not). Repository skills live in `.claude/skills/`,
+  discovered by both clients, with distinct IDs when a global skill covers the
+  same topic. The memory client owns its routing skills and workflow rules;
   lifecycle hooks stay client-specific.
 
-ai-memory runs as a private server on saradomin and a Home Manager client on
-macbook and zaros through the `ai` profile, from the single feature
-`modules/features/services/ai-memory/`. `docs/ai-memory.md` covers pairing,
-privacy, the managed-launch workflow, outage recovery and acceptance gates.
+ai-memory runs as a private server on saradomin from the single feature
+`modules/features/services/ai-memory/`; no workstation currently selects its
+Home Manager client. `docs/ai-memory.md` covers pairing, privacy, the
+managed-launch workflow, outage recovery and acceptance gates.
 
 - Capture is automatic (`denylist`), including unmarked repositories. This
   repository uses workspace `personal`, project `nix-config`; the MCP bridge is
