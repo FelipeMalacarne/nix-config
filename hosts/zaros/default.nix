@@ -13,7 +13,6 @@ in
     ./hardware.nix
     base
     desktop
-    i3
     hyprland
     umbriel
     noctalia
