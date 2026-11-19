@@ -2,7 +2,7 @@
 
 No host currently imports `self.modules.nixos.hermes-agent`; a host that does
 activates the feature and its Home Manager integration. The implementation
-lives in `modules/features/programs/hermes-agent/hermes-agent.nix`, not in the general
+lives in `modules/features/ai/hermes-agent/hermes-agent.nix`, not in the general
 programming package list. Standalone Home Manager configurations can import
 `self.modules.homeManager.hermes-agent` directly.
 
@@ -29,7 +29,7 @@ example SOPS) is caller-managed; this feature does not create or change it.
 ## Private web access over Tailscale
 
 A host can also enable `my.ai.hermes.web`. The implementation is in
-`modules/features/programs/hermes-agent/config/web.nix`. This optional subfeature
+`modules/features/ai/hermes-agent/config/web.nix`. This optional subfeature
 defaults to disabled when Hermes is imported. Its host declaration is:
 
 ```nix
@@ -182,7 +182,7 @@ into the immutable Hermes runtime or system Python.
 
 Activation seeds `~/.hermes/skills/nix-system-workflow/SKILL.md` as an ordinary,
 private writable file, only when absent. The seed is versioned under
-`modules/features/programs/hermes-agent/config/nix-system-workflow/SKILL.md`.
+`modules/features/ai/hermes-agent/config/nix-system-workflow/SKILL.md`.
 Existing skills, memories and local improvements are not overwritten on rebuild.
 Updates to the seed must be reviewed and merged deliberately into an existing
 runtime copy. This also means a previously archived or intentionally removed

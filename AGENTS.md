@@ -39,9 +39,17 @@ hosts.
 - `hosts/<name>/` — concrete machines. `modules/flake/configurations.nix`
   constructs every NixOS and nix-darwin output explicitly; update it when adding
   a host.
-- `modules/features/<domain>/` — features in the five domains `system`,
-  `desktop`, `services`, `programs` and `applications`. Each stays cohesive and
-  cross-platform within its domain; never group features by platform.
+- `modules/features/<domain>/` — features in eight topic domains. Each stays
+  cohesive and cross-platform within its domain; never group features by
+  platform.
+  - `ai` — AI clients, skills, MCP servers, Hermes and the agent browser.
+  - `dev` — Git, Docker, Kubernetes, Neovim, programming and toolchains.
+  - `shell` — terminal tools, SSH client and zsh.
+  - `desktop` — compositors, shells, login managers, audio and bars.
+  - `apps` — graphical and everyday applications.
+  - `games` — gaming and game tooling.
+  - `services` — long-running daemons and network services.
+  - `system` — core, hardware, secrets, theming and virtualization.
 - `modules/profiles/` — `base`, `desktop`, `development`, `ai`, `server`.
 - `modules/inventory/infrastructure.nix` — typed personal data: SSH hosts and
   authorized keys, Kubernetes clusters, and `machines.<name>` network facts (LAN
@@ -119,7 +127,7 @@ Hermes settings live under `my.ai.hermes`; features own their options. ArtCraft 
   services. Hosts select those services through explicit feature imports.
 
 Language stacks are `toolchain-<name>` Home Manager aspects. One package list per
-stack in `modules/features/programs/toolchain/config/toolchains.nix` feeds both
+stack in `modules/features/dev/toolchain/config/toolchains.nix` feeds both
 the aspect and `devShells.<system>.<name>`, which other flakes reuse through
 `inputsFrom`. Hosts import the stacks they use. Add a stack by adding one entry.
 
@@ -196,7 +204,7 @@ Preserve these rules:
   `docs/claude-code.md` for migration, concurrency and rollback.
 - Add skills only for concrete, specialized procedures or reference material;
   never generic advice or copies of this file. The `ai-skills` aspect publishes
-  portable skills from `modules/features/programs/ai-skills/skills/` through each
+  portable skills from `modules/features/ai/ai-skills/skills/` through each
   enabled client's native option; the optional `linear-issue-skill` aspect
   publishes the Linear issue workflow from the same tree (MacBook selects it;
   the AI profile and Zaros do not). Repository skills live in `.claude/skills/`,

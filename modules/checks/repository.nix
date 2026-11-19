@@ -65,13 +65,16 @@ in
         {
           assertion =
             domains == [
-              "applications"
+              "ai"
+              "apps"
               "desktop"
-              "programs"
+              "dev"
+              "games"
               "services"
+              "shell"
               "system"
             ];
-          message = "Feature domains must be exactly applications, desktop, programs, services, system.";
+          message = "Feature domains must be exactly ai, apps, desktop, dev, games, services, shell, system.";
         }
         {
           assertion = looseModules == [ ];

@@ -73,7 +73,7 @@ in
         devConfigDir = lib.mkOption {
           type = lib.types.nullOr (lib.types.strMatching "/.+");
           default = null;
-          example = "/home/felipe/repos/nix-config/modules/features/programs/neovim";
+          example = "/home/felipe/repos/nix-config/modules/features/dev/neovim";
           description = "Absolute runtime config directory required for the dev variant. Use a string, not a Nix path, to keep edits outside the store.";
         };
         package = lib.mkOption {

@@ -17,11 +17,11 @@ these concrete examples as needed:
 
 | Need | Source to inspect |
 | --- | --- |
-| Small Home Manager feature | `modules/features/programs/btop.nix` |
+| Small Home Manager feature | `modules/features/shell/btop.nix` |
 | Typed machine-specific setting | `modules/features/services/wol.nix` |
-| Shared dependency consumed by two clients | `modules/features/programs/playwright-mcp.nix` and its client imports |
+| Shared dependency consumed by two clients | `modules/features/ai/playwright-mcp.nix` and its client imports |
 | Platform-to-HM profile forwarding | `modules/profiles/ai.nix` |
-| Feature with internal files | `modules/features/programs/opencode/` |
+| Feature with internal files | `modules/features/ai/opencode/` |
 | Independent client/profile checks | `modules/profiles/config/test-ai.nix` |
 
 Resolve upstream option types before writing raw config. Inspect the pinned

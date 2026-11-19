@@ -32,8 +32,8 @@ hosts. `hosts/` contains the four concrete host directories.
 `modules/flake/configurations.nix` explicitly constructs the NixOS and
 nix-darwin configuration outputs from those hosts.
 
-Features are grouped into five domains: `system`, `desktop`, `services`,
-`programs`, and `applications`. A feature stays cohesive and cross-platform
+Features are grouped into eight topic domains: `ai`, `dev`, `shell`, `desktop`,
+`apps`, `games`, `services`, and `system`. A feature stays cohesive and cross-platform
 within its domain. Its excluded local `config/` directory is for internal
 implementation files, manually imported by the discovered feature entrypoint.
 
@@ -243,7 +243,7 @@ both login managers. This is a configuration change, not permission to deploy.
 ## Language toolchains
 
 Each language stack is one package list in
-`modules/features/programs/toolchain/config/toolchains.nix`: `go`, `laravel`,
+`modules/features/dev/toolchain/config/toolchains.nix`: `go`, `laravel`,
 `node`, `python`, `elixir` and `cloud`. The list feeds two outputs.
 
 - The Home Manager aspect `toolchain-<name>`. A host installs a stack by importing

@@ -23,7 +23,7 @@ the configured checkout, built package and active installation; they can differ.
 ## Follow the actual wiring
 
 1. Read `modules/profiles/ai.nix` and the affected client feature under
-   `modules/features/programs/`.
+   `modules/features/ai/`.
 2. Check the pinned package and generated config together. OpenCode uses its
    upstream production flake; do not infer compatibility from the package name
    or substitute a Nixpkgs channel to bypass an error.
