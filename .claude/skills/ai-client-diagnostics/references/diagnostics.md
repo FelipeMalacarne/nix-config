@@ -8,15 +8,12 @@ Review output before sharing: status and logs can contain project/session data.
 ```sh
 command -v opencode
 command -v claude
-command -v ai-memory
 opencode --version
 claude --version
-ai-memory --version
 nix eval --raw 'path:.#packages.aarch64-darwin.opencode.version'
 ```
 
-Use `x86_64-linux` on Zaros. Inspect `flake.lock` for the locked `opencode` and
-`ai-memory` nodes; do not update either as a diagnostic step. The active CLI
+Use `x86_64-linux` on Zaros. Inspect `flake.lock` for the locked `opencode` node; do not update it as a diagnostic step. The active CLI
 version may lag the checkout until an approved activation.
 
 ## 2. Offline integration contract
@@ -25,16 +22,12 @@ version may lag the checkout until an approved activation.
 system=$(nix eval --impure --raw --expr builtins.currentSystem)
 nix build --no-link \
   "path:.#checks.${system}.ai-profile" \
-  "path:.#checks.${system}.ai-memory-client" \
   "path:.#checks.${system}.opencode-craft"
 ```
 
-Inspect `modules/features/services/ai-memory/config/test-client.nix` for the
-current contract. It isolates HOME/XDG, disables model fetching/updating, checks
-the native DB path and generated MCP config, and exercises the adapter fixture.
-`modules/profiles/config/test-ai.nix` checks client composition and shared memory
-skill sources. Test failures should be traced to the first failing assertion or
-builder, rather than changing live configuration.
+`modules/profiles/config/test-ai.nix` checks client composition. Test failures
+should be traced to the first failing assertion or builder, rather than changing
+live configuration.
 
 ## 3. Minimal isolated OpenCode package probe
 
@@ -70,20 +63,3 @@ one is provided.
 This mirrors the pinned check, including its service-config filename. Recheck
 that fixture after any upstream channel change. Do not reuse this probe to run
 interactive clients with inherited credentials or connect it to the real home.
-
-## 4. Live memory symptoms
-
-Operator diagnostics documented in `docs/ai-memory.md`:
-
-```sh
-ai-memory status
-ai-memory workstreams
-```
-
-Check `--help` if the installed version differs. Do not dump local spools,
-transcripts, auth files or database rows. For empty recall, query the intended
-project through MCP with the marker's explicit scope. An empty result can mean
-wrong scope, uncaptured work or delivery failure; it does not identify which.
-
-Read the runbook's outage/recovery and lifecycle sections before proposing
-`recover`. A successful replay does not prove every native event was retained.

@@ -10,7 +10,7 @@ For local configuration development, set these Home Manager options:
 ```nix
 my.neovim = {
   variant = "dev";
-  devConfigDir = "${config.home.homeDirectory}/repos/nix-config/modules/features/programs/neovim";
+  devConfigDir = "${config.home.homeDirectory}/repos/nix-config/modules/features/dev/neovim";
 };
 ```
 
@@ -63,7 +63,7 @@ From the repository root:
 ```sh
 nix run 'path:.#neovim-minimal' -- /path/to/file
 nix run 'path:.#neovim-full' -- /path/to/file
-NVIM_CONFIG_DIR="$PWD/modules/features/programs/neovim" nix run 'path:.#neovim-dev'
+NVIM_CONFIG_DIR="$PWD/modules/features/dev/neovim" nix run 'path:.#neovim-dev'
 ```
 
 GitHub runs use the published revision, independently of Home Manager settings.
@@ -78,7 +78,7 @@ LSP or other Nix dependency changes still require a rebuild. This is not live
 reloading of an already-running editor.
 
 The package factory and server/executable manifest live in
-`modules/features/programs/neovim/config/packages.nix`. Lua loads full plugin
+`modules/features/dev/neovim/config/packages.nix`. Lua loads full plugin
 configuration explicitly and enables only the servers in that manifest.
 Intelephense (disabled), Texlab (not bundled), and unused SQLfluff/Dockerfmt
 dependencies are not included. PHP formatting still uses project-provided

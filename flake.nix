@@ -26,8 +26,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    ai-memory.url = "github:akitaonrails/ai-memory/8f6a15b3a2f622959cfc7659b905fb9701b73bfd";
-
     mac-app-util = {
       url = "github:hraban/mac-app-util";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -1,14 +1,7 @@
 { ... }:
 {
   my.desktop = {
-    shell = "noctalia";
     defaultSession = "hyprland";
-
-    sessions = [
-      "umbriel"
-      "hyprland"
-      "i3"
-    ];
 
     monitors = {
       main = {

@@ -1,4 +1,7 @@
-{ ... }:
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.nixos.i3 =
     {
@@ -7,7 +10,9 @@
       pkgs,
       ...
     }:
-    lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
+    {
+      my.desktop.sessions = [ "i3" ];
+      home-manager.sharedModules = [ registry.homeManager.i3 ];
       services.xserver.enable = true;
       services.displayManager.defaultSession = lib.mkIf (config.my.desktop.defaultSession == "i3") (
         lib.mkDefault "none+i3"
@@ -93,6 +98,17 @@
           "-b"
         ]}
       '';
+      modifierNames = {
+        shift = "Shift";
+        control = "Control";
+        alt = "Mod1";
+      };
+      applicationBindings = lib.mapAttrs' (
+        _: binding:
+        lib.nameValuePair (lib.concatStringsSep "+" (
+          [ "Mod4" ] ++ map (modifier: modifierNames.${modifier}) binding.modifiers ++ [ binding.key ]
+        )) "exec ${binding.command}"
+      ) config.my.desktop.applicationBindings;
       topologyI3 = lib.concatMapStrings (
         output:
         lib.concatMapStrings (
@@ -101,7 +117,7 @@
       ) (lib.attrValues config.my.desktop.monitors);
     in
     {
-      config = lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
+      config = {
         xsession.enable = true;
         xsession.windowManager.i3 =
           let
@@ -126,7 +142,8 @@
               window.border = 2;
               floating.modifier = mod;
 
-              keybindings = {
+              terminal = config.my.desktop.terminalCommand;
+              keybindings = applicationBindings // {
                 # Terminal is compositor-specific (Hyprland uses termHere).
                 "${mod}+Return" = "exec ${config.my.desktop.terminalCommand}";
 

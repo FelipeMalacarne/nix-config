@@ -45,32 +45,17 @@ in
 
   options.my.desktop.shellCommands = lib.mkOption {
     type = lib.types.submodule {
-      options = {
-        launcher = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-        };
-        dashboard = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-        };
-        settings = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-        };
-        session = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-        };
-        lock = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-        };
-      };
+      options = lib.genAttrs commandNames (
+        _:
+        lib.mkOption {
+          type = lib.types.nonEmptyStr;
+          default = ":";
+        }
+      );
     };
     default = { };
     internal = true;
-    description = "Internal commands exposed by the selected desktop shell.";
+    description = "Commands exposed by the selected desktop shell; a no-op when none is selected.";
   };
 
   options.my.desktop.shellStartupCommand = lib.mkOption {

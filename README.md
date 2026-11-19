@@ -14,36 +14,38 @@ compose reusable profiles and features without duplicating policy.
 | `macbook` | nix-darwin, Apple Silicon | Development laptop |
 
 Zaros defaults to **Hyprland (UWSM-managed) + Noctalia**, with **Noctalia Greeter**
-for login. Experimental Umbriel and i3/Xorg remain selectable alternatives.
+for login. It also imports the experimental Umbriel session. i3/Xorg and the
+Caelestia shell stay in the repository, and zaros does not import them.
+
+To see what a host installs, run `make inventory HOST=zaros`. To see every
+feature and the hosts that import it, run `make catalog`.
 
 Saradomin's DNS architecture and router setup are documented in
 [`docs/adguard-home.md`](docs/adguard-home.md).
-
-The shared AI memory workflow captures unmarked repositories by default;
-optional markers customize scope and exclusions. Its privacy and recovery plan is in
-[`docs/ai-memory.md`](docs/ai-memory.md).
 
 ## Architecture
 
 The dependency direction is **host -> profile -> feature -> upstream module**.
 Hosts own machine facts and explicitly import profiles and selected features;
 profiles compose features and policy; features must not depend on profiles or
-hosts. `hosts/` contains the four concrete host directories.
+hosts. `hosts/` contains the four concrete host directories. In each, `default.nix` is the import manifest (profiles and feature
+imports grouped by topic) and `settings.nix` holds host facts and per-host
+settings.
 `modules/flake/configurations.nix` explicitly constructs the NixOS and
 nix-darwin configuration outputs from those hosts.
 
-Features are grouped into five domains: `system`, `desktop`, `services`,
-`programs`, and `applications`. A feature stays cohesive and cross-platform
+Features are grouped into eight topic domains: `ai`, `dev`, `shell`, `desktop`,
+`apps`, `games`, `services`, and `system`. A feature stays cohesive and cross-platform
 within its domain. Its excluded local `config/` directory is for internal
 implementation files, manually imported by the discovered feature entrypoint.
 
 `modules/profiles/` contains the `base`, `desktop`, `development`, `ai`, and `server`
 compositions. `base` provides shared policy without optional system integrations;
-`desktop` exposes i3, Hyprland, Umbriel, Noctalia and Caelestia capabilities plus
-shared graphical applications, but does not select a login manager;
-`development` provides programming and Kubernetes tools without selecting AI
-clients. `ai` composes OpenCode, Claude Code, Codex, GitHub Copilot CLI and the
-SOPS-backed ai-memory client; macbook and zaros explicitly import that platform
+`desktop` provides the desktop foundation and shared graphical applications,
+and selects no session, shell or login manager;
+`development` provides the programming workbench and Kubernetes tools without
+selecting AI clients or language toolchains. `ai` composes OpenCode, Claude Code, Codex and GitHub Copilot CLI;
+macbook and zaros explicitly import that platform
 profile, which forwards its Home Manager composition. Hermes remains an optional
 host selection, and ai-usagebar is not included. `server` provides headless
 base/server policy. `server` does not
@@ -75,7 +77,7 @@ Shared inventory defaults merge per setting. For example, overriding
 settings for GitHub and all unrelated hosts. The same holds for
 `my.infrastructure.machines`, the network facts machines use to reach each other
 (LAN and tailnet addresses, MagicDNS names, the Wake-on-LAN MAC). Hosts derive
-values such as the ai-memory endpoint, AdGuard listeners and `wake-zaros` from it
+values such as AdGuard listeners and `wake-zaros` from it
 rather than repeating literals. The `openssh` feature authorizes
 `my.infrastructure.ssh.authorizedKeys`, and `internal-ca` trusts the home-lab CA.
 
@@ -123,9 +125,7 @@ Typed options configure imported features, such as `my.wol.interface` and
 is imported; removing a feature also means removing its settings. There is no
 additional `my.<feature>.enable` selector. Enable flags remain appropriate for
 optional subfeatures such as `my.ai.hermes.web.enable`. Custom AI settings share
-`my.ai`: memory uses `memory.client`/`memory.server`, and Hermes uses `hermes`.
-Configure memory clients at host level; the feature forwards settings to Home
-Manager. Hermes and Ollama remain explicitly selected optional features.
+`my.ai`: Hermes uses `hermes`. Hermes and Ollama remain explicitly selected optional features.
 
 The optional [Craft suite](docs/artcraft.md) comes from the auto-updated
 [`artcraft-flake`](https://github.com/FelipeMalacarne/artcraft-flake) input.
@@ -134,18 +134,20 @@ Import the Home Manager `artcraft` aspect and select apps with
 Zaros selects only FilmCraft with `programs.artcraft.mcp.enable`. Pick up new
 releases with `nix flake update artcraft`.
 
-Desktop sessions are selected with `my.desktop.sessions`; `my.desktop.defaultSession`
-must be a member of that list. Zaros selects `[ "umbriel" "hyprland" "i3" ]`
-with default `"hyprland"`. Each compositor maps that default to its native login
+A host selects a desktop session by importing its aspect: `hyprland`, `umbriel`
+or `i3`. Each imported session adds itself to `my.desktop.sessions`, and
+`my.desktop.defaultSession` must be one of them. Zaros imports `hyprland` and
+`umbriel` with default `"hyprland"`. Each compositor maps that default to its native login
 identifier: `umbriel`, `hyprland-uwsm`, or `none+i3`.
 
-`my.desktop.shell` selects `noctalia`, `caelestia`, or `none`, independently of the
-login manager. Providers own their commands, packages, settings and startup.
+A host selects a shell by importing `noctalia` or `caelestia`. The imported shell
+sets `my.desktop.shell`, which stays `none` when no shell is imported, and two
+imported shells fail evaluation. The shell is independent of the login manager. Providers own their commands, packages, settings and startup.
 Noctalia supports both Wayland compositors: Hyprland's startup Lua launches the
 configured binary once through `uwsm app`; Umbriel's native autostart launches
 the same binary once directly. There is no shared Noctalia systemd startup unit.
 Caelestia uses its official HM unit scoped to the Hyprland UWSM target and is not
-supported with Umbriel. X11-only selections require `shell = "none"`.
+supported with Umbriel. An X11-only selection must not import a shell.
 
 Umbriel's `start-umbriel` owns `umbriel.service` and `umbriel-session.target`;
 do not wrap it in UWSM. Hyprland retains its UWSM lifecycle. Hypridle is scoped to
@@ -170,10 +172,9 @@ XRandR identity and scale 1. Desktop application bindings and Dolphin share
 `my.desktop.terminalCommand` and `my.desktop.terminalDesktopId`; override both
 together when selecting a different compatible terminal.
 
-The desktop profile exposes both Noctalia and Caelestia capabilities, but only
-the selected provider is activated on Zaros. Adding a provider requires a
-provider aspect, a command registry entry, an explicit desktop profile import,
-and variant checks.
+Adding a provider requires a provider aspect whose NixOS half sets the option and
+forwards its Home Manager half, a command registry entry, a host import, and
+variant checks.
 
 Noctalia uses the native v5 package and `programs.noctalia` Home Manager module.
 Reusable UI preferences live in
@@ -241,6 +242,26 @@ To revert to SDDM, replace Zaros's explicit `noctalia-greeter` import with
 `self.modules.nixos.sddm` and choose the desired sessions/default. Do not enable
 both login managers. This is a configuration change, not permission to deploy.
 
+## Language toolchains
+
+Each language stack is one package list in
+`modules/features/dev/toolchain/config/toolchains.nix`: `go`, `laravel`,
+`node`, `python`, `elixir` and `cloud`. The list feeds two outputs.
+
+- The Home Manager aspect `toolchain-<name>`. A host installs a stack by importing
+  it into its user, as zaros and macbook do.
+- The dev shell `devShells.<system>.<name>`. Run `nix develop .#laravel`, or
+  reuse a stack in another flake:
+
+```nix
+devShells.default = pkgs.mkShell {
+  inputsFrom = [ inputs.nix-config.devShells.${system}.laravel ];
+};
+```
+
+A consuming flake also locks this repository's inputs, so its `flake.lock` grows
+by about 78 nodes.
+
 ## Setup and secrets
 
 The encrypted file is `secrets/secrets.yaml`, managed by SOPS and age. Bootstrap
@@ -266,6 +287,8 @@ make fmt             # pinned treefmt formatter
 make fmt-check       # formatting check
 make eval-check      # fast, no-build evaluation check
 make check           # full flake check and relevant builds
+make inventory HOST=zaros  # aspects and packages one host installs
+make catalog         # every aspect and the hosts that import it
 make build-all       # all NixOS closures (Linux only)
 make build-darwin    # MacBook closure
 make build HOST=zaros
@@ -317,11 +340,11 @@ sets. Do not hide required integrations by adding them to every fixture.
 
 ## Issue backlog
 
-The [configuration issue backlog](docs/issues/README.md) tracks review findings,
-cleanup decisions, upgrades, and deferred operational work as independent Markdown
-issues. Each issue records evidence, scope, acceptance criteria, verification, and
-approval boundaries. Assess and resolve issues individually; the backlog does not
-authorize deployment, credential changes, destructive storage work, or live tests.
+Open work lives in [GitHub Issues](https://github.com/FelipeMalacarne/nix-config/issues),
+labelled by priority (`P1`–`P3`) and by `needs-decision` or `deferred`. Each issue
+records evidence, scope, acceptance criteria and approval boundaries; an issue does
+not authorize deployment, credential changes, destructive storage work or live tests.
+The former Markdown backlog is in git history before its removal.
 
 ## Validation and deferred work
 
@@ -333,7 +356,8 @@ operational follow-ups. Password-hash ownership, SSH/firewall policy, broad
 Tailscale trust, Disko device safety, Darwin SOPS bootstrap and backup/restore
 verification are deliberately deferred.
 
-Linux CI includes `desktop-sessions` (supported/rejected composition variants),
+Linux CI includes `desktop-sessions` (variants built by importing aspects, plus
+rejections for two shells and for an X11-only selection with a shell),
 `umbriel-config` (generated TOML validated by the native CLI), and
 `greeter-sessions` (actual upstream discovery/argv/environment code and installed
 `startx` server selection with mocked xinit/Xorg, including declarative server

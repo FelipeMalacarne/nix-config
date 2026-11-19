@@ -37,8 +37,8 @@
       options.my.rgb = {
         color = lib.mkOption {
           type = hexColor;
-          default = config.my.colors.primary;
-          defaultText = "config.my.colors.primary";
+          default = config.lib.stylix.colors.withHashtag.base0D;
+          defaultText = "Stylix base0D";
           description = "RGB color to apply, usually sourced from the main theme color.";
           example = "#89b4fa";
         };

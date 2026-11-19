@@ -72,20 +72,6 @@ in
             assertion = headless saradomin && headless vm;
             message = "Servers must stay headless.";
           }
-          {
-            assertion = saradomin.services.ai-memory.settings.llm_provider == "openai-oauth";
-            message = "ai-memory must summarize through the ChatGPT subscription, not the billed OpenAI API.";
-          }
-          {
-            assertion =
-              !(saradomin.services.restic.backups ? ai-memory)
-              && !(saradomin.systemd.timers ? restic-backups-ai-memory);
-            message = "ai-memory uses its own backup stream, not a Restic job.";
-          }
-          {
-            assertion = !(vm.services ? ai-memory);
-            message = "The VM must not run the ai-memory server.";
-          }
         ];
       };
     };

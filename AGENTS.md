@@ -7,10 +7,11 @@ describe how the features behave.
 ## Machines
 
 - `zaros` — main NixOS workstation: Ryzen 7 7800X3D, RTX 4070 SUPER (NVENC),
-  1 TB + 2 TB NVMe. Hyprland/UWSM + Noctalia with Noctalia Greeter by default,
-  Umbriel and i3 alternatives, gaming, NVIDIA, development and AI integrations.
+  1 TB + 2 TB NVMe. Hyprland/UWSM and Umbriel sessions with the Noctalia shell
+  and Noctalia Greeter, gaming, NVIDIA, development and AI integrations. i3 and
+  Caelestia stay importable, but zaros does not import them.
 - `saradomin` — headless NixOS home server: Intel N95, 16 GB RAM, 512 GB NVMe.
-  k3s, Disko, AdGuard Home, SSH, Tailscale and the ai-memory server.
+  k3s, Disko, AdGuard Home, SSH and Tailscale.
 - `saradomin-vm` — VM variant of the server profile with OpenSSH and Tailscale.
 - `macbook` — Apple Silicon nix-darwin laptop with yabai, skhd and SketchyBar.
 
@@ -35,12 +36,24 @@ hosts.
 
 ### Layout
 
-- `hosts/<name>/` — concrete machines. `modules/flake/configurations.nix`
+- `hosts/<name>/` — concrete machines. `default.nix` is the import manifest:
+  only `imports` (local files, profiles, features grouped under topic comments)
+  and per-user Home Manager `imports`; `checks.repository-structure` enforces
+  it. `settings.nix` holds host facts and per-host settings. `hardware.nix`,
+  `disk.nix` and `desktop.nix` stay beside them. `modules/flake/configurations.nix`
   constructs every NixOS and nix-darwin output explicitly; update it when adding
   a host.
-- `modules/features/<domain>/` — features in the five domains `system`,
-  `desktop`, `services`, `programs` and `applications`. Each stays cohesive and
-  cross-platform within its domain; never group features by platform.
+- `modules/features/<domain>/` — features in eight topic domains. Each stays
+  cohesive and cross-platform within its domain; never group features by
+  platform.
+  - `ai` — AI clients, skills, MCP servers, Hermes and the agent browser.
+  - `dev` — Git, Docker, Kubernetes, Neovim, programming and toolchains.
+  - `shell` — terminal tools, SSH client and zsh.
+  - `desktop` — compositors, shells, login managers, audio and bars.
+  - `apps` — graphical and everyday applications.
+  - `games` — gaming and game tooling.
+  - `services` — long-running daemons and network services.
+  - `system` — core, hardware, secrets, theming and virtualization.
 - `modules/profiles/` — `base`, `desktop`, `development`, `ai`, `server`.
 - `modules/inventory/infrastructure.nix` — typed personal data: SSH hosts and
   authorized keys, Kubernetes clusters, and `machines.<name>` network facts (LAN
@@ -74,7 +87,12 @@ reached through several import paths therefore merges once, so a feature may
 import what it depends on, as `openssh` imports `infrastructure`. Do not add
 manual `key`s. Switch back to upstream once it sets a key itself.
 
-Importing a registered feature module activates that feature. Do not add a
+Importing a registered feature module activates that feature, and nothing else
+does. Profiles bundle only features that are always wanted together, never
+alternatives. Sessions, shells, toolchains and optional applications stay
+importable, and each host imports the ones it uses. `make catalog` lists every
+aspect with the hosts that import it. `make inventory HOST=<host>` lists what one
+host installs, grouped by aspect. Do not add a
 redundant `my.<feature>.enable` selector or default-import optional features into
 `base`. Keep typed options for settings such as `my.wol.interface` and
 `my.restic.paths`; feature-specific settings require the corresponding import.
@@ -97,21 +115,25 @@ does): either makes a closure depend on unrelated source edits.
 
 ### Settings and profiles
 
-Custom AI settings share `my.ai`: `my.ai.memory.client`, `my.ai.memory.server`
-and `my.ai.hermes`; features own their options. ArtCraft uses the `artcraft-flake` input's native
+Hermes settings live under `my.ai.hermes`; features own their options. ArtCraft uses the `artcraft-flake` input's native
 `programs.artcraft` options. The restic namespace is `my.restic`.
 
 - `base` — core, theming, zsh, git, ssh, Neovim, CLI, btop, yazi. No optional
   system integrations.
-- `desktop` — audio, network, i3, Hyprland, Umbriel, Noctalia and Caelestia
-  capabilities, Firefox, Dolphin, Ghostty, KDE Connect, Bitwarden. It imports no
-  login manager.
-- `development` — programming and Kubernetes tooling, without AI clients.
+- `desktop` — audio, network, desktop foundation, Firefox, Dolphin, Ghostty,
+  KDE Connect, Bitwarden. It imports no session, shell or login manager.
+- `development` — the programming workbench and Kubernetes tooling, without AI
+  clients or language toolchains.
 - `ai` — explicit workstation composition of OpenCode, Claude Code, Codex and
   GitHub Copilot CLI. NixOS/Darwin imports forward the Home Manager profile.
   Hermes stays host-selected; ai-usagebar is deferred.
 - `server` — headless base/server policy; it does not implicitly enable optional
   services. Hosts select those services through explicit feature imports.
+
+Language stacks are `toolchain-<name>` Home Manager aspects. One package list per
+stack in `modules/features/dev/toolchain/config/toolchains.nix` feeds both
+the aspect and `devShells.<system>.<name>`, which other flakes reuse through
+`inputsFrom`. Hosts import the stacks they use. Add a stack by adding one entry.
 
 Generic SSH, programming and Kubernetes tooling do not provision credentials.
 Hosts explicitly select `ssh-credentials`, `programming-credentials` and
@@ -134,8 +156,9 @@ behavior when composing them.
   `test_<topic>.py`.
 - Host closure checks and `packages.<system>.host-closures` derive from the
   configuration outputs; never maintain a parallel host list.
-- `desktop-sessions`, `umbriel-config` and `greeter-sessions` deliberately use
-  zaros's desktop facts. They validate composition and native config parsers
+- `desktop-sessions`, `umbriel-config` and `greeter-sessions` build variants by
+  importing aspects and use zaros's monitor facts. The greeter fixture imports
+  every session, i3 included. They validate composition and native config parsers
   with mocked xinit/Xorg and never launch a physical session.
 
 ## Desktop
@@ -143,11 +166,15 @@ behavior when composing them.
 `README.md` describes sessions, shell providers, idle, portals and the Greeter.
 Preserve these rules:
 
-- Sessions come from `my.desktop.sessions` and `my.desktop.defaultSession`; the
-  shell from `my.desktop.shell`. Providers own their commands, packages,
-  settings and startup; compositors stay provider-neutral. A new provider needs
-  an aspect, a registry entry, an explicit desktop-profile import and variant
-  checks. X11-only selections require shell `none`.
+- A session or shell is on exactly when the host imports its aspect. Each
+  session aspect (`hyprland`, `umbriel`, `i3`) adds itself to
+  `my.desktop.sessions` and forwards its Home Manager half. Each shell aspect
+  (`noctalia`, `caelestia`) sets `my.desktop.shell` the same way, so importing
+  two shells fails evaluation. Hosts set only `my.desktop.defaultSession` and
+  monitors. Providers own their commands, packages, settings and startup;
+  compositors stay provider-neutral. A new provider needs an aspect whose NixOS
+  half sets the option and forwards its Home Manager half, a registry entry, a
+  host import and variant checks. An X11-only selection must not import a shell.
 - Never wrap Umbriel's `start-umbriel` in UWSM.
 - Exactly one login manager. Zaros imports `noctalia-greeter`; to revert,
   replace that import with `sddm`. No autologin or `initial_session`;
@@ -181,36 +208,14 @@ Preserve these rules:
   `docs/claude-code.md` for migration, concurrency and rollback.
 - Add skills only for concrete, specialized procedures or reference material;
   never generic advice or copies of this file. The `ai-skills` aspect publishes
-  portable skills from `modules/features/programs/ai-skills/skills/` through each
+  portable skills from `modules/features/ai/ai-skills/skills/` through each
   enabled client's native option; the optional `linear-issue-skill` aspect
   publishes the Linear issue workflow from the same tree (MacBook selects it;
   the AI profile and Zaros do not). Repository skills live in `.claude/skills/`,
   discovered by both clients, with distinct IDs when a global skill covers the
   same topic.
-
-ai-memory runs as a private server on saradomin from the single feature
-`modules/features/services/ai-memory/`; no workstation currently selects its
-Home Manager client. `docs/ai-memory.md` covers pairing, privacy, outage
-recovery and acceptance gates.
-
-- Nix owns the integration: never run live ai-memory installers or self-updates.
-- The downstream `consolidate_on_turn_checkpoint` patch and its server setting
-  stay together and separate from upstream defaults; remove or adapt both when
-  upstream ships an equivalent, keeping regression coverage.
-- The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml` and decrypted
-  to `/run/secrets/ai-memory-token`. Never copy its plaintext into
-  configuration, prompts or the store, or rotate it while captures are queued.
-- Summaries use the ChatGPT subscription (`openai-oauth`), never the billed
-  `openai` API or a paid fallback. The operator completes device login privately
-  as the `ai-memory` service user. Agents must not read
-  `/var/lib/ai-memory/auth.json`, handle device codes, decrypt provider secrets
-  or run interactive login. Subscription acceptance and deployment need separate
-  approval.
-- Hourly improvement proposals require approval; Dream rewrites are not
-  proposal-gated; cross-project profiles stay off.
-- Keep legacy state: the encrypted Copilot bootstrap/import helper and cache
-  entries (Copilot is no longer selected) and OpenClaw's encrypted credential
-  and runtime state. Deleting them is not routine cleanup.
+- Keep OpenClaw's encrypted credential and runtime state. Deleting them is not
+  routine cleanup.
 
 ## Validation and deployment
 
@@ -219,6 +224,8 @@ make fmt
 make fmt-check
 make eval-check
 make check
+make inventory HOST=zaros      # aspects and packages one host installs
+make catalog                   # every aspect and the hosts that import it
 make build-all                 # Linux: all NixOS closures
 make build-darwin              # MacBook closure
 make switch HOST=zaros         # guarded activation

@@ -1,0 +1,86 @@
+{
+  config,
+  inputs,
+  secretsDir,
+  ...
+}:
+let
+  configFlake = config.flake.modules.homeManager;
+in
+{
+  imports = [
+    ./config/remote-control.nix
+    ./config/writable-settings.nix
+  ];
+
+  # Opt-in per host: the shared AI profile keeps using its normal Claude login.
+  flake.modules.darwin.claude-gateway = { config, ... }: {
+    sops.secrets.claude-gateway-key = {
+      sopsFile = secretsDir + "/claude-gateway.yaml";
+      key = "api-key";
+      owner = config.my.user.name;
+      mode = "0400";
+    };
+    home-manager.sharedModules = [ configFlake.claude-gateway ];
+  };
+
+  flake.modules.homeManager.claude-gateway = {
+    imports = [ configFlake.claude-code ];
+    programs.claude-code.settings = {
+      env = {
+        ANTHROPIC_BASE_URL = "https://llm.attq";
+        CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
+      };
+      # The helper reads the SOPS-decrypted file at runtime; neither the key
+      # nor a shell environment containing it is written into the Nix store.
+      # Claude Code sends helper credentials as bearer and x-api-key.
+      apiKeyHelper = "cat /run/secrets/claude-gateway-key";
+    };
+  };
+
+  flake.modules.homeManager.claude-code = { lib, pkgs, ... }: {
+    imports = with config.flake.modules.homeManager; [
+      ai-skills
+      github-mcp
+      linear-mcp
+      playwright-mcp
+    ];
+    programs.claude-code = {
+      enable = true;
+      package = inputs.nix-claude-code.packages.${pkgs.stdenv.hostPlatform.system}.latest;
+      enableMcpIntegration = true;
+      settings.model = "claude-opus-5-5";
+      # Empty strings drop the Co-Authored-By trailer and the PR footer.
+      settings.attribution = {
+        commit = "";
+        pr = "";
+      };
+      rules.no-attribution = ''
+        # No AI attribution
+
+        Never mention Claude, Claude Code, Anthropic or AI assistance in commit
+        messages, pull requests, issues, review comments or other messages
+        written on the user's behalf. No Co-Authored-By trailers, "Generated
+        with" footers or similar signatures.
+      '';
+      settings.enabledPlugins = {
+        "gopls-lsp@claude-plugins-official" = true;
+      }
+      # claude.ai syncs account plugins into every client; keep unused ones
+      # disabled so their skills and tools stay out of each session's context.
+      // lib.genAttrs (map (name: "${name}@synced") [
+        "cowork-plugin-management"
+        "data"
+        "design"
+        "design-skills"
+        "desktop-commander"
+        "engineering"
+        "finance"
+        "firebase"
+        "grafana-mcp"
+        "productivity"
+        "searchfit-seo"
+      ]) (_: false);
+    };
+  };
+}

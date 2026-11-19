@@ -1,0 +1,63 @@
+{ config, ... }:
+let
+  registry = config.flake.modules;
+  platformModule = {
+    home-manager.sharedModules = [ registry.homeManager.programming ];
+  };
+  credentialsModule = platform: { config, ... }: {
+    imports = [
+      registry.${platform}.programming
+      registry.${platform}.sops
+    ];
+    sops.secrets."linear-api-key".owner = config.my.user.name;
+    home-manager.sharedModules = [ registry.homeManager.programming-credentials ];
+  };
+
+  # Language stacks live in the toolchain feature; this is the workbench
+  # every development host gets.
+  homeModule =
+    {
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      home.packages =
+        with pkgs;
+        [
+          gcc
+          lazygit
+          nixfmt-tree
+          gh
+          zed-editor
+          obsidian
+
+          dig
+          lazysql
+        ]
+        ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+          bubblewrap
+          dbeaver-bin
+        ];
+
+      programs.zsh.shellAliases.lg = "lazygit";
+
+    };
+in
+{
+  flake.modules.homeManager.programming = homeModule;
+  flake.modules.nixos.programming = platformModule;
+  flake.modules.darwin.programming = platformModule;
+
+  flake.modules.nixos.programming-credentials = credentialsModule "nixos";
+  flake.modules.darwin.programming-credentials = credentialsModule "darwin";
+  flake.modules.homeManager.programming-credentials = {
+    imports = [
+      registry.homeManager.programming
+      registry.homeManager.sops
+    ];
+    programs.zsh.initContent = ''
+      export LINEAR_API_KEY="$(cat /run/secrets/linear-api-key 2>/dev/null)"
+    '';
+  };
+}

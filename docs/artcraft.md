@@ -8,7 +8,7 @@ apps and wires the OpenCode editor.
 
 ## Selection
 
-`modules/features/applications/artcraft.nix` registers the upstream Home
+`modules/features/apps/artcraft.nix` registers the upstream Home
 Manager module as the `artcraft` aspect. Importing it installs nothing; select
 apps through the native `programs.artcraft` options:
 

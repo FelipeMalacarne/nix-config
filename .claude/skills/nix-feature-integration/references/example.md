@@ -6,7 +6,7 @@ create this duplicate alongside the existing btop feature.
 
 ## Discovered entrypoint
 
-`modules/features/programs/example-monitor.nix`:
+`modules/features/shell/example-monitor.nix`:
 
 ```nix
 { config, ... }:

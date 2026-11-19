@@ -24,11 +24,8 @@ in
 {
   options.my.desktop.sessions = lib.mkOption {
     type = lib.types.listOf sessionType;
-    default = [
-      "i3"
-      "hyprland"
-    ];
-    description = "Desktop sessions made available on this system.";
+    default = [ ];
+    description = "Desktop sessions made available on this system; each session aspect adds its own.";
   };
 
   options.my.desktop.defaultSession = lib.mkOption {
@@ -46,8 +43,8 @@ in
 
   options.my.desktop.shell = lib.mkOption {
     type = lib.types.str;
-    default = "noctalia";
-    description = "Registered desktop shell provider name, or none.";
+    default = "none";
+    description = "Registered desktop shell provider name, or none; each shell aspect sets its own.";
   };
 
   options.my.desktop.monitors = lib.mkOption {
