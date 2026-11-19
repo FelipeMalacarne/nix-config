@@ -62,6 +62,13 @@ credentials are never embedded in Nix configuration or the store. Run
 GitHub/organization permissions still apply; no extra scopes are granted by this
 configuration. Codex and GitHub Copilot CLI remain package-only selections.
 
+The `ai` profile also imports Herdr. It publishes its skill and a global rule
+to OpenCode and Claude Code. Inside a Herdr pane (`HERDR_ENV=1`), the rule has
+agents create worktrees with `herdr worktree create` and run long-lived
+processes in sibling panes. In Claude Code, a `PreToolUse` hook denies
+`git worktree add` there, because Claude's `WorktreeCreate` hook does not see
+worktrees made through Bash.
+
 Platform profiles forward their Home Manager composition to the primary user
 through `home-manager.sharedModules`. Hosts select a platform profile once; additional Home Manager imports are for
 independently selected user-only features, not a second copy of the profile.
