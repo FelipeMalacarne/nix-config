@@ -103,6 +103,7 @@ assert
 assert
   ai.programs.claude-code.skills.ai-client-troubleshooting
   == ai.programs.opencode.skills.ai-client-troubleshooting;
+assert ai.programs.claude-code.skills.herdr == ai.programs.opencode.skills.herdr;
 assert !(ai.programs.claude-code.skills ? linear-issue);
 assert !(ai.programs.opencode.skills ? linear-issue);
 assert
