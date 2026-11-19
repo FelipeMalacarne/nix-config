@@ -7,14 +7,13 @@
 }:
 let
   registry = config.flake.modules;
-  workstation = platform: {
-    imports = [ registry.${platform}.ai-memory-client ];
+  workstation = {
     home-manager.sharedModules = [ registry.homeManager.ai ];
   };
 in
 {
-  flake.modules.nixos.ai = workstation "nixos";
-  flake.modules.darwin.ai = workstation "darwin";
+  flake.modules.nixos.ai = workstation;
+  flake.modules.darwin.ai = workstation;
   flake.modules.homeManager.ai = {
     imports = with registry.homeManager; [
       opencode

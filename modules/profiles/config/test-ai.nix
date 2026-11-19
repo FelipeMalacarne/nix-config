@@ -13,17 +13,7 @@ let
     self.modules.homeManager.neovim
     self.modules.homeManager.development
   ];
-  ai = evaluate [
-    self.modules.homeManager.ai
-    # Platform profiles add this via the SOPS-backed system client role.
-    self.modules.homeManager.ai-memory-client
-    {
-      my.ai.memory.client = {
-        serverUrl = "https://fixture.example.test:8443";
-        tokenFile = "/run/secrets/ai-memory-token";
-      };
-    }
-  ];
+  ai = evaluate [ self.modules.homeManager.ai ];
   claudeOnly = evaluate [ self.modules.homeManager.claude-code ];
   claudeGateway = evaluate [ self.modules.homeManager.claude-gateway ];
   claudeRender = evaluate [
@@ -51,7 +41,6 @@ let
     host: opencode:
     let
       client = home host;
-      secret = host.sops.secrets.ai-memory-token;
     in
     client.programs.opencode.enable
     && client.programs.opencode.package == opencode
@@ -64,13 +53,10 @@ let
     && client.programs.mcp.servers.linear.url == "https://mcp.linear.app/mcp"
     && !(client.programs.codex.enable or false)
     && !(client.programs.github-copilot-cli.enable or false)
-    && client.home.shellAliases.oc == "ai-memory run --no-autowire opencode"
-    && client.my.ai.memory.client == host.my.ai.memory.client
-    && client.my.ai.memory.client.tokenFile == secret.path
-    && client.my.ai.memory.client.serverUrl == "https://saradomin.osiris-fish.ts.net:8443"
-    && secret.owner == host.my.user.name
-    && secret.mode == "0400"
-    && toString secret.sopsFile == toString (secretsDir + "/ai-memory.yaml");
+    # Workstations no longer run the ai-memory client; the server stays on saradomin.
+    && !(client.home.shellAliases ? oc)
+    && !(client.programs.claude-code.rules ? ai-memory)
+    && !(host.sops.secrets ? ai-memory-token);
 in
 assert !(development.programs.opencode.enable or false);
 assert !(development.programs.claude-code.enable or false);
@@ -124,17 +110,6 @@ assert
   .programs.opencode.skills.linear-issue;
 assert !((home zaros).programs.claude-code.skills ? linear-issue);
 assert !((home zaros).programs.opencode.skills ? linear-issue);
-assert
-  builtins.readFile ai.programs.claude-code.rules.ai-memory
-  == builtins.readFile (builtins.head ai.programs.opencode.settings.instructions);
-assert lib.all
-  (name: ai.home.file."claude-${name}".source == ai.xdg.configFile."opencode/skills/${name}".source)
-  [
-    "ai-memory-retrieval"
-    "ai-memory-handoff"
-    "ai-memory-durable-pages"
-  ];
-assert ai.home.file.ai-memory-capture-mode.text == "denylist\n";
 assert
   workstation mac self.packages.aarch64-darwin.opencode
   && workstation zaros self.packages.x86_64-linux.opencode;

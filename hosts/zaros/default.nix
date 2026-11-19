@@ -85,7 +85,6 @@ in
       ];
     };
     ai = {
-      memory.client.serverUrl = "https://${machines.saradomin.tailnetName}:8443";
       hermes.web = {
         enable = true;
         publicUrl = "https://${machines.zaros.tailnetName}";
