@@ -50,15 +50,14 @@
     toolchain-python
     # apps
     artcraft
-    # games
-    scape2011
-    microbot
-    # apps
     chronicle
     office
     webapps
     webos-dev-manager
     torrent
     signal
+    # games
+    scape2011
+    microbot
   ];
 }
