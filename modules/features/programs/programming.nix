@@ -13,39 +13,22 @@ let
     home-manager.sharedModules = [ registry.homeManager.programming-credentials ];
   };
 
+  # Language stacks live in the toolchain feature; this is the workbench
+  # every development host gets.
   homeModule =
     {
       lib,
       pkgs,
       ...
     }:
-    let
-      go-migrate-pg = pkgs.go-migrate.overrideAttrs (oldAttrs: {
-        tags = [ "postgres" ];
-      });
-    in
     {
       home.packages =
         with pkgs;
         [
-          go
-          sqlc
-          go-migrate-pg
-          beamPackages.elixir_1_19
-          beamPackages.erlang
-          nodejs
-          pnpm
-          python3
-          python3Packages.pip
-          php85
-          php85Packages.composer
-          (laravel.override { php = php85; })
           gcc
           lazygit
           nixfmt-tree
           gh
-          google-cloud-sdk
-          terraform
           zed-editor
           obsidian
 
@@ -57,11 +40,7 @@ let
           dbeaver-bin
         ];
 
-      programs.zsh.shellAliases = {
-        sail = "[ -f sail ] && sh sail || sh vendor/bin/sail";
-        pint = "vendor/bin/pint";
-        lg = "lazygit";
-      };
+      programs.zsh.shellAliases.lg = "lazygit";
 
     };
 in

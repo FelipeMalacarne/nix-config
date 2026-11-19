@@ -50,6 +50,12 @@ in
     { lib, ... }:
     {
       imports = with self.modules.homeManager; [
+        toolchain-cloud
+        toolchain-elixir
+        toolchain-go
+        toolchain-laravel
+        toolchain-node
+        toolchain-python
         ghostty
         firefox
         sketchybar

@@ -40,6 +40,12 @@ in
 
   home-manager.users.${user} = {
     imports = with self.modules.homeManager; [
+      toolchain-cloud
+      toolchain-elixir
+      toolchain-go
+      toolchain-laravel
+      toolchain-node
+      toolchain-python
       # ankama-launcher
       artcraft
       scape2011
