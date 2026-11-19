@@ -317,11 +317,11 @@ sets. Do not hide required integrations by adding them to every fixture.
 
 ## Issue backlog
 
-The [configuration issue backlog](docs/issues/README.md) tracks review findings,
-cleanup decisions, upgrades, and deferred operational work as independent Markdown
-issues. Each issue records evidence, scope, acceptance criteria, verification, and
-approval boundaries. Assess and resolve issues individually; the backlog does not
-authorize deployment, credential changes, destructive storage work, or live tests.
+Open work lives in [GitHub Issues](https://github.com/FelipeMalacarne/nix-config/issues),
+labelled by priority (`P1`–`P3`) and by `needs-decision` or `deferred`. Each issue
+records evidence, scope, acceptance criteria and approval boundaries; an issue does
+not authorize deployment, credential changes, destructive storage work or live tests.
+The former Markdown backlog is in git history before its removal.
 
 ## Validation and deferred work
 
