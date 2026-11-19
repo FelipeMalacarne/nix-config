@@ -1,20 +1,22 @@
-# Report what a NixOS or nix-darwin configuration installs, grouped by the
-# aspect that asked for it. Read from the evaluated module graph and option
-# definitions, so it shows what the host gets rather than what files say.
+# Read-only reports over the evaluated configurations, so they show what a
+# host gets rather than what files say.
 #
-#   make inventory HOST=zaros
-system:
+#   make inventory HOST=zaros   aspects and packages one host installs
+#   make catalog                every aspect and the hosts that import it
 let
   inherit (builtins)
     attrNames
+    attrValues
     concatMap
     concatStringsSep
-    elemAt
+    elem
     filter
     head
+    length
     listToAttrs
     match
     sort
+    stringLength
     ;
 
   aspectOf = key: match ".*#modules\\.[A-Za-z]+\\.([^:]+)" key;
@@ -37,6 +39,12 @@ let
       ]
     else
       children;
+
+  aspectNames = nodes: concatMap (node: [ node.name ] ++ aspectNames node.children) nodes;
+
+  homeOf =
+    system:
+    system.options.home-manager.users.valueMeta.attrs.${system.config.my.user.name}.configuration;
 
   renderTree =
     indent: nodes:
@@ -135,19 +143,72 @@ let
     ++ section "packages:" (renderGroups (packageGroups configuration.packages))
     ++ section "enabled modules:" (renderGroups enabled);
 
-  inherit (system) options;
-  user = system.config.my.user.name;
-  home = options.home-manager.users.valueMeta.attrs.${user}.configuration;
+  unique =
+    names:
+    attrNames (
+      listToAttrs (
+        map (name: {
+          inherit name;
+          value = null;
+        }) names
+      )
+    );
+  pad =
+    width: text: text + concatStringsSep "" (builtins.genList (_: " ") (width - stringLength text));
 in
-concatStringsSep "\n" (
-  report "${system.config.networking.hostName} system" {
-    inherit (system) graph;
-    packages = options.environment.systemPackages;
-  } (enabledGroups options.programs "programs" ++ enabledGroups options.services "services")
-  ++ [ "" ]
-  ++ report "${user} home" {
-    inherit (home) graph;
-    packages = home.options.home.packages;
-  } (enabledGroups home.options.programs "programs" ++ enabledGroups home.options.services "services")
-)
-+ "\n"
+{
+  inventory =
+    system:
+    let
+      inherit (system) options;
+      user = system.config.my.user.name;
+      home = homeOf system;
+    in
+    concatStringsSep "\n" (
+      report "${system.config.networking.hostName} system" {
+        inherit (system) graph;
+        packages = options.environment.systemPackages;
+      } (enabledGroups options.programs "programs" ++ enabledGroups options.services "services")
+      ++ [ "" ]
+      ++ report "${user} home" {
+        inherit (home) graph;
+        packages = home.options.home.packages;
+      } (enabledGroups home.options.programs "programs" ++ enabledGroups home.options.services "services")
+    )
+    + "\n";
+
+  catalog =
+    flake:
+    let
+      hosts = flake.nixosConfigurations // flake.darwinConfigurations;
+      hostNames = attrNames hosts;
+      reached = builtins.mapAttrs (
+        _: system:
+        aspectNames (concatMap aspects system.graph)
+        ++ aspectNames (concatMap aspects (homeOf system).graph)
+      ) hosts;
+      importers = aspect: filter (host: elem aspect reached.${host}) hostNames;
+      registered = unique (concatMap attrNames (attrValues flake.modules));
+      unused = filter (aspect: importers aspect == [ ]) registered;
+      width =
+        2
+        + builtins.foldl' (
+          widest: name: if stringLength name > widest then stringLength name else widest
+        ) 0 registered;
+      row = aspect: "  ${pad width aspect}${concatStringsSep " " (importers aspect)}";
+    in
+    concatStringsSep "\n" (
+      [ "imported by a host:" ]
+      ++ map row (filter (aspect: importers aspect != [ ]) registered)
+      ++ [
+        ""
+        "available, imported by no host:"
+      ]
+      ++ map (aspect: "  ${aspect}") unused
+      ++ [
+        ""
+        "${toString (length registered)} aspects, ${toString (length unused)} imported by no host"
+      ]
+    )
+    + "\n";
+}

@@ -35,6 +35,7 @@ help:
 		'  (dangerous cross-host use: make switch HOST=other-host DANGEROUS_ALLOW_LOCAL_CROSS_HOST=1)' \
 		'  (on Darwin, use darwin-rebuild switch --flake .#macbook; these are NixOS-only targets)' \
 		'  inventory          List the aspects and packages the selected host installs' \
+		'  catalog            List every aspect and the hosts that import it' \
 		'  fmt                Format the flake with the pinned formatter' \
 		'  noctalia-export    Capture portable Noctalia UI preferences into the TOML baseline' \
 		'  secrets            Edit SOPS secrets' \
@@ -117,10 +118,14 @@ fmt-check:
 	@system="$$(nix eval --impure --raw --expr builtins.currentSystem)"; \
 	nix run ".#formatter.$${system}" -- --ci
 
-.PHONY: inventory
+.PHONY: inventory catalog
 inventory: host-validation
 	@nix eval --raw --impure --expr \
-		"let flake = builtins.getFlake (toString ./.); in import ./modules/flake/config/inventory.nix (flake.nixosConfigurations // flake.darwinConfigurations).$${HOST}"
+		"let flake = builtins.getFlake (toString ./.); in (import ./modules/flake/config/reports.nix).inventory (flake.nixosConfigurations // flake.darwinConfigurations).$${HOST}"
+
+catalog:
+	@nix eval --raw --impure --expr \
+		"(import ./modules/flake/config/reports.nix).catalog (builtins.getFlake (toString ./.))"
 
 .PHONY: noctalia-export
 noctalia-export: platform-safety
