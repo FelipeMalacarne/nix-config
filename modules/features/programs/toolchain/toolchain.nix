@@ -3,11 +3,7 @@ let
   toolchains = import ./config/toolchains.nix;
 in
 {
-  # A host selects a stack by importing `toolchain-<name>` into its Home
-  # Manager user. Another flake reuses it as a dev shell:
-  #   devShells.default = pkgs.mkShell {
-  #     inputsFrom = [ nix-config.devShells.${system}.laravel ];
-  #   };
+  # README "Language toolchains" shows host and dev shell use.
   flake.modules.homeManager = lib.mapAttrs' (
     name: packages:
     lib.nameValuePair "toolchain-${name}" (
