@@ -22,8 +22,6 @@
       ];
       home = homeOf hermes;
       settings = home.services.hermes-agent.settings;
-      zaros = self.nixosConfigurations.zaros.config;
-      zarosHome = homeOf zaros;
       mkHermesHome =
         services:
         evalHome [
@@ -152,15 +150,11 @@
           && home.services.hermes-agent.environment == { }
           && home.services.hermes-agent.authFile == null
         ) "Hermes must preserve caller-managed credentials and not initialize disabled state";
-        # Concrete host selection is distinct from the reusable feature fixture.
         assert lib.assertMsg (
-          zarosHome.programs.hermes-agent.enable
-          && zarosHome.programs.hermes-agent.desktop.enable
-          && zarosHome.services.hermes-agent.enable
-          && !(zaros.systemd.services ? hermes-agent)
-          && !(zaros.systemd.services ? hermes-backend)
-          && zaros.users.users.${zaros.my.user.name}.linger
-        ) "Zaros must select a lingering user Hermes instance, never a system instance";
+          !(hermes.systemd.services ? hermes-agent)
+          && !(hermes.systemd.services ? hermes-backend)
+          && hermes.users.users.${hermes.my.user.name}.linger
+        ) "Hermes must run as a lingering user instance, never a system instance";
         assert lib.assertMsg (lib.all inactive omitted)
           "Omitting Hermes must install no applications, start no services, and manage no state";
         pkgs.runCommand "hermes-agent-integration" { } "touch $out";
@@ -175,11 +169,13 @@
               enable = true;
               publicUrl = "https://hermes-check.example.ts.net";
               environmentFile = "/run/hermes-check/environment";
+              restartTriggers = [ "/run/hermes-check/environment" ];
             }
             // web;
           }
         ];
       web = mkWeb { };
+      webHome = homeOf web;
       otherPort = mkWeb { publicUrl = "https://hermes-check.example.ts.net:8443"; };
       disabled = mkWeb { enable = false; };
       webAbsent =
@@ -203,17 +199,17 @@
         !result.success || !result.value;
       webCheck =
         assert lib.assertMsg (
-          zaros.my.ai.hermes.web.enable
-          && zarosHome.systemd.user.services ? hermes-web
-          && builtins.elem "HERMES_DASHBOARD_PUBLIC_URL=https://zaros.osiris-fish.ts.net" zarosHome.systemd.user.services.hermes-web.Service.Environment
+          web.my.ai.hermes.web.enable
+          && webHome.systemd.user.services ? hermes-web
+          && builtins.elem "HERMES_DASHBOARD_PUBLIC_URL=https://hermes-check.example.ts.net" webHome.systemd.user.services.hermes-web.Service.Environment
           &&
-            zarosHome.systemd.user.services.hermes-web.Service.EnvironmentFile
-            == [ zaros.sops.secrets.hermes-web.path ]
-          && zarosHome.services.hermes-agent.environmentFiles == [ ]
-          && zarosHome.services.hermes-agent.environment == { }
-          && !((zarosHome.services.hermes-agent.settings.dashboard or { }) ? public_url)
-          && zaros.systemd.services ? hermes-tailnet
-        ) "Zaros must select a separate authenticated web listener with web-only URL and credentials";
+            webHome.systemd.user.services.hermes-web.Service.EnvironmentFile
+            == [ "/run/hermes-check/environment" ]
+          && webHome.services.hermes-agent.environmentFiles == [ ]
+          && webHome.services.hermes-agent.environment == { }
+          && !((webHome.services.hermes-agent.settings.dashboard or { }) ? public_url)
+          && web.systemd.services ? hermes-tailnet
+        ) "Hermes web must be a separate authenticated listener with web-only URL and credentials";
         assert lib.assertMsg (
           lib.hasInfix "serve --yes --https=443 http://127.0.0.1:9120" web.systemd.services.hermes-tailnet.serviceConfig.ExecStart
           && !(lib.hasInfix "--bg" web.systemd.services.hermes-tailnet.serviceConfig.ExecStart)
@@ -245,10 +241,8 @@
           { port = home.services.hermes-agent.backend.port; }
         ]) "Unsafe origins, credential paths and colliding listener ports must fail evaluation";
         assert lib.assertMsg (
-          (zarosHome.systemd.user.services.hermes-web.Unit."X-Restart-Triggers" or [ ]) != [ ]
-          && zaros.sops.secrets.hermes-web.owner == zaros.my.user.name
-          && zaros.sops.secrets.hermes-web.mode == "0400"
-        ) "Credential updates must restart the web listener, with private user-owned delivery";
+          (webHome.systemd.user.services.hermes-web.Unit."X-Restart-Triggers" or [ ]) != [ ]
+        ) "Credential updates must restart the web listener";
         pkgs.runCommand "hermes-web-integration" { } "touch $out";
       manifest =
         host:

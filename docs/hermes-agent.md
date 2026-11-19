@@ -1,7 +1,7 @@
 # Hermes Agent
 
-Zaros imports `self.modules.nixos.hermes-agent`, which activates the feature and
-its Home Manager integration. Other hosts omit the import. The implementation
+No host currently imports `self.modules.nixos.hermes-agent`; a host that does
+activates the feature and its Home Manager integration. The implementation
 lives in `modules/features/programs/hermes-agent/hermes-agent.nix`, not in the general
 programming package list. Standalone Home Manager configurations can import
 `self.modules.homeManager.hermes-agent` directly.
@@ -28,7 +28,7 @@ example SOPS) is caller-managed; this feature does not create or change it.
 
 ## Private web access over Tailscale
 
-Zaros also enables `my.ai.hermes.web`. The implementation is in
+A host can also enable `my.ai.hermes.web`. The implementation is in
 `modules/features/programs/hermes-agent/config/web.nix`. This optional subfeature
 defaults to disabled when Hermes is imported. Its host declaration is:
 
@@ -91,12 +91,12 @@ report watcher EOF as success while the daemon continues running. Explicit
 manager stops still suppress restarts. The unit also follows Tailscale daemon
 restarts. Setting
 `my.ai.hermes.web.enable = false` and activating removes both web units and
-Zaros's decrypted web secret, while preserving the desktop backend and encrypted
+the host's decrypted web secret, while preserving the desktop backend and encrypted
 credential source. Actual HTTPS access requires the machine to be awake.
 
 ### Login and encrypted credentials
 
-The login username is `my.user.name` (`felipe` on Zaros). The generated password
+The login username is `my.user.name`. The generated password
 is encrypted in `secrets/hermes-web.yaml` using the repository's existing SOPS
 recipient. View it **in your own trusted terminal**, not in agent/chat output:
 
@@ -124,7 +124,7 @@ chosen port with tailnet access rules and protect the login accordingly.
 ### Activation and checks
 
 After review and explicit approval, activate normally with
-`make switch HOST=zaros`. The device must already be enrolled in Tailscale, and HTTPS must be
+`make switch HOST=<host>`. The device must already be enrolled in Tailscale, and HTTPS must be
 enabled for the tailnet. Those account-level settings are not changed by this
 module. Do not manually start a second persistent Serve route for the same port.
 
@@ -224,7 +224,7 @@ mismatches by blindly accepting the reported replacement hash.
 
 These do not activate the configuration. After a successful build:
 
-    make switch HOST=zaros
+    make switch HOST=<host>
     systemctl --user status hermes-backend.service
 
 The desktop launcher is `hermes-desktop`; the CLI is `hermes`. No provider API

@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   self,
   ...
@@ -26,7 +25,6 @@ in
     flatpak
     gaming
     recording
-    hermes-agent
     nvidia
     ollama
     internal-ca
@@ -88,21 +86,7 @@ in
 
       ];
     };
-    ai = {
-      hermes.web = {
-        enable = true;
-        publicUrl = "https://${machines.zaros.tailnetName}";
-        restartTriggers = [ ../../secrets/hermes-web.yaml ];
-        environmentFile = lib.mkIf config.my.ai.hermes.web.enable config.sops.secrets.hermes-web.path;
-      };
-    };
   };
 
-  sops.secrets.hermes-web = lib.mkIf config.my.ai.hermes.web.enable {
-    sopsFile = ../../secrets/hermes-web.yaml;
-    key = "environment";
-    owner = user;
-    mode = "0400";
-  };
   system.stateVersion = "24.11";
 }

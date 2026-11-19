@@ -114,7 +114,7 @@ assert !((home zaros).programs.opencode.skills ? linear-issue);
 assert
   workstation mac self.packages.aarch64-darwin.opencode
   && workstation zaros self.packages.x86_64-linux.opencode;
-assert (home zaros).programs.hermes-agent.enable;
+assert !((home zaros).programs.hermes-agent.enable or false);
 assert !((home mac).programs.hermes-agent.enable or false);
 assert !((home server).programs.opencode.enable or false);
 assert !((home server).home.shellAliases ? oc);
