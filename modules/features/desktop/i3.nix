@@ -1,4 +1,7 @@
-{ ... }:
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.nixos.i3 =
     {
@@ -7,7 +10,9 @@
       pkgs,
       ...
     }:
-    lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
+    {
+      my.desktop.sessions = [ "i3" ];
+      home-manager.sharedModules = [ registry.homeManager.i3 ];
       services.xserver.enable = true;
       services.displayManager.defaultSession = lib.mkIf (config.my.desktop.defaultSession == "i3") (
         lib.mkDefault "none+i3"
@@ -112,7 +117,7 @@
       ) (lib.attrValues config.my.desktop.monitors);
     in
     {
-      config = lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
+      config = {
         xsession.enable = true;
         xsession.windowManager.i3 =
           let

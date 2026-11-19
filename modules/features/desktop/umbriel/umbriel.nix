@@ -1,4 +1,7 @@
-{ inputs, ... }:
+{ inputs, config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.nixos.umbriel =
     {
@@ -10,7 +13,9 @@
     {
       imports = [ inputs.umbriel.nixosModules.default ];
 
-      config = lib.mkIf (builtins.elem "umbriel" config.my.desktop.sessions) {
+      config = {
+        my.desktop.sessions = [ "umbriel" ];
+        home-manager.sharedModules = [ registry.homeManager.umbriel ];
         programs.umbriel = {
           enable = true;
           portalPackage =

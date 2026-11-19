@@ -4,7 +4,7 @@ let
   baseline = builtins.fromTOML (builtins.readFile ./settings.toml);
 in
 {
-  config = lib.mkIf (config.my.desktop.shell == "noctalia") {
+  config = {
     programs.noctalia = {
       # v5 no longer provides v4's native Stylix target.
       customPalettes.stylix.dark = {

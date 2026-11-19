@@ -1,5 +1,13 @@
-{ inputs, ... }:
+{ inputs, config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
+  flake.modules.nixos.caelestia = {
+    my.desktop.shell = "caelestia";
+    home-manager.sharedModules = [ registry.homeManager.caelestia ];
+  };
+
   flake.modules.homeManager.caelestia =
     {
       config,
@@ -27,32 +35,26 @@
     {
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
-      config = lib.mkMerge [
-        {
-          programs.caelestia = {
-            package = shell;
-            cli.package = cli;
+      config = {
+        programs.caelestia = {
+          enable = true;
+          package = shell;
+          systemd.enable = true;
+          systemd.target = "wayland-session@hyprland.desktop.target";
+          cli.enable = true;
+          cli.package = cli;
+        };
+        my.desktop.shellProviders.caelestia = {
+          supportedSessions = [ "hyprland" ];
+          startupCommand = null;
+          commands = {
+            launcher = "${caelestia} shell drawers toggle launcher";
+            dashboard = "${caelestia} shell drawers toggle dashboard";
+            settings = "${caelestia} shell nexus open";
+            session = "${caelestia} shell drawers toggle session";
+            lock = "${caelestia} shell lock lock";
           };
-          my.desktop.shellProviders.caelestia = {
-            supportedSessions = [ "hyprland" ];
-            startupCommand = null;
-            commands = {
-              launcher = "${caelestia} shell drawers toggle launcher";
-              dashboard = "${caelestia} shell drawers toggle dashboard";
-              settings = "${caelestia} shell nexus open";
-              session = "${caelestia} shell drawers toggle session";
-              lock = "${caelestia} shell lock lock";
-            };
-          };
-        }
-        (lib.mkIf (config.my.desktop.shell == "caelestia") {
-          programs.caelestia = {
-            enable = true;
-            systemd.enable = true;
-            systemd.target = "wayland-session@hyprland.desktop.target";
-            cli.enable = true;
-          };
-        })
-      ];
+        };
+      };
     };
 }

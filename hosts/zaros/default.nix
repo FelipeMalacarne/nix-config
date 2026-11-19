@@ -13,6 +13,10 @@ in
     ./hardware.nix
     base
     desktop
+    i3
+    hyprland
+    umbriel
+    noctalia
     noctalia-greeter
     ./desktop.nix
     ssh-credentials

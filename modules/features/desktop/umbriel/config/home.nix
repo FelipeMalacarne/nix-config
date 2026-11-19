@@ -49,7 +49,7 @@ let
   colors = config.lib.stylix.colors.withHashtag;
 in
 {
-  config = lib.mkIf (builtins.elem "umbriel" config.my.desktop.sessions) {
+  config = {
     programs.umbriel = {
       enable = true;
       settings = {

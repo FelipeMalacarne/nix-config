@@ -1,4 +1,7 @@
-{ ... }:
+{ config, ... }:
+let
+  registry = config.flake.modules;
+in
 {
   flake.modules.nixos.hyprland =
     {
@@ -7,7 +10,9 @@
       pkgs,
       ...
     }:
-    lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
+    {
+      my.desktop.sessions = [ "hyprland" ];
+      home-manager.sharedModules = [ registry.homeManager.hyprland ];
       # The Lua session exports LC_CTYPE=pt_BR.UTF-8 for the cedilla compose map.
       i18n.extraLocales = [ "pt_BR.UTF-8/UTF-8" ];
       programs.hyprland = {
@@ -117,7 +122,7 @@
       ) (lib.attrValues config.my.desktop.monitors);
     in
     {
-      config = lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions) {
+      config = {
         services.hypridle = {
           enable = true;
           systemdTarget = "wayland-session@hyprland.desktop.target";
