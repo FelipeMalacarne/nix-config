@@ -63,9 +63,6 @@ in
         written on the user's behalf. No Co-Authored-By trailers, "Generated
         with" footers or similar signatures.
       '';
-      plugins = [
-        # placeholder
-      ];
       settings.enabledPlugins = {
         "gopls-lsp@claude-plugins-official" = true;
       }
