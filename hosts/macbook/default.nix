@@ -1,72 +1,43 @@
+{ config, self, ... }:
 {
-  config,
-  pkgs,
-  self,
-  ...
-}:
-let
-  user = config.my.user.name;
-in
-{
-  imports = [
-    self.modules.darwin.base
-    self.modules.darwin.mac-app-util
-    self.modules.darwin.yabai
-    self.modules.darwin.skhd
-    self.modules.darwin.borders
-    self.modules.darwin.sketchybar
-    self.modules.darwin.ssh-credentials
-    self.modules.darwin.development
-    self.modules.darwin.programming-credentials
-    self.modules.darwin.k8s-credentials
-    self.modules.darwin.ai
-    self.modules.darwin.claude-gateway
-    self.modules.darwin.firefox
+  imports = with self.modules.darwin; [
+    ./settings.nix
+    # profiles
+    base
+    development
+    ai
+    # ai
+    claude-gateway
+    # dev
+    programming-credentials
+    k8s-credentials
+    # shell
+    ssh-credentials
+    # desktop
+    yabai
+    skhd
+    borders
+    sketchybar
+    # apps
+    firefox
+    # system
+    mac-app-util
   ];
 
-  networking.hostName = "macbook";
-  nixpkgs.hostPlatform = "aarch64-darwin";
-  system.stateVersion = 4;
-
-  services.openssh.enable = true;
-
-  my = {
-    user.name = "felipeautentique";
-
-    infrastructure.ssh.hosts = {
-      "github.com".IdentityFile = "~/.ssh/bitbaut";
-
-      "github-zaros" = {
-        HostName = "ssh.github.com";
-        Port = 443;
-        User = "git";
-        IdentityFile = "~/.ssh/zaros";
-        IdentitiesOnly = "yes";
-      };
-    };
-  };
-
-  home-manager.users.${user} =
-    { lib, ... }:
-    {
-      imports = with self.modules.homeManager; [
-        toolchain-cloud
-        toolchain-elixir
-        toolchain-go
-        toolchain-laravel
-        toolchain-node
-        toolchain-python
-        ghostty
-        firefox
-        sketchybar
-        linear-issue-skill
-      ];
-
-      my.infrastructure.ssh.hosts = config.my.infrastructure.ssh.hosts;
-
-      home.activation.installZarosAuthorizedKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 700 -d "$HOME/.ssh"
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 600 ${../../keys/zaros.pub} "$HOME/.ssh/authorized_keys"
-      '';
-    };
+  home-manager.users.${config.my.user.name}.imports = with self.modules.homeManager; [
+    # dev
+    toolchain-cloud
+    toolchain-elixir
+    toolchain-go
+    toolchain-laravel
+    toolchain-node
+    toolchain-python
+    # ai
+    linear-issue-skill
+    # desktop
+    sketchybar
+    # apps
+    firefox
+    ghostty
+  ];
 }
