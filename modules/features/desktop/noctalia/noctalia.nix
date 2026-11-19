@@ -24,22 +24,14 @@
 
   flake.modules.nixos.noctalia =
     { config, lib, ... }:
-    lib.mkIf
-      (
-        config.my.desktop.shell == "noctalia"
-        && lib.any (session: builtins.elem session config.my.desktop.sessions) [
-          "hyprland"
-          "umbriel"
-        ]
-      )
-      {
-        nix.settings = {
-          extra-substituters = [ "https://noctalia.cachix.org" ];
-          extra-trusted-public-keys = [
-            "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-          ];
-        };
+    lib.mkIf (config.my.desktop.shell == "noctalia") {
+      nix.settings = {
+        extra-substituters = [ "https://noctalia.cachix.org" ];
+        extra-trusted-public-keys = [
+          "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+        ];
       };
+    };
 
   flake.modules.homeManager.noctalia =
     {
@@ -75,29 +67,23 @@
             };
           };
         }
-        (lib.mkIf
-          (
-            config.my.desktop.shell == "noctalia"
-            && lib.any (session: builtins.elem session config.my.desktop.sessions) supportedSessions
-          )
-          {
-            home.packages = with pkgs; [
-              grim
-              imagemagick
-              swappy
-              tesseract
-              xdg-utils
-              jq
-              wf-recorder
-            ];
+        (lib.mkIf (config.my.desktop.shell == "noctalia") {
+          home.packages = with pkgs; [
+            grim
+            imagemagick
+            swappy
+            tesseract
+            xdg-utils
+            jq
+            wf-recorder
+          ];
 
-            home.file."Pictures/nixos.svg".source = ./config/nixos.svg;
+          home.file."Pictures/nixos.svg".source = ./config/nixos.svg;
 
-            programs.noctalia = {
-              enable = true;
-            };
-          }
-        )
+          programs.noctalia = {
+            enable = true;
+          };
+        })
         (lib.mkIf
           (config.my.desktop.shell == "noctalia" && builtins.elem "umbriel" config.my.desktop.sessions)
           {

@@ -22,17 +22,14 @@
             };
           };
         }
-        (lib.mkIf
-          (config.my.desktop.shell == "caelestia" && builtins.elem "hyprland" config.my.desktop.sessions)
-          {
-            programs.caelestia = {
-              enable = true;
-              systemd.enable = true;
-              systemd.target = "wayland-session@hyprland.desktop.target";
-              cli.enable = true;
-            };
-          }
-        )
+        (lib.mkIf (config.my.desktop.shell == "caelestia") {
+          programs.caelestia = {
+            enable = true;
+            systemd.enable = true;
+            systemd.target = "wayland-session@hyprland.desktop.target";
+            cli.enable = true;
+          };
+        })
       ];
     };
 }
