@@ -46,7 +46,6 @@ in
       toolchain-laravel
       toolchain-node
       toolchain-python
-      # ankama-launcher
       artcraft
       scape2011
       microbot
