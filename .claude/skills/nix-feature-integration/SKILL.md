@@ -21,7 +21,7 @@ these concrete examples as needed:
 | Typed machine-specific setting | `modules/features/services/wol.nix` |
 | Shared dependency consumed by two clients | `modules/features/programs/playwright-mcp.nix` and its client imports |
 | Platform-to-HM profile forwarding | `modules/profiles/ai.nix` |
-| Multi-platform feature with internal files | `modules/features/services/ai-memory/` |
+| Feature with internal files | `modules/features/programs/opencode/` |
 | Independent client/profile checks | `modules/profiles/config/test-ai.nix` |
 
 Resolve upstream option types before writing raw config. Inspect the pinned

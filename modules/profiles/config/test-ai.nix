@@ -55,10 +55,7 @@ let
     && client.programs.claude-code.hooks ? "herdr-agent-state.sh"
     && !(client.programs.codex.enable or false)
     && !(client.programs.github-copilot-cli.enable or false)
-    # Workstations no longer run the ai-memory client; the server stays on saradomin.
-    && !(client.home.shellAliases ? oc)
-    && !(client.programs.claude-code.rules ? ai-memory)
-    && !(host.sops.secrets ? ai-memory-token);
+    && !(client.home.shellAliases ? oc);
 in
 assert !(development.programs.opencode.enable or false);
 assert !(development.programs.claude-code.enable or false);
@@ -120,10 +117,7 @@ assert
 assert (home zaros).programs.hermes-agent.enable;
 assert !((home mac).programs.hermes-agent.enable or false);
 assert !((home server).programs.opencode.enable or false);
-assert !((home server).home.file ? ai-memory-auth-token);
 assert !((home server).home.shellAliases ? oc);
-assert server.services.ai-memory.enable;
-assert server.sops.secrets.ai-memory-token.owner == "ai-memory";
 assert mac.sops.secrets.claude-gateway-key.owner == mac.my.user.name;
 assert mac.sops.secrets.claude-gateway-key.mode == "0400";
 assert

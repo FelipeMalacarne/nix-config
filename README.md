@@ -19,10 +19,6 @@ for login. Experimental Umbriel and i3/Xorg remain selectable alternatives.
 Saradomin's DNS architecture and router setup are documented in
 [`docs/adguard-home.md`](docs/adguard-home.md).
 
-The shared AI memory workflow captures unmarked repositories by default;
-optional markers customize scope and exclusions. Its privacy and recovery plan is in
-[`docs/ai-memory.md`](docs/ai-memory.md).
-
 ## Architecture
 
 The dependency direction is **host -> profile -> feature -> upstream module**.
@@ -42,8 +38,8 @@ compositions. `base` provides shared policy without optional system integrations
 `desktop` exposes i3, Hyprland, Umbriel, Noctalia and Caelestia capabilities plus
 shared graphical applications, but does not select a login manager;
 `development` provides programming and Kubernetes tools without selecting AI
-clients. `ai` composes OpenCode, Claude Code, Codex, GitHub Copilot CLI and the
-SOPS-backed ai-memory client; macbook and zaros explicitly import that platform
+clients. `ai` composes OpenCode, Claude Code, Codex and GitHub Copilot CLI;
+macbook and zaros explicitly import that platform
 profile, which forwards its Home Manager composition. Hermes remains an optional
 host selection, and ai-usagebar is not included. `server` provides headless
 base/server policy. `server` does not
@@ -75,7 +71,7 @@ Shared inventory defaults merge per setting. For example, overriding
 settings for GitHub and all unrelated hosts. The same holds for
 `my.infrastructure.machines`, the network facts machines use to reach each other
 (LAN and tailnet addresses, MagicDNS names, the Wake-on-LAN MAC). Hosts derive
-values such as the ai-memory endpoint, AdGuard listeners and `wake-zaros` from it
+values such as AdGuard listeners and `wake-zaros` from it
 rather than repeating literals. The `openssh` feature authorizes
 `my.infrastructure.ssh.authorizedKeys`, and `internal-ca` trusts the home-lab CA.
 
@@ -123,9 +119,7 @@ Typed options configure imported features, such as `my.wol.interface` and
 is imported; removing a feature also means removing its settings. There is no
 additional `my.<feature>.enable` selector. Enable flags remain appropriate for
 optional subfeatures such as `my.ai.hermes.web.enable`. Custom AI settings share
-`my.ai`: memory uses `memory.client`/`memory.server`, and Hermes uses `hermes`.
-Configure memory clients at host level; the feature forwards settings to Home
-Manager. Hermes and Ollama remain explicitly selected optional features.
+`my.ai`: Hermes uses `hermes`. Hermes and Ollama remain explicitly selected optional features.
 
 The optional [Craft suite](docs/artcraft.md) comes from the auto-updated
 [`artcraft-flake`](https://github.com/FelipeMalacarne/artcraft-flake) input.

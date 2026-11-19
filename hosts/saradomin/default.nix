@@ -19,14 +19,9 @@ in
     k3s
     openssh
     tailscale
-    ai-memory-server
-    ai-memory-backup
   ];
 
   networking.hostName = "saradomin";
-
-  my.ai.memory.server.hostName = saradomin.tailnetName;
-  services.ai-memory.enableWeb = true;
 
   home-manager.users.${user} = {
     home.packages = [

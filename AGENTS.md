@@ -10,7 +10,7 @@ describe how the features behave.
   1 TB + 2 TB NVMe. Hyprland/UWSM + Noctalia with Noctalia Greeter by default,
   Umbriel and i3 alternatives, gaming, NVIDIA, development and AI integrations.
 - `saradomin` — headless NixOS home server: Intel N95, 16 GB RAM, 512 GB NVMe.
-  k3s, Disko, AdGuard Home, SSH, Tailscale and the ai-memory server.
+  k3s, Disko, AdGuard Home, SSH and Tailscale.
 - `saradomin-vm` — VM variant of the server profile with OpenSSH and Tailscale.
 - `macbook` — Apple Silicon nix-darwin laptop with yabai, skhd and SketchyBar.
 
@@ -97,8 +97,7 @@ does): either makes a closure depend on unrelated source edits.
 
 ### Settings and profiles
 
-Custom AI settings share `my.ai`: `my.ai.memory.client`, `my.ai.memory.server`
-and `my.ai.hermes`; features own their options. ArtCraft uses the `artcraft-flake` input's native
+Custom AI settings share `my.ai`: `my.ai.hermes`; features own their options. ArtCraft uses the `artcraft-flake` input's native
 `programs.artcraft` options. The restic namespace is `my.restic`.
 
 - `base` — core, theming, zsh, git, ssh, Neovim, CLI, btop, yazi. No optional
@@ -187,30 +186,8 @@ Preserve these rules:
   the AI profile and Zaros do not). Repository skills live in `.claude/skills/`,
   discovered by both clients, with distinct IDs when a global skill covers the
   same topic.
-
-ai-memory runs as a private server on saradomin from the single feature
-`modules/features/services/ai-memory/`; no workstation currently selects its
-Home Manager client. `docs/ai-memory.md` covers pairing, privacy, outage
-recovery and acceptance gates.
-
-- Nix owns the integration: never run live ai-memory installers or self-updates.
-- The downstream `consolidate_on_turn_checkpoint` patch and its server setting
-  stay together and separate from upstream defaults; remove or adapt both when
-  upstream ships an equivalent, keeping regression coverage.
-- The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml` and decrypted
-  to `/run/secrets/ai-memory-token`. Never copy its plaintext into
-  configuration, prompts or the store, or rotate it while captures are queued.
-- Summaries use the ChatGPT subscription (`openai-oauth`), never the billed
-  `openai` API or a paid fallback. The operator completes device login privately
-  as the `ai-memory` service user. Agents must not read
-  `/var/lib/ai-memory/auth.json`, handle device codes, decrypt provider secrets
-  or run interactive login. Subscription acceptance and deployment need separate
-  approval.
-- Hourly improvement proposals require approval; Dream rewrites are not
-  proposal-gated; cross-project profiles stay off.
-- Keep legacy state: the encrypted Copilot bootstrap/import helper and cache
-  entries (Copilot is no longer selected) and OpenClaw's encrypted credential
-  and runtime state. Deleting them is not routine cleanup.
+- Keep OpenClaw's encrypted credential and runtime state. Deleting them is not
+  routine cleanup.
 
 ## Validation and deployment
 
