@@ -74,7 +74,7 @@ in
 
   my = {
     wol.interface = "enp12s0";
-    rgb.color = config.my.colors.secondary;
+    rgb.color = config.lib.stylix.colors.withHashtag.base0E;
     restic = {
       paths = [
         "/home/${user}/Documents"
