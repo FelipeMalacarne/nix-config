@@ -46,7 +46,6 @@ in
       microbot
       chronicle
       office
-      orca
       webapps
       webos-dev-manager
       torrent

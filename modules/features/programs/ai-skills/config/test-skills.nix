@@ -61,7 +61,6 @@ assert both.programs.claude-code.skills == both.programs.opencode.skills;
 assert
   builtins.attrNames both.programs.claude-code.skills == [
     "ai-client-troubleshooting"
-    "herdr"
     "linear-issue"
   ];
 pkgs.runCommand "ai-skills" { } ''

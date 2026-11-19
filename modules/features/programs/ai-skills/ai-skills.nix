@@ -1,38 +1,22 @@
-{
-  config,
-  inputs,
-  lib,
-  ...
-}:
+{ config, inputs, ... }:
 let
-  # `skills` receives Home Manager's pkgs so a skill can be generated from the
-  # tool it documents.
   publish =
     skills:
-    { config, pkgs, ... }:
-    let
-      resolved = skills pkgs;
-    in
+    { config, lib, ... }:
     {
-      programs.opencode.skills = lib.mkIf config.programs.opencode.enable resolved;
-      programs.claude-code.skills = lib.mkIf config.programs.claude-code.enable resolved;
+      programs.opencode.skills = lib.mkIf config.programs.opencode.enable skills;
+      programs.claude-code.skills = lib.mkIf config.programs.claude-code.enable skills;
     };
 in
 {
   flake.modules.homeManager = {
-    ai-skills = publish (pkgs: {
+    ai-skills = publish {
       ai-client-troubleshooting = ./skills/ai-client-troubleshooting;
-      # Herdr ships its agent skill in the binary; generating it keeps the
-      # skill in step with the installed CLI.
-      herdr = pkgs.runCommand "herdr-skill" { } ''
-        mkdir $out
-        ${lib.getExe pkgs.herdr} --skill > $out/SKILL.md
-      '';
-    });
+    };
     # Optional user workflow: hosts select it independently of the AI profile.
-    linear-issue-skill = publish (_: {
+    linear-issue-skill = publish {
       linear-issue = ./skills/linear-issue;
-    });
+    };
   };
 
   perSystem = { pkgs, ... }: {

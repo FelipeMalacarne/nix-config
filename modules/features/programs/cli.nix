@@ -14,7 +14,6 @@
         gnumake
         wakeonlan
         openssl
-        herdr
       ];
 
       programs.direnv = {

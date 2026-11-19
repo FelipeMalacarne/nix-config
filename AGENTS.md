@@ -98,8 +98,7 @@ does): either makes a closure depend on unrelated source edits.
 ### Settings and profiles
 
 Custom AI settings share `my.ai`: `my.ai.memory.client`, `my.ai.memory.server`
-and `my.ai.hermes`. Features own their options; platform memory clients forward
-host settings to Home Manager. ArtCraft uses the `artcraft-flake` input's native
+and `my.ai.hermes`; features own their options. ArtCraft uses the `artcraft-flake` input's native
 `programs.artcraft` options. The restic namespace is `my.restic`.
 
 - `base` — core, theming, zsh, git, ssh, Neovim, CLI, btop, yazi. No optional
@@ -167,6 +166,10 @@ Preserve these rules:
   endpoint with client-managed OAuth; GitHub uses the official local server with
   a token from `gh` at runtime. Codex and Copilot CLI remain package-only;
   client-specific settings and plugins stay in their client features.
+- OpenCode is CLI-only and tracks the upstream `production` branch through
+  `flake.lock`; never substitute Nixpkgs V1 packages or migrate/copy databases
+  as a routine fix. Test package changes with isolated HOME/XDG first: a build
+  does not prove database compatibility or session behavior.
 - Firefox is the daily browser and Google Chrome stays absent. On Linux,
   Chromium is the agent browser carrying the Claude in Chrome and Playwright
   Bridge extensions; web apps run in a separate `chromium-webapps` user-data-dir
@@ -183,38 +186,20 @@ Preserve these rules:
   publishes the Linear issue workflow from the same tree (MacBook selects it;
   the AI profile and Zaros do not). Repository skills live in `.claude/skills/`,
   discovered by both clients, with distinct IDs when a global skill covers the
-  same topic. The memory client owns its routing skills and workflow rules;
-  lifecycle hooks stay client-specific.
+  same topic.
 
 ai-memory runs as a private server on saradomin from the single feature
 `modules/features/services/ai-memory/`; no workstation currently selects its
-Home Manager client. `docs/ai-memory.md` covers pairing, privacy, the
-managed-launch workflow, outage recovery and acceptance gates.
+Home Manager client. `docs/ai-memory.md` covers pairing, privacy, outage
+recovery and acceptance gates.
 
-- Capture is automatic (`denylist`), including unmarked repositories. This
-  repository uses workspace `personal`, project `nix-config`; the MCP bridge is
-  static, so pass both on project-scoped calls. Cross-project or global
-  searches need an explicit request. Repository instructions and current
-  source outrank recalled history.
-- If memory is unavailable, continue locally; never start a competing server.
-  Nix owns the integration: never run live ai-memory installers or self-updates,
-  and never scaffold a `docs/ai/` wiki.
-- Follow upstream's managed launch (`oc`, `am`). Do not add repository-specific
-  session-finishing commands or manual UUID workflows, and do not promise
-  automatic V2 session closure without verifying the pinned harness lifecycle.
-  A handoff alone is not SessionEnd.
+- Nix owns the integration: never run live ai-memory installers or self-updates.
 - The downstream `consolidate_on_turn_checkpoint` patch and its server setting
   stay together and separate from upstream defaults; remove or adapt both when
   upstream ships an equivalent, keeping regression coverage.
-- OpenCode is CLI-only and tracks the upstream `production` branch through
-  `flake.lock`, with the matching V2 `ai-memory-opencode2.ts` adapter. Keep them
-  aligned; never substitute Nixpkgs V1 packages or migrate/copy databases as a
-  routine fix. Test package changes with isolated HOME/XDG first: a build does
-  not prove database compatibility or session behavior.
 - The shared bearer is SOPS-encrypted in `secrets/ai-memory.yaml` and decrypted
   to `/run/secrets/ai-memory-token`. Never copy its plaintext into
   configuration, prompts or the store, or rotate it while captures are queued.
-  Hosts set the endpoint and server hostname from the machine registry.
 - Summaries use the ChatGPT subscription (`openai-oauth`), never the billed
   `openai` API or a paid fallback. The operator completes device login privately
   as the `ai-memory` service user. Agents must not read

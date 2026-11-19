@@ -51,6 +51,8 @@ let
       == inputs.nix-claude-code.packages.${host.nixpkgs.hostPlatform.system}.latest
     && client.programs.mcp.servers.github.command != null
     && client.programs.mcp.servers.linear.url == "https://mcp.linear.app/mcp"
+    && client.programs.herdr.enable
+    && client.programs.claude-code.hooks ? "herdr-agent-state.sh"
     && !(client.programs.codex.enable or false)
     && !(client.programs.github-copilot-cli.enable or false)
     # Workstations no longer run the ai-memory client; the server stays on saradomin.
@@ -61,6 +63,7 @@ in
 assert !(development.programs.opencode.enable or false);
 assert !(development.programs.claude-code.enable or false);
 assert !(development.home.shellAliases ? oc);
+assert !(development.programs.herdr.enable or false);
 assert !(development.programs.mcp.servers ? github);
 assert !(development.programs.mcp.servers ? linear);
 assert lib.all (name: !(builtins.elem name (packageNames development))) codingClis;

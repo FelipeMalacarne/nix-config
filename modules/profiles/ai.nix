@@ -20,6 +20,7 @@ in
       claude-code
       codex
       github-copilot-cli
+      herdr
     ];
   };
 
