@@ -81,6 +81,15 @@
       luaConfig =
         builtins.replaceStrings (builtins.attrNames commandPaths) (builtins.attrValues commandPaths)
           (builtins.readFile ./config/hyprland.lua);
+      sharedBindingsLua = lib.concatMapStringsSep "\n" (
+        binding:
+        let
+          key = lib.concatStringsSep " + " (
+            [ "SUPER" ] ++ map lib.toUpper binding.modifiers ++ [ (lib.toUpper binding.key) ]
+          );
+        in
+        "hl.bind(${builtins.toJSON key}, hl.dsp.exec_cmd(${builtins.toJSON "${uwsm} app -- ${binding.command}"}))"
+      ) (lib.attrValues config.my.desktop.applicationBindings);
       rotationTransform =
         rotation:
         if rotation == 90 then
@@ -134,6 +143,10 @@
         wayland.windowManager.hyprland = {
           enable = true;
           configType = "lua";
+          extraLuaFiles.sharedBindings = {
+            content = sharedBindingsLua;
+            autoLoad = true;
+          };
           extraLuaFiles.main = {
             content = topologyLua + "\n" + luaConfig;
             autoLoad = true;

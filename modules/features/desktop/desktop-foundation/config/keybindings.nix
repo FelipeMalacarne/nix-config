@@ -6,7 +6,6 @@
 }:
 let
   terminal = config.my.desktop.terminalCommand;
-  uwsm = lib.getExe pkgs.uwsm;
   fastfetchPause = pkgs.writeShellApplication {
     name = "fastfetch-pause";
     runtimeInputs = [ pkgs.fastfetch ];
@@ -40,39 +39,6 @@ let
       modifiers = [ "shift" ];
     };
   };
-  i3Bindings = builtins.listToAttrs (
-    map (
-      binding:
-      let
-        modifierNames = {
-          shift = "Shift";
-          control = "Control";
-          alt = "Mod1";
-        };
-        key = lib.concatStringsSep "+" (
-          [ "Mod4" ] ++ map (modifier: modifierNames.${modifier}) binding.modifiers ++ [ binding.key ]
-        );
-        command =
-          if binding.inTerminal or false then "${terminal} -e ${binding.command}" else binding.command;
-      in
-      {
-        name = key;
-        value = "exec ${command}";
-      }
-    ) (lib.attrValues bindings)
-  );
-  sharedBindingsLua = lib.concatMapStringsSep "\n" (
-    binding:
-    let
-      key = lib.concatStringsSep " + " (
-        [ "SUPER" ] ++ map lib.toUpper binding.modifiers ++ [ (lib.toUpper binding.key) ]
-      );
-      command = "${uwsm} app -- ${
-        if binding.inTerminal or false then "${terminal} -e ${binding.command}" else binding.command
-      }";
-    in
-    "hl.bind(${builtins.toJSON key}, hl.dsp.exec_cmd(${builtins.toJSON command}))"
-  ) (lib.attrValues bindings);
 in
 {
   options.my.desktop.terminalCommand = lib.mkOption {
@@ -115,15 +81,5 @@ in
       command =
         if binding.inTerminal or false then "${terminal} -e ${binding.command}" else binding.command;
     }) bindings;
-    xsession.windowManager.i3.config = lib.mkIf (builtins.elem "i3" config.my.desktop.sessions) {
-      keybindings = i3Bindings;
-      terminal = terminal;
-    };
-    wayland.windowManager.hyprland.extraLuaFiles.sharedBindings =
-      lib.mkIf (builtins.elem "hyprland" config.my.desktop.sessions)
-        {
-          content = sharedBindingsLua;
-          autoLoad = true;
-        };
   };
 }

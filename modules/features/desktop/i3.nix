@@ -93,6 +93,17 @@
           "-b"
         ]}
       '';
+      modifierNames = {
+        shift = "Shift";
+        control = "Control";
+        alt = "Mod1";
+      };
+      applicationBindings = lib.mapAttrs' (
+        _: binding:
+        lib.nameValuePair (lib.concatStringsSep "+" (
+          [ "Mod4" ] ++ map (modifier: modifierNames.${modifier}) binding.modifiers ++ [ binding.key ]
+        )) "exec ${binding.command}"
+      ) config.my.desktop.applicationBindings;
       topologyI3 = lib.concatMapStrings (
         output:
         lib.concatMapStrings (
@@ -126,7 +137,8 @@
               window.border = 2;
               floating.modifier = mod;
 
-              keybindings = {
+              terminal = config.my.desktop.terminalCommand;
+              keybindings = applicationBindings // {
                 # Terminal is compositor-specific (Hyprland uses termHere).
                 "${mod}+Return" = "exec ${config.my.desktop.terminalCommand}";
 
