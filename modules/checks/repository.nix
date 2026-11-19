@@ -1,4 +1,9 @@
-{ lib, self, ... }:
+{
+  inputs,
+  lib,
+  self,
+  ...
+}:
 let
   featuresDir = ../features;
   directories =
@@ -56,6 +61,40 @@ let
   topLevelHosts = lib.attrNames (lib.filterAttrs (_: type: type == "directory") hostEntries);
   configuredHosts =
     lib.attrNames (self.nixosConfigurations or { }) ++ lib.attrNames (self.darwinConfigurations or { });
+
+  # A host's default.nix is a manifest: only `imports`, plus per-user Home
+  # Manager `imports`. Host facts and settings belong in settings.nix. The
+  # file is evaluated with stub module arguments, and only its keys are read.
+  hostManifest =
+    host:
+    (import (../../hosts + "/${host}/default.nix") {
+      inherit inputs lib self;
+      config.my.user.name = "stub";
+      pkgs = null;
+    });
+  manifestViolations = lib.concatMap (
+    host:
+    let
+      manifest = hostManifest host;
+      keys = lib.attrNames manifest;
+      users = manifest.home-manager.users or { };
+    in
+    map (key: "hosts/${host}/default.nix defines `${key}`") (
+      lib.subtractLists [
+        "imports"
+        "home-manager"
+      ] keys
+    )
+    ++ lib.concatMap (
+      user:
+      map (key: "hosts/${host}/default.nix defines `home-manager.users.${user}.${key}`") (
+        lib.subtractLists [ "imports" ] (lib.attrNames users.${user})
+      )
+    ) (lib.attrNames users)
+    ++ map (key: "hosts/${host}/default.nix defines `home-manager.${key}`") (
+      lib.subtractLists [ "users" ] (lib.attrNames (manifest.home-manager or { }))
+    )
+  ) topLevelHosts;
 in
 {
   perSystem =
@@ -93,6 +132,10 @@ in
             topLevelHosts == lib.sort builtins.lessThan configuredHosts
             && lib.length (lib.unique configuredHosts) == lib.length configuredHosts;
           message = "Each top-level host directory must have exactly one explicit NixOS or Darwin configuration output.";
+        }
+        {
+          assertion = manifestViolations == [ ];
+          message = "Host default.nix files must define only imports; move settings to settings.nix: ${toString manifestViolations}.";
         }
         {
           assertion = !builtins.pathExists ../hosts;

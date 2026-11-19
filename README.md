@@ -28,7 +28,9 @@ Saradomin's DNS architecture and router setup are documented in
 The dependency direction is **host -> profile -> feature -> upstream module**.
 Hosts own machine facts and explicitly import profiles and selected features;
 profiles compose features and policy; features must not depend on profiles or
-hosts. `hosts/` contains the four concrete host directories.
+hosts. `hosts/` contains the four concrete host directories. In each, `default.nix` is the import manifest (profiles and feature
+imports grouped by topic) and `settings.nix` holds host facts and per-host
+settings.
 `modules/flake/configurations.nix` explicitly constructs the NixOS and
 nix-darwin configuration outputs from those hosts.
 

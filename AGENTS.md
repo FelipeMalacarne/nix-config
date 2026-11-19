@@ -36,7 +36,11 @@ hosts.
 
 ### Layout
 
-- `hosts/<name>/` — concrete machines. `modules/flake/configurations.nix`
+- `hosts/<name>/` — concrete machines. `default.nix` is the import manifest:
+  only `imports` (local files, profiles, features grouped under topic comments)
+  and per-user Home Manager `imports`; `checks.repository-structure` enforces
+  it. `settings.nix` holds host facts and per-host settings. `hardware.nix`,
+  `disk.nix` and `desktop.nix` stay beside them. `modules/flake/configurations.nix`
   constructs every NixOS and nix-darwin output explicitly; update it when adding
   a host.
 - `modules/features/<domain>/` — features in eight topic domains. Each stays
