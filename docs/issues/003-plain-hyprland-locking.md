@@ -8,7 +8,7 @@
 
 ## Problem And Evidence
 
-The [Hypridle configuration](../../modules/features/desktop/hyprland/config/hyprland.nix#L113-L132)
+The [Hypridle configuration](../../modules/features/desktop/hyprland/hyprland.nix#L113-L132)
 attaches locking, pre-sleep locking, and DPMS listeners to
 `wayland-session@hyprland.desktop.target`. That target belongs to the UWSM
 session lifecycle, not the raw `hyprland.desktop` login path.

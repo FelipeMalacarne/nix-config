@@ -14,7 +14,7 @@ enable `lock_before_suspend`, but the
 selects `suspend`. Review of the pinned native shell established that this action
 bypasses its lock-ready handshake; `lock_and_suspend` provides that path.
 
-The [Hypridle pre-sleep hook](../../modules/features/desktop/hyprland/config/hyprland.nix#L117-L121)
+The [Hypridle pre-sleep hook](../../modules/features/desktop/hyprland/hyprland.nix#L117-L121)
 and [Umbriel idle integration](../../modules/features/desktop/umbriel/config/home.nix#L201-L219)
 may provide external protection when their session services are active. The
 finding is an avoidable gap in the menu action's own ordering guarantee, not

@@ -16,7 +16,7 @@ Hyprland 0.56.2 established that these legacy dispatcher names are incompatible
 with its Lua configuration manager.
 
 Other bindings already construct `hl.dsp` actions. The
-[configuration](../../modules/features/desktop/hyprland/config/hyprland.nix#L18-L19)
+[configuration](../../modules/features/desktop/hyprland/hyprland.nix#L18-L19)
 exposes the package's Lua stubs, while the
 [generated-Lua check](../../modules/checks.nix#L754-L769) checks syntax rather than
 proving that embedded legacy command strings are accepted by the compositor.
