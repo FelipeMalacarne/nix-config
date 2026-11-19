@@ -43,10 +43,7 @@
       wpctl = "${pkgs.wireplumber}/bin/wpctl";
       dpms = action: "${hyprctl} dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
       shellCommands = config.my.desktop.shellCommands;
-      shellCommand =
-        name:
-        if shellCommands.${name} == null || shellCommands.${name} == "" then ":" else shellCommands.${name};
-      shellCommandJson = name: builtins.toJSON (shellCommand name);
+      shellCommandJson = name: builtins.toJSON shellCommands.${name};
       terminalCommand = config.my.desktop.terminalCommand;
       uwsm = lib.getExe pkgs.uwsm;
       jq = lib.getExe pkgs.jq;
@@ -117,14 +114,14 @@
           systemdTarget = "wayland-session@hyprland.desktop.target";
           settings = {
             general = {
-              lock_cmd = shellCommand "lock";
-              before_sleep_cmd = shellCommand "lock";
+              lock_cmd = shellCommands.lock;
+              before_sleep_cmd = shellCommands.lock;
               after_sleep_cmd = dpms "enable";
             };
             listener = [
               {
                 timeout = 180;
-                on-timeout = shellCommand "lock";
+                on-timeout = shellCommands.lock;
               }
               {
                 timeout = 240;

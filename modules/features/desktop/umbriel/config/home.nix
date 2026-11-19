@@ -7,7 +7,6 @@
 let
   umbriel = lib.getExe config.programs.umbriel.package;
   shellCommands = config.my.desktop.shellCommands;
-  shellCommand = name: if shellCommands.${name} == null then ":" else shellCommands.${name};
   once = action: {
     inherit action;
     repeat = false;
@@ -137,11 +136,11 @@ in
           "Mod+Shift+Escape" = (once "shortcuts-inhibit-toggle") // {
             allow_when_inhibited = true;
           };
-          "Mod+Space" = spawn (shellCommand "launcher");
-          "Mod+Period" = spawn (shellCommand "dashboard");
-          "Mod+Comma" = spawn (shellCommand "settings");
-          "Mod+Delete" = spawn (shellCommand "session");
-          "Mod+L" = spawn (shellCommand "lock");
+          "Mod+Space" = spawn shellCommands.launcher;
+          "Mod+Period" = spawn shellCommands.dashboard;
+          "Mod+Comma" = spawn shellCommands.settings;
+          "Mod+Delete" = spawn shellCommands.session;
+          "Mod+L" = spawn shellCommands.lock;
           "Mod+S" = once "scratchpad-toggle";
           "Mod+Shift+S" = once "window-move-to-scratchpad";
           "Mod+Ctrl+S" = once "window-restore-from-scratchpad";
@@ -186,7 +185,7 @@ in
       timeouts = [
         {
           timeout = 180;
-          command = shellCommand "lock";
+          command = shellCommands.lock;
         }
         {
           timeout = 240;
@@ -195,8 +194,8 @@ in
         }
       ];
       events = {
-        lock = shellCommand "lock";
-        before-sleep = shellCommand "lock";
+        lock = shellCommands.lock;
+        before-sleep = shellCommands.lock;
         after-resume = "${umbriel} msg dpms-on";
       };
     };

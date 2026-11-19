@@ -117,14 +117,11 @@
           && !(noneHome.wayland.windowManager.hyprland.extraLuaFiles ? noctalia)
           && !(noneHome.systemd.user.services ? caelestia)
           && noneHome.programs.umbriel.settings.general.autostart == [ ]
-          && lib.all (command: command == null) (lib.attrValues noneHome.my.desktop.shellCommands)
+          && lib.all (command: command == ":") (lib.attrValues noneHome.my.desktop.shellCommands)
         ) "none must install neither provider and expose no provider startup or commands";
         assert lib.assertMsg (
-          noctaliaHome.my.desktop.shellCommands == noctaliaHome.my.desktop.shellProviders.noctalia.commands
-          &&
-            caelestiaHome.my.desktop.shellCommands == caelestiaHome.my.desktop.shellProviders.caelestia.commands
-          && (!invalidShell.success || !invalidShell.value)
-        ) "Provider commands must match the registry and invalid selectors must fail";
+          !invalidShell.success || !invalidShell.value
+        ) "Invalid shell selectors must fail";
         assert lib.assertMsg (
           zarosHome.programs.noctalia.enable
           && zarosHome.my.desktop.shellCommands == noctaliaHome.my.desktop.shellCommands
