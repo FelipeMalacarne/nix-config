@@ -64,6 +64,49 @@ in
           update.version_check = false;
           # Desktop notifications through the outer terminal, also over SSH.
           ui.toast.delivery = "terminal";
+          # Keys for actions Herdr leaves unset, avoiding the us(intl) dead keys
+          # (' " ` ~ ^). A declared key that matches another action's default
+          # disables that default silently; checks.herdr-integration rejects it.
+          keys = {
+            last_pane = "prefix+;";
+            next_agent = "prefix+a";
+            previous_agent = "prefix+shift+a";
+            # Hyprland moves between workspaces with SUPER+[ and SUPER+].
+            previous_workspace = "prefix+{";
+            next_workspace = "prefix+}";
+            move_tab_previous = "prefix+<";
+            move_tab_next = "prefix+>";
+            open_worktree = "prefix+shift+o";
+            clear_pane = "prefix+shift+c";
+            # Direct chords repeat while held; prefix+r stays as resize mode.
+            resize_pane_left = "ctrl+alt+shift+left";
+            resize_pane_down = "ctrl+alt+shift+down";
+            resize_pane_up = "ctrl+alt+shift+up";
+            resize_pane_right = "ctrl+alt+shift+right";
+            # Matches the Neovim <leader>| split.
+            split_vertical = [
+              "prefix+v"
+              "prefix+|"
+            ];
+            command = [
+              {
+                key = "prefix+t";
+                type = "popup";
+                command = "exec \"\${SHELL:-sh}\"";
+                description = "scratch shell";
+                width = "80%";
+                height = "80%";
+              }
+              {
+                key = "prefix+ctrl+g";
+                type = "popup";
+                command = "lazygit";
+                description = "lazygit";
+                width = "90%";
+                height = "90%";
+              }
+            ];
+          };
         };
       };
 
@@ -136,6 +179,33 @@ in
       hooksDir = "${withClaude.programs.claude-code.configDir}/hooks";
       hookPath = "${hooksDir}/herdr-agent-state.sh";
       settings = (pkgs.formats.toml { }).generate "herdr-config.toml" alone.programs.herdr.settings;
+      jq = lib.getExe pkgs.jq;
+      declaredKeys = pkgs.writeText "herdr-keys.json" (
+        builtins.toJSON alone.programs.herdr.settings.keys
+      );
+      keyReference = "${alone.programs.herdr.package.src}/docs/next/website/src/data/config-reference.json";
+      # Herdr registers declared keys before its defaults and skips a default
+      # whose key is taken without a diagnostic, so `herdr config check` passes.
+      shadowedDefaults = pkgs.writeText "herdr-shadowed-defaults.jq" ''
+        def list: if type == "array" then . else [.] end;
+        def norm: split("+") | (.[-1] |= if test("^[A-Z]$") then "shift+" + ascii_downcase else . end) | join("+");
+        $declared[0] as $keys
+        | ($keys | del(.command, .prefix)) as $fields
+        | [
+            ($fields | to_entries[] | {field: .key, key: (.value | list[] | norm)}),
+            (($keys.command // [])[] | {field: "command \(.key)", key: (.key | norm)})
+          ] as $taken
+        | $reference[0].sections[] | select(.id == "keys") | .keys[]
+        | select(.default != "unset" and .key != "keys.prefix")
+        | (.key | ltrimstr("keys.")) as $field
+        | select($fields | has($field) | not)
+        | (.default | fromjson | list[] | norm) as $key
+        | $taken[] | select(.key == $key)
+        | "\(.field) takes \($key) and silently disables the default \($field)"
+      '';
+      shadowed =
+        declared:
+        "${jq} -rn --slurpfile declared ${declared} --slurpfile reference ${keyReference} -f ${shadowedDefaults}";
     in
     {
       checks.herdr = mkAssertCheck "herdr" [
@@ -200,6 +270,10 @@ in
         export HOME=$TMPDIR/home
         mkdir -p $HOME
         HERDR_CONFIG_PATH=${settings} ${lib.getExe alone.programs.herdr.package} config check
+        ${shadowed declaredKeys} > shadowed
+        if [ -s shadowed ]; then cat shadowed >&2; exit 1; fi
+        echo '{"last_pane": "prefix+c"}' > taken.json
+        ${shadowed "taken.json"} | grep 'disables the default new_tab'
         cp -rL ${withClaude.home-files}/.claude $HOME/.claude
         ${lib.getExe alone.programs.herdr.package} integration status | grep '^claude: current '
 
