@@ -16,11 +16,11 @@ in
   flake.modules.darwin.ai = workstation;
   flake.modules.homeManager.ai = {
     imports = with registry.homeManager; [
-      opencode
       claude-code
       codex
-      github-copilot-cli
       herdr
+      # github-copilot-cli
+      # opencode
     ];
   };
 
