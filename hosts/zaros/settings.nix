@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -23,6 +24,24 @@ in
   };
 
   networking.hostName = "zaros";
+
+  # Home Assistant on saradomin (gielinor: apps/home-assistant) suspends zaros
+  # over SSH. Its key runs only this command, and sudo skips the polkit prompt
+  # that a remote session would get.
+  users.users.${user}.openssh.authorizedKeys.keys = [
+    ''command="/run/wrappers/bin/sudo /run/current-system/sw/bin/systemctl suspend",restrict ${lib.fileContents ../../keys/home-assistant.pub}''
+  ];
+  security.sudo.extraRules = [
+    {
+      users = [ user ];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/systemctl suspend";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 
   console = {
     font = "ter-v24b";
