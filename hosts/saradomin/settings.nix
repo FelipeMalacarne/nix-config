@@ -71,5 +71,13 @@ in
       }
     ];
   };
+
+  # Home Assistant runs on the host network so Wake-on-LAN broadcasts reach the
+  # LAN (gielinor: apps/home-assistant). Only Traefik, on the k3s pod network,
+  # may reach its port.
+  networking.firewall.extraCommands = ''
+    iptables -A nixos-fw -s 10.42.0.0/16 -p tcp --dport 8123 -j nixos-fw-accept
+  '';
+
   system.stateVersion = "25.11";
 }
