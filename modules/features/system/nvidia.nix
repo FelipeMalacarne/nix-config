@@ -10,6 +10,10 @@
         open = true;
         nvidiaSettings = true;
         package = config.boot.kernelPackages.nvidiaPackages.stable;
+        # Without it, VRAM is lost on suspend and Hyprland aborts on resume
+        # (Xid 13). With the open modules on 595+, this also enables the
+        # kernel suspend notifiers instead of the nvidia-sleep.sh services.
+        powerManagement.enable = true;
       };
 
       services.xserver.videoDrivers = [ "nvidia" ];
