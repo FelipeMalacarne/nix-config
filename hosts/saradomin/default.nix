@@ -6,6 +6,7 @@
     ./settings.nix
     # profiles
     server
+    ai
     # shell
     ssh-credentials
     # services
