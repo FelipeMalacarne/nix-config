@@ -139,7 +139,10 @@ let
 
         stylix.targets.firefox.profileNames = [ user ] ++ cfg.extraProfiles;
 
+        # Persist the mode that pywalfox resends on every connection, overriding
+        # each profile's extension setting (auto switches to light by day).
         home.activation.updatePywalfox = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          $DRY_RUN_CMD ${pkgs.pywalfox-native}/bin/pywalfox ${config.stylix.polarity} || true
           $DRY_RUN_CMD ${pkgs.pywalfox-native}/bin/pywalfox update || true
         '';
 
