@@ -28,8 +28,13 @@ in
         - Create git worktrees with
           `herdr worktree create --cwd <repo> --branch <branch> --no-focus`,
           never with `git worktree add`. Herdr places them under
-          `~/.herdr/worktrees/` and opens a workspace for each. Remove one with
-          `herdr worktree remove --workspace <id>`.
+          `~/.herdr/worktrees/` and opens a workspace for each.
+        - Remove each worktree you created with
+          `herdr worktree remove --workspace <id>` as soon as its branch is
+          pushed or abandoned and `git status` shows nothing to keep. A later
+          fix to the same branch creates a new worktree. Before ending a task,
+          run `herdr worktree list --cwd <repo>` and remove yours; ask before
+          removing one you did not create.
         - Run processes that must outlive the turn, such as dev servers and
           watchers, in a sibling pane: `herdr pane split --current --no-focus`,
           then `herdr pane run`.
