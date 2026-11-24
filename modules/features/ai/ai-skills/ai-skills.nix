@@ -17,6 +17,9 @@ in
     linear-issue-skill = publish {
       linear-issue = ./skills/linear-issue;
     };
+    linear-context-skill = publish {
+      linear-context = ./skills/linear-context;
+    };
   };
 
   perSystem = { pkgs, ... }: {
