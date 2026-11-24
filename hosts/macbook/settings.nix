@@ -13,6 +13,11 @@ in
 
   services.openssh.enable = true;
 
+  # Work stays on skhd's alt+shift+b default profile.
+  services.skhd.skhdConfig = ''
+    alt + shift - p : open -na Firefox --args -P personal
+  '';
+
   my = {
     user.name = "felipeautentique";
 
@@ -33,6 +38,8 @@ in
     { lib, ... }:
     {
       my.infrastructure.ssh.hosts = config.my.infrastructure.ssh.hosts;
+      # The existing default profile holds work accounts.
+      my.firefox.extraProfiles = [ "personal" ];
 
       home.activation.installZarosAuthorizedKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 700 -d "$HOME/.ssh"
