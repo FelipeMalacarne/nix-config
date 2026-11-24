@@ -1,12 +1,17 @@
 { self, ... }:
 {
   flake.modules.darwin.skhd =
+    { config, ... }:
     let
       termCmd = "open -na Ghostty";
       mod = "alt";
     in
     {
       services.skhd.enable = true;
+      # nix-darwin reloads an agent only when its plist changes, and the plist
+      # always points at /etc/skhdrc. Hash the config into it so edits restart skhd.
+      launchd.user.agents.skhd.serviceConfig.EnvironmentVariables.SKHD_CONFIG_HASH =
+        builtins.hashString "sha256" config.services.skhd.skhdConfig;
       services.skhd.skhdConfig = ''
         ${mod} - w : skhd -k "cmd - w"
         ${mod} + shift - w : skhd -k "cmd - q"
@@ -79,7 +84,8 @@
         ctrl + ${mod} - 3 : yabai -m display --focus 3
 
         ${mod} - return : ${termCmd}
-        ${mod} + shift - b : open -na Firefox
+        # Holding Option while Firefox starts opens Troubleshoot Mode.
+        ${mod} + shift - b : open -na Firefox --env MOZ_DISABLE_SAFE_MODE_KEY=1
         ${mod} + shift - f : ${termCmd} --args -e yazi
         ${mod} + shift - t : ${termCmd} --args -e btop
         ${mod} + shift - i : ${termCmd} --args -e fastfetch

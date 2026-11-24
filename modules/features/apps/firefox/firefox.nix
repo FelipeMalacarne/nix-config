@@ -44,6 +44,13 @@ let
         description = "Additional isolated Firefox profiles with the same extensions and theme as the default profile. Open one with `firefox -P <name>`.";
       };
 
+      options.my.firefox.defaultProfileLabel = lib.mkOption {
+        type = lib.types.str;
+        default = user;
+        example = "work";
+        description = "Label shown in the default profile's toolbar when extra profiles exist.";
+      };
+
       imports = [ ./config/tridactyl.nix ];
 
       config = {
@@ -91,21 +98,43 @@ let
           # Preserve Linux's existing profiles; Darwin uses Home Manager's native path.
           configPath = lib.mkIf pkgs.stdenv.hostPlatform.isLinux ".mozilla/firefox";
 
-          profiles = {
-            ${user} = sharedProfile // {
-              id = 0;
-              isDefault = true;
-              name = user;
-            };
-          }
-          // lib.listToAttrs (
-            lib.imap1 (id: name: {
-              inherit name;
-              value = sharedProfile // {
-                inherit id name;
-              };
-            }) cfg.extraProfiles
-          );
+          profiles = lib.mkMerge [
+            (
+              {
+                ${user} = sharedProfile // {
+                  id = 0;
+                  isDefault = true;
+                  name = user;
+                };
+              }
+              // lib.listToAttrs (
+                lib.imap1 (id: name: {
+                  inherit name;
+                  value = sharedProfile // {
+                    inherit id name;
+                  };
+                }) cfg.extraProfiles
+              )
+            )
+            # Label each window with its profile once there is more than one.
+            (lib.mkIf (cfg.extraProfiles != [ ]) (
+              lib.mapAttrs (name: label: {
+                settings."toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+                userChrome = ''
+                  #nav-bar::before {
+                    content: "${label}";
+                    align-self: center;
+                    margin-inline: 6px;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    color: #${p.base00};
+                    background-color: #${if name == user then p.base0D else p.base0E};
+                  }
+                '';
+              }) ({ ${user} = cfg.defaultProfileLabel; } // lib.genAttrs cfg.extraProfiles lib.id)
+            ))
+          ];
         };
 
         stylix.targets.firefox.profileNames = [ user ] ++ cfg.extraProfiles;

@@ -10,12 +10,16 @@ let
   p = config.lib.stylix.colors;
   isMac = pkgs.stdenv.hostPlatform.isDarwin;
 
-  # editorcmd must stay in the foreground until the editor exits.
+  # Firefox launched from the Dock or Finder only has the system PATH, so the
+  # native messenger must receive absolute paths. editorcmd must stay in the
+  # foreground until the editor exits.
+  nvim = "${config.home.profileDirectory}/bin/nvim";
+  ghostty = config.programs.ghostty.package;
   editorCmd =
     if isMac then
-      "open -nWa Ghostty --args -e nvim"
+      "/usr/bin/open -nWa ${ghostty}/Applications/Ghostty.app --args -e ${nvim}"
     else
-      "${lib.getExe config.programs.ghostty.package} -e nvim";
+      "${lib.getExe ghostty} -e ${nvim}";
 in
 {
   programs.firefox.nativeMessagingHosts = [ pkgs.tridactyl-native ];
