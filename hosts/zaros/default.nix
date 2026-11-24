@@ -48,6 +48,8 @@
     toolchain-laravel
     toolchain-node
     toolchain-python
+    # ai
+    linear-context-skill
     # apps
     artcraft
     chronicle

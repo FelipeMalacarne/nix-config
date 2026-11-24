@@ -347,11 +347,12 @@ sets. Do not hide required integrations by adding them to every fixture.
 
 ## Issue backlog
 
-Open work lives in [GitHub Issues](https://github.com/FelipeMalacarne/nix-config/issues),
-labelled by priority (`P1`–`P3`) and by `needs-decision` or `deferred`. Each issue
-records evidence, scope, acceptance criteria and approval boundaries; an issue does
-not authorize deployment, credential changes, destructive storage work or live tests.
-The former Markdown backlog is in git history before its removal.
+Open work lives in the `nix-config` project in Linear (team `FEL`), with Linear
+priority (formerly `P1`–`P3`) and the labels `needs-decision` or `deferred`. Each
+issue records evidence, scope, acceptance criteria and approval boundaries; an
+issue does not authorize deployment, credential changes, destructive storage work
+or live tests. The GitHub issues #2–#29 were migrated there and closed; the former
+Markdown backlog is in git history before its removal.
 
 ## Validation and deferred work
 

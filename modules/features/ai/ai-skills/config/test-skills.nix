@@ -45,7 +45,13 @@ let
     claudeClient
     opencodeClient
   ];
+  context = evaluate [
+    registry.linear-context-skill
+    claudeClient
+    opencodeClient
+  ];
   source = ../skills/linear-issue;
+  contextSource = ../skills/linear-context;
   python = pkgs.python3.withPackages (ps: [ ps.pyyaml ]);
 in
 assert !(absent.programs.claude-code.skills ? linear-issue);
@@ -63,6 +69,9 @@ assert
     "ai-client-troubleshooting"
     "linear-issue"
   ];
+assert !(unselected.programs.claude-code.skills ? linear-context);
+assert context.programs.claude-code.skills == { linear-context = contextSource; };
+assert context.programs.opencode.skills == { linear-context = contextSource; };
 pkgs.runCommand "ai-skills" { } ''
   cmp ${source}/SKILL.md ${both.home-files}/.claude/skills/linear-issue/SKILL.md
   cmp ${source}/SKILL.md ${both.home-files}/.config/opencode/skills/linear-issue/SKILL.md
@@ -79,6 +88,18 @@ pkgs.runCommand "ai-skills" { } ''
   assert metadata["argument-hint"] == "[brief context of the task]"
   assert "score_issue = (complexidade * 0.70)" in body
   assert "Portuguese (pt-BR)" in body
+  PY
+  cmp ${contextSource}/SKILL.md ${context.home-files}/.claude/skills/linear-context/SKILL.md
+  ${python}/bin/python3 -B - ${contextSource}/SKILL.md <<'PY'
+  from pathlib import Path
+  import sys
+  import yaml
+
+  _, frontmatter, body = Path(sys.argv[1]).read_text().split("---", 2)
+  metadata = yaml.safe_load(frontmatter)
+  assert metadata["name"] == "linear-context"
+  assert isinstance(metadata["description"], str) and metadata["description"]
+  assert "**Repos:**" in body
   PY
   touch "$out"
 ''
