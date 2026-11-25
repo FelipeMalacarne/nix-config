@@ -1,4 +1,9 @@
-{ config, inputs, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 let
   publish =
     skills:
@@ -20,6 +25,17 @@ in
     linear-context-skill = publish {
       linear-context = ./skills/linear-context;
     };
+    # wayfinder and the skills it calls by name; the rest of the plugin
+    # overlaps with pstack.
+    wayfinder-skills = publish (
+      lib.mapAttrs (_: path: "${inputs.mattpocock-skills}/skills/${path}") {
+        wayfinder = "engineering/wayfinder";
+        grilling = "productivity/grilling";
+        domain-modeling = "engineering/domain-modeling";
+        research = "engineering/research";
+        prototype = "engineering/prototype";
+      }
+    );
   };
 
   perSystem = { pkgs, ... }: {
