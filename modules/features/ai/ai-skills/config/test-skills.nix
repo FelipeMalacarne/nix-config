@@ -50,6 +50,11 @@ let
     claudeClient
     opencodeClient
   ];
+  wayfinder = evaluate [
+    registry.wayfinder-skills
+    claudeClient
+    opencodeClient
+  ];
   source = ../skills/linear-issue;
   contextSource = ../skills/linear-context;
   python = pkgs.python3.withPackages (ps: [ ps.pyyaml ]);
@@ -72,6 +77,16 @@ assert
 assert !(unselected.programs.claude-code.skills ? linear-context);
 assert context.programs.claude-code.skills == { linear-context = contextSource; };
 assert context.programs.opencode.skills == { linear-context = contextSource; };
+assert !(unselected.programs.claude-code.skills ? wayfinder);
+assert
+  builtins.attrNames wayfinder.programs.claude-code.skills == [
+    "domain-modeling"
+    "grilling"
+    "prototype"
+    "research"
+    "wayfinder"
+  ];
+assert wayfinder.programs.opencode.skills == wayfinder.programs.claude-code.skills;
 pkgs.runCommand "ai-skills" { } ''
   cmp ${source}/SKILL.md ${both.home-files}/.claude/skills/linear-issue/SKILL.md
   cmp ${source}/SKILL.md ${both.home-files}/.config/opencode/skills/linear-issue/SKILL.md
@@ -101,5 +116,9 @@ pkgs.runCommand "ai-skills" { } ''
   assert isinstance(metadata["description"], str) and metadata["description"]
   assert "**Repos:**" in body
   PY
+  for skill in wayfinder grilling domain-modeling research prototype; do
+    grep -q "^name: $skill$" ${wayfinder.home-files}/.claude/skills/$skill/SKILL.md
+  done
+  test -f ${wayfinder.home-files}/.claude/skills/domain-modeling/ADR-FORMAT.md
   touch "$out"
 ''

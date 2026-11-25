@@ -50,6 +50,7 @@
     toolchain-python
     # ai
     linear-context-skill
+    wayfinder-skills
     # apps
     artcraft
     chronicle
