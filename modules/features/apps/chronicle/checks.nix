@@ -37,7 +37,7 @@
         settings
         // {
           serverUrl = "https://chronicle.example.test:8443";
-          account = "acc_check";
+          slots = 4;
           harnessDir = "/srv/chronicle-check";
         }
       );
@@ -70,7 +70,7 @@
           }
         ];
       host = mkHost {
-        account = "acc_check";
+        slots = 2;
         secret.sopsFile = "${sopsFile}";
       };
       defaults = mkHost { };
@@ -137,17 +137,18 @@
               && hasEnv home "MICROBOT_AGENT_CLIENT_ID=agent-check"
               && hasEnv home "MICROBOT_AGENT_CLIENT_SECRET_FILE=/run/agent-check/client-secret"
               && hasEnv home "MICROBOT_HARNESS_DIR=/tmp/feature-check/repos/chronicle"
+              && !(builtins.elem "MICROBOT_AGENT_SLOTS" (envNames home))
               && !(builtins.elem "MICROBOT_AGENT_ACCOUNT" (envNames home))
               && !(builtins.elem "MICROBOT_AGENT_CLIENT_SECRET" (envNames home));
-            message = "The agent must default to saradomin, declare no account and get its secret only as a file path.";
+            message = "The agent must default to saradomin and chronicle's own slot count, declare no account and get its secret only as a file path.";
           }
           {
             assertion =
               hasEnv custom "CHRONICLE_URL=https://chronicle.example.test:8443"
-              && hasEnv custom "MICROBOT_AGENT_ACCOUNT=acc_check"
+              && hasEnv custom "MICROBOT_AGENT_SLOTS=4"
               && hasEnv custom "MICROBOT_HARNESS_DIR=/srv/chronicle-check"
               && (service custom).Service.WorkingDirectory == "/srv/chronicle-check";
-            message = "Server URL, declared account and harness checkout must reach the agent's environment.";
+            message = "Server URL, slot count and harness checkout must reach the agent's environment.";
           }
           {
             assertion =
@@ -184,9 +185,10 @@
               (settings // { serverUrl = "http://chronicle.example.test"; })
               (settings // { serverUrl = "https://chronicle.example.test/"; })
               (settings // { clientId = "agent check"; })
-              (settings // { account = "acc_%n"; })
+              (settings // { slots = 0; })
+              (settings // { slots = 17; })
             ];
-            message = "Missing settings, store or relative paths and unsafe environment values must fail evaluation.";
+            message = "Missing settings, store or relative paths, unsafe environment values and slot counts outside 1 to 16 must fail evaluation.";
           }
           {
             assertion =
@@ -201,7 +203,7 @@
           }
           {
             assertion =
-              hasEnv hostHome "MICROBOT_AGENT_ACCOUNT=acc_check"
+              hasEnv hostHome "MICROBOT_AGENT_SLOTS=2"
               && hasEnv hostHome "MICROBOT_AGENT_CLIENT_ID=agent-check"
               && hasEnv hostHome "MICROBOT_HARNESS_DIR=${host.users.users.${user}.home}/repos/chronicle"
               && (service hostHome).Unit.X-Restart-Triggers == [ "${sopsFile}" ]
