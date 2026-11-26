@@ -140,11 +140,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1795626768,
-        "narHash": "sha256-/hlIw3lET8SZzUbX70vGfvBiwdxPVtJuF5ttjf/JhhI=",
+        "lastModified": 1795714935,
+        "narHash": "sha256-ej5Sa3rsgWQxykqTcbqFnz+eEfnS2moXmYltFHPd5MQ=",
         "owner": "FelipeMalacarne",
         "repo": "chronicle",
-        "rev": "819e5db53483eb8fe3abd0c2b2191e338b666daf",
+        "rev": "96db18ab77c0db4ed52a3cf0f6e92638ef4ef5f8",
         "type": "github"
       },
       "original": {
