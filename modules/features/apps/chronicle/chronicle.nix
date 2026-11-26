@@ -27,11 +27,15 @@ let
         example = "chronicle-agent";
         description = "Client id of the Zitadel machine user with the `microbot:agent` role (MICROBOT_AGENT_CLIENT_ID).";
       };
-      account = lib.mkOption {
-        type = lib.types.nullOr (lib.types.strMatching envValue);
+      slots = lib.mkOption {
+        type = lib.types.nullOr (lib.types.ints.between 1 16);
         default = null;
-        example = "acc_myrsn";
-        description = "Chronicle account the agent declares (MICROBOT_AGENT_ACCOUNT); null declares none.";
+        example = 4;
+        description = ''
+          How many accounts the planner may run on this machine at once, one
+          game client per slot (MICROBOT_AGENT_SLOTS); null keeps chronicle's
+          default of one. Each client takes about 2.7 GB of memory.
+        '';
       };
       harnessDir = lib.mkOption {
         type = lib.types.strMatching "/${envValue}";
@@ -127,7 +131,7 @@ let
                 )
               }"
             ]
-            ++ lib.optional (cfg.account != null) "MICROBOT_AGENT_ACCOUNT=${cfg.account}";
+            ++ lib.optional (cfg.slots != null) "MICROBOT_AGENT_SLOTS=${toString cfg.slots}";
             Restart = "on-failure";
             RestartSec = "5s";
             RestartSteps = 6;

@@ -49,7 +49,12 @@ in
   };
 
   my = {
-    chronicle.agent.clientId = "chronicle-agent-zaros";
+    chronicle.agent = {
+      clientId = "chronicle-agent-zaros";
+      # 16 threads and 30 GB: four game clients of about 2.7 GB each, with room
+      # left for the desktop and a dev client.
+      slots = 4;
+    };
     wol.interface = "enp12s0";
     rgb.color = config.lib.stylix.colors.withHashtag.base0E;
     restic = {
