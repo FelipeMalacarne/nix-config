@@ -141,6 +141,16 @@ Import the Home Manager `artcraft` aspect and select apps with
 Zaros selects only FilmCraft with `programs.artcraft.mcp.enable`. Pick up new
 releases with `nix flake update artcraft`.
 
+The Home Manager `chronicle` aspect installs the
+[Chronicle](https://github.com/FelipeMalacarne/chronicle) CLI from the
+`chronicle` input. Its NixOS companion `chronicle-agent` runs `chronicle agent`,
+the Microbot control agent, as a lingering `chronicle-agent` user service,
+configured through `my.chronicle.agent`; the Zitadel machine user's client
+secret comes from SOPS (`secrets/chronicle-agent.yaml`) and reaches the agent
+only as a file path. A host imports it once that secret exists;
+[`docs/chronicle-agent.md`](docs/chronicle-agent.md) covers the settings, the
+headless runtime and the steps to enable it.
+
 A host selects a desktop session by importing its aspect: `hyprland`, `umbriel`
 or `i3`. Each imported session adds itself to `my.desktop.sessions`, and
 `my.desktop.defaultSession` must be one of them. Zaros imports `hyprland` and
