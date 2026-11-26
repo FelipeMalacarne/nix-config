@@ -23,6 +23,7 @@
     noctalia-greeter
     ./desktop.nix
     # apps
+    chronicle-agent
     recording
     # games
     gaming

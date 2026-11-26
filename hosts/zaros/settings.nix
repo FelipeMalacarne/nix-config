@@ -49,6 +49,7 @@ in
   };
 
   my = {
+    chronicle.agent.clientId = "chronicle-agent-zaros";
     wol.interface = "enp12s0";
     rgb.color = config.lib.stylix.colors.withHashtag.base0E;
     restic = {
