@@ -13,6 +13,7 @@ builtins.attrNames (
     nvidia = builtins.elem "nvidia" host.services.xserver.videoDrivers;
     ollama = host.services.ollama.enable;
     openssh = host.services.openssh.enable;
+    recomplauncher = lib.any (p: lib.getName p == "recomplauncher") host.environment.systemPackages;
     restic = host.services.restic.backups ? r2;
     rgb = host.services.hardware.openrgb.enable;
     sunshine = host.services.sunshine.enable;

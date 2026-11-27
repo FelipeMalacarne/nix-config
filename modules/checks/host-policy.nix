@@ -25,6 +25,7 @@ in
         "gaming"
         "nvidia"
         "ollama"
+        "recomplauncher"
         "sunshine"
       ];
       headless =

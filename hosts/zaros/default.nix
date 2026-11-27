@@ -27,6 +27,7 @@
     recording
     # games
     gaming
+    recomplauncher
     # services
     ollama
     openssh

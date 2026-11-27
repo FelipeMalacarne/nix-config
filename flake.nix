@@ -96,6 +96,11 @@
       inputs.flake-parts.follows = "flake-parts";
     };
 
+    recomplauncher = {
+      url = "github:elripalda/RecompLauncher";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     artcraft = {
       url = "github:FelipeMalacarne/artcraft-flake";
       inputs.nixpkgs.follows = "nixpkgs";

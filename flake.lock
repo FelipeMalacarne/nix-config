@@ -1054,6 +1054,26 @@
         "url": "https://git.outfoxxed.me/outfoxxed/quickshell"
       }
     },
+    "recomplauncher": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795737578,
+        "narHash": "sha256-w014jp3KYWSlt70AyIOfoiXXlGe0jRp3AKZKDs0lRyA=",
+        "owner": "elripalda",
+        "repo": "RecompLauncher",
+        "rev": "e05984a35ad6d8c4553f0e140cb4f83cf3a25124",
+        "type": "github"
+      },
+      "original": {
+        "owner": "elripalda",
+        "repo": "RecompLauncher",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "artcraft": "artcraft",
@@ -1077,6 +1097,7 @@
         "opencode": "opencode",
         "orca": "orca",
         "phpantom-lsp": "phpantom-lsp",
+        "recomplauncher": "recomplauncher",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
         "treefmt-nix": "treefmt-nix_3",
